@@ -9,132 +9,143 @@ using MultiThreadExecutor;
 
 namespace DB_MainFrame
 {
+    class SqlPipelineNode
+    {
+        public SqlSequenceParser Parser { get; set; }
+        public Task<ParseTreeNode> Task { get; }
+        private readonly string _sqlSequence;
+
+        public SqlPipelineNode(string sql)
+        {
+            _sqlSequence = sql ?? throw new ArgumentNullException(nameof(sql));
+            Task = new Task<ParseTreeNode>(() => Parser.BuildLexicalTree(_sqlSequence));
+        }
+    }
     sealed class MainFrame
     {
         private Queue<SqlSequenceParser> _sqlParsers;
+
         private SimpleDataBaseEngine _baseEngine;
-        private Queue<string> _sqlSequences;
-        private object _sequencesQueueLocker;
-        private MultiThreadQueue<string, ParseTreeNode, SqlSequenceParser> _sqlCommandsQueue;
+        private Queue<SqlPipelineNode> _sleepSqlCommands;
+        private Queue<SqlPipelineNode> _workingSqlCommands;
+        private object _sleepSequencesQueueLocker;
+        private object _workingSequencesQueueLocker;
+
         private Semaphore _parsersSemaphore;
-        private object _parserQueueLocker;
+        private object _parsersLocker;
         private Thread _inputQueueControler;
-        private ManualResetEvent _sqlRequestsNotify;
-        private ManualResetEvent _executeCommandNotify;
-        private readonly int _maxParsedSqlInQueue;
-        private Semaphore _ParsedSqlInQueueSemaphore;
-        private Thread _ExecuteCommandControler;
+        private Thread _executeControler;
 
-        public MainFrame(int parsersCount, int maxParsedSqlInQueueu, SimpleDataBaseEngine baseEngine)
+        public MainFrame(int parsersCount, SimpleDataBaseEngine baseEngine)
         {
-            _maxParsedSqlInQueue = maxParsedSqlInQueueu;
+            _workingSequencesQueueLocker = new object();
+            _sleepSequencesQueueLocker = new object();
+            _parsersLocker = new object();
 
+            _baseEngine = baseEngine;
             _sqlParsers = new Queue<SqlSequenceParser>();
+            _sleepSqlCommands = new Queue<SqlPipelineNode>();
+            _workingSqlCommands = new Queue<SqlPipelineNode>();
+
+            _parsersSemaphore = new Semaphore(parsersCount, parsersCount, "Parsers Semaphore");
             for (var i = 0; i < parsersCount; i++)
             {
                 _sqlParsers.Enqueue(new SqlSequenceParser());
             }
-            _parserQueueLocker = new object();
 
-            _parsersSemaphore = new Semaphore(parsersCount, parsersCount, "Sql Parsers Semaphore");
-            _ParsedSqlInQueueSemaphore = new Semaphore(_maxParsedSqlInQueue, _maxParsedSqlInQueue, "Parsed Sql In Queue Semaphore");
-
-            _baseEngine = baseEngine ?? throw new ArgumentNullException(nameof(baseEngine));
-
-            _sqlSequences = new Queue<string>();
-            _sequencesQueueLocker = new object();
-
-            _sqlRequestsNotify = new ManualResetEvent(false);
             _inputQueueControler = new Thread(TryParseSql);
             _inputQueueControler.Start();
 
-            _executeCommandNotify = new ManualResetEvent(false);
-            _ExecuteCommandControler = new Thread(ExecuteCommand);
-            _ExecuteCommandControler.Start();
-
-            _sqlCommandsQueue = new MultiThreadQueue<string, ParseTreeNode, SqlSequenceParser>();
-
-            _sqlCommandsQueue.CreatingDataCompleted += ParsingCompleted;
-            _sqlCommandsQueue.CreatingNodeCompleted += ContinueParsing;
-            _sqlCommandsQueue.CreatingNodeCompleted += ContinueExecuteCommand;
+            _executeControler = new Thread(TryExecuteCommand);
+            _executeControler.Start();
         }
 
 
         public void GetSqlSequence(string sqlSequence)
         {
-            lock (_sequencesQueueLocker)
+            lock (_sleepSequencesQueueLocker)
             {
-                _sqlSequences.Enqueue(sqlSequence);
+                _sleepSqlCommands.Enqueue(new SqlPipelineNode(sqlSequence));
             }
-
-            _sqlRequestsNotify.Set();
         }
 
         private void TryParseSql()
         {
-            SqlSequenceParser parser;
-
             while (true)
             {
-                //_sqlRequestsNotify.WaitOne();
-                while (_sqlSequences?.Count > 0)
+                var queueNotEmpty = false;
+
+                lock (_sleepSequencesQueueLocker)
+                {
+                    queueNotEmpty = _sleepSqlCommands?.Count > 0;
+                }
+
+                while (queueNotEmpty)
                 {
                     _parsersSemaphore.WaitOne();
 
-                    lock (_parserQueueLocker)
+                    SqlPipelineNode sql;
+
+                    lock (_sleepSequencesQueueLocker)
                     {
-                        parser = _sqlParsers.Dequeue();
+                        sql = _sleepSqlCommands.Dequeue();
                     }
 
-                    lock (_sequencesQueueLocker)
-                    {   
-                        _ParsedSqlInQueueSemaphore.WaitOne();
-                        Task.Run(() => _sqlCommandsQueue.AddObjectToEnd(_sqlSequences?.Dequeue(), parser.BuildLexicalTree, parser));
+                    lock (_parsersLocker)
+                    {
+                        sql.Parser = _sqlParsers.Dequeue();
+                    }
+
+                    sql.Task.Start();
+
+                    lock (_workingSequencesQueueLocker)
+                    {
+                        _workingSqlCommands.Enqueue(sql);
+                    }
+
+                    lock (_sleepSequencesQueueLocker)
+                    {
+                        queueNotEmpty = _sleepSqlCommands?.Count > 0;
                     }
                 }
-                //_sqlRequestsNotify.Reset();
             }
         }
-
-        private void ExecuteCommand()
+        private void TryExecuteCommand()
         {
             while (true)
             {
-                //_executeCommandNotify.WaitOne();
-                while (_sqlCommandsQueue?.GetObjectsCount() > 0)
+                var queueNotEmpty = false;
+
+                lock (_workingSequencesQueueLocker)
                 {
-                    TakeParseTreeNode();
+                    queueNotEmpty = _workingSqlCommands?.Count > 0;
                 }
-                //_executeCommandNotify.Reset();
-            }
-        }
 
-        public void ParsingCompleted(SqlSequenceParser parser)
-        {
-            lock (_parserQueueLocker)
-            {
-                if (parser != null)
+                while (queueNotEmpty)
                 {
-                    _sqlParsers.Enqueue(parser);
+                    SqlPipelineNode command;
+
+                    lock (_workingSequencesQueueLocker)
+                    {
+                        command = _workingSqlCommands.Dequeue();
+                    }
+
+                    var treeNode = command.Task.Result;
+
+                    lock (_parsersLocker)
+                    {
+                        _sqlParsers.Enqueue(command.Parser);
+                        _parsersSemaphore.Release();
+                    }
+
+                    //ToDO:ExecuteCommandFunction
+
+                    lock (_workingSequencesQueueLocker)
+                    {
+                        queueNotEmpty = _workingSqlCommands?.Count > 0;
+                    }
                 }
-                _parsersSemaphore.Release();
             }
-        }
-
-        public void ContinueParsing()
-        {
-            _sqlRequestsNotify.Set();
-        }
-
-        public void ContinueExecuteCommand()
-        {
-            _executeCommandNotify.Set();
-        }
-
-        public ProcessedObject<ParseTreeNode> TakeParseTreeNode()
-        {
-            _ParsedSqlInQueueSemaphore.Release();
-            return _sqlCommandsQueue.GetFirst();
         }
     }
 
@@ -142,12 +153,12 @@ namespace DB_MainFrame
     {
         static void Main()
         {
-            var core = new MainFrame(10, 10, new SimpleDataBaseEngine());
+            var core = new MainFrame(1, new SimpleDataBaseEngine());
 
             //var parser = new SqlSequenceParser();
-            for (var i = 0; i < 1000000; i++)
+            for (var i = 0; i < 1_000_000; i++)
             {
-                Task.Run(() => core.GetSqlSequence($"CREATE TABLE Customers{i} (Id INT, Age FLOAT, Name VARCHAR);"));
+                core.GetSqlSequence($"CREATE TABLE Customers{i} (Id INT, Age FLOAT, Name VARCHAR);");
                 //parser.BuildLexicalTree($"CREATE TABLE Customers{i} (Id INT, Age FLOAT, Name VARCHAR);");
             }
 

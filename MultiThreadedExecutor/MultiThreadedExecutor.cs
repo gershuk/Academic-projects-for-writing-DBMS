@@ -15,9 +15,9 @@ namespace MultiThreadExecutor
         public ProcessedObject() => Locker = new Semaphore(1, 1);
     }
 
-    public class MultiThreadQueue<InObjType, SavedObjType, WorkerType>
+    public class MultiThreadQueue<InObjType, SavedObjType>
     {
-        public event Action<WorkerType> CreatingDataCompleted;
+        public event Action<Func<InObjType, SavedObjType>> CreatingDataCompleted;
         public event Action CreatingNodeCompleted;
 
         private LinkedList<ProcessedObject<SavedObjType>> _processedObjects;
@@ -36,7 +36,7 @@ namespace MultiThreadExecutor
             }
         }
 
-        public void AddObjectToEnd(InObjType obj, Func<InObjType, SavedObjType> function, WorkerType worker)
+        public void AddObjectToEnd(InObjType obj, Func<InObjType, SavedObjType> function)
         {
             var newNode = new LinkedListNode<ProcessedObject<SavedObjType>>(new ProcessedObject<SavedObjType>());
 
@@ -64,7 +64,7 @@ namespace MultiThreadExecutor
                 semaphore.Release();
             }
 
-            CreatingDataCompleted(worker);
+            CreatingDataCompleted(function);
             CreatingNodeCompleted();
         }
 

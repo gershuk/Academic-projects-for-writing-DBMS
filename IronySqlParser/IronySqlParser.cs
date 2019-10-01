@@ -22,6 +22,7 @@ namespace IronySqlParser
             var comma = ToTerm(",");
             var dot = ToTerm(".");
             var CREATE = ToTerm("CREATE");
+            var SHOW = ToTerm("SHOW");
             var NULL = ToTerm("NULL");
             var NOT = ToTerm("NOT");
             var UNIQUE = ToTerm("UNIQUE");
@@ -37,6 +38,7 @@ namespace IronySqlParser
             var id = new NonTerminal("id");
             var sqlSequence = new NonTerminal("sqlSequence");
             var createTableStmt = new NonTerminal("createTableStmt");
+            var showTableStmt = new NonTerminal("showTableStmt");
             var alterStmt = new NonTerminal("alterStmt");
             var dropTableStmt = new NonTerminal("dropTableStmt");
             var fieldDef = new NonTerminal("fieldDef");
@@ -72,7 +74,7 @@ namespace IronySqlParser
             id.Rule = MakePlusRule(id, dot, simpleId);
 
             sqlSequence.Rule = createTableStmt | alterStmt
-                      | dropTableStmt;
+                      | dropTableStmt | showTableStmt;
             //Create table
             createTableStmt.Rule = CREATE + TABLE + id + "(" + fieldDefList + ")" + constraintListOpt;
             fieldDefList.Rule = MakePlusRule(fieldDefList, comma, fieldDef);
@@ -98,6 +100,9 @@ namespace IronySqlParser
 
             //Drop stmts
             dropTableStmt.Rule = DROP + TABLE + id;
+
+            //Show table
+            showTableStmt.Rule=SHOW + TABLE + id;
 
             MarkPunctuation(",", "(", ")");
             MarkPunctuation(asOpt, semiOpt);

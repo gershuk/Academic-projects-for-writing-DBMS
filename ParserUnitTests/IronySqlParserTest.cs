@@ -11,7 +11,6 @@ namespace SqlParserUnitTest
         [TestMethod]
         public void CheckCreateTable()
         {
-            var grammar = new SqlGrammar();
             var parser = new SqlSequenceParser();
 
             var goodSequences = new List<string>() { "CREATE TABLE Customers (Id INT,Age FLOAT, Name VARCHAR);" ,
@@ -36,7 +35,6 @@ namespace SqlParserUnitTest
         [TestMethod]
         public void DropTable()
         {
-            var grammar = new SqlGrammar();
             var parser = new SqlSequenceParser();
 
             var goodSequences = new List<string>() { "DROP TABLE table;", "DROP TABLE table.GGGGG;" };

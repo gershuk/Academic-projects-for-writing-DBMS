@@ -9,6 +9,8 @@ namespace DataBaseEngine
    
     public enum OperationExecutionState
     {
+        notProcessed,
+        parserError,
         failed,
         performed
     }
@@ -35,10 +37,10 @@ namespace DataBaseEngine
 
         OperationExecutionState AddColumnToTable(string tableName, Column column);
 
-        OperationResult<TableData> GetTableData(string name);
-        OperationResult<TableMetaInf> GetTableMetaInf(string name);
+        OperationResult<string> GetTableData(string name);
+        OperationResult<string> GetTableMetaInf(string name);
 
-        OperationExecutionState DeleteTable(string name);
+        OperationResult<string> DeleteTable(string name);
     }
 
     public interface IDataBaseEngineDuty

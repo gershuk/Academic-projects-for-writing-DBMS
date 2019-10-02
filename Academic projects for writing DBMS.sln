@@ -5,8 +5,6 @@ VisualStudioVersion = 16.0.29324.140
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IronySqlParser", "IronySqlParser\IronySqlParser.csproj", "{F76788B3-3114-45C0-AB42-8B1A9E62CF71}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlParserUnitTests", "ParserUnitTests\SqlParserUnitTests.csproj", "{F0D84711-0871-4B5B-A084-E33D138669F9}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataBaseEngine", "DataBaseEngine\DataBaseEngine.csproj", "{55FC74AF-52B0-4AEF-ACBA-C080E76A5FC1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DB_MainFrame", "DB_MainFrame\DB_MainFrame.csproj", "{007EB87A-AB4F-481A-876C-CE1DB2F41A96}"
@@ -14,6 +12,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiThreadedExecutor", "MultiThreadedExecutor\MultiThreadedExecutor.csproj", "{218DAAD8-3073-484B-AC73-05A15494ECE1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IronySqlParser.Tests", "IronySqlParser.Tests\IronySqlParser.Tests.csproj", "{748479AF-A95E-45F1-9E01-4913113CC895}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DB_MainFrame.Tests", "DB_MainFrame.Tests\DB_MainFrame.Tests.csproj", "{DC75C808-0434-46C2-B57D-0A4459FE5D03}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,10 +25,6 @@ Global
 		{F76788B3-3114-45C0-AB42-8B1A9E62CF71}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F76788B3-3114-45C0-AB42-8B1A9E62CF71}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F76788B3-3114-45C0-AB42-8B1A9E62CF71}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F0D84711-0871-4B5B-A084-E33D138669F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F0D84711-0871-4B5B-A084-E33D138669F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F0D84711-0871-4B5B-A084-E33D138669F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F0D84711-0871-4B5B-A084-E33D138669F9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{55FC74AF-52B0-4AEF-ACBA-C080E76A5FC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{55FC74AF-52B0-4AEF-ACBA-C080E76A5FC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55FC74AF-52B0-4AEF-ACBA-C080E76A5FC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -45,6 +41,10 @@ Global
 		{748479AF-A95E-45F1-9E01-4913113CC895}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{748479AF-A95E-45F1-9E01-4913113CC895}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{748479AF-A95E-45F1-9E01-4913113CC895}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC75C808-0434-46C2-B57D-0A4459FE5D03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC75C808-0434-46C2-B57D-0A4459FE5D03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC75C808-0434-46C2-B57D-0A4459FE5D03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC75C808-0434-46C2-B57D-0A4459FE5D03}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

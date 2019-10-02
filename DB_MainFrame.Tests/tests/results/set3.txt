@@ -1,0 +1,9 @@
+Hello!
+Please enter your sql request.
+If you want to quit write 'exit'.
+Error DeleteTable, Table named t doesn't exist
+ failed
+--------------------------------------------------------------------------------
+Error DeleteTable, Table named t doesn't exist
+ failed
+--------------------------------------------------------------------------------

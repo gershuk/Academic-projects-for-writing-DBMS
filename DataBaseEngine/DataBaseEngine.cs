@@ -70,6 +70,10 @@ namespace DataBaseEngine
         {
             TablePool = new Dictionary<string, Table>();
         }
+        public DataBase(string path)
+        {
+            LoadTablePool(path);
+        }
         public OperationExecutionState AddColumnToTable(string tableName,Column column) {
             if (!TablePool.ContainsKey(tableName))
             {

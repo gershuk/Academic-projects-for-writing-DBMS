@@ -130,16 +130,18 @@ namespace IronySqlParser
 
         public void ShowLexicalTree(ParseTreeNode node, int level)
         {
-            for (var i = 0; i < level; i++)
-            {
-                Console.Write("  ");
-            }
+            if (node != null) {
+                for (var i = 0; i < level; i++)
+                {
+                    Console.Write("  ");
+                }
 
-            Console.WriteLine(node);
+                Console.WriteLine(node);
 
-            foreach (var child in node.ChildNodes)
-            {
-                ShowLexicalTree(child, level + 1);
+                foreach (var child in node.ChildNodes)
+                {
+                    ShowLexicalTree(child, level + 1);
+                }
             }
         }
     }

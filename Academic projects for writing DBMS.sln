@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataBaseEngine", "DataBaseE
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DB_MainFrame", "DB_MainFrame\DB_MainFrame.csproj", "{007EB87A-AB4F-481A-876C-CE1DB2F41A96}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiThreadedExecutor", "MultiThreadedExecutor\MultiThreadedExecutor.csproj", "{218DAAD8-3073-484B-AC73-05A15494ECE1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiThreadedExecutor", "MultiThreadedExecutor\MultiThreadedExecutor.csproj", "{218DAAD8-3073-484B-AC73-05A15494ECE1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IronySqlParser.Tests", "IronySqlParser.Tests\IronySqlParser.Tests.csproj", "{748479AF-A95E-45F1-9E01-4913113CC895}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{218DAAD8-3073-484B-AC73-05A15494ECE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{218DAAD8-3073-484B-AC73-05A15494ECE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{218DAAD8-3073-484B-AC73-05A15494ECE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{748479AF-A95E-45F1-9E01-4913113CC895}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{748479AF-A95E-45F1-9E01-4913113CC895}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{748479AF-A95E-45F1-9E01-4913113CC895}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{748479AF-A95E-45F1-9E01-4913113CC895}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

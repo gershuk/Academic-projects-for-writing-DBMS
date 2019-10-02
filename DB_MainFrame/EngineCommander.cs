@@ -37,14 +37,15 @@ namespace DB_MainFrame
                 return OperationExecutionState.failed;
             }
 
-            var columns = new List<(string type, string name)>();
+            var columns = new List<Column>();
 
             //ToDo: Get column info from tree
 
             foreach (var column in columns)
             {
+                
                 //ToDo: Convert string to type
-                state = Engine.AddColumnToTable<object>(column.name);
+                state = Engine.AddColumnToTable(name.ToString(),column);
                 if (state == OperationExecutionState.failed)
                 {
                     return OperationExecutionState.failed;

@@ -48,7 +48,7 @@ namespace DB_MainFrame
         private bool _disposed = false;
         private bool _stopWorking = false;
 
-        public MainFrame(int parsersCount, SimpleDataBaseEngine baseEngine)
+        public MainFrame(int parsersCount, DataBaseEngineMain baseEngine)
         {
             _workingSequencesQueueLocker = new object();
             _sleepSequencesQueueLocker = new object();
@@ -231,7 +231,7 @@ namespace DB_MainFrame
 
         static void Main()
         {
-            var core = new MainFrame(10, new SimpleDataBaseEngine());
+            var core = new MainFrame(10, new DataBaseEngineMain());
             var exitState = true;
             Console.WriteLine("Hello!");
             Console.WriteLine("Please enter your sql request.");
@@ -251,7 +251,8 @@ namespace DB_MainFrame
                     Console.WriteLine(ans);
                     Console.WriteLine("--------------------------------------------------------------------------------");
                 }
-                //"CREATE TABLE Customers (Id INT,Age FLOAT, Name VARCHAR(20));"
+                //"CREATE TABLE Customers (Id INT NOT NULL,Age FLOAT, Name VARCHAR(20));"
+                //"SHOW TABLE Customers;"
             }
         }
     }

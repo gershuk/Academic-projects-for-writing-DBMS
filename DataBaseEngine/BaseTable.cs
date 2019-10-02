@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using DataBaseEngine;
 using Newtonsoft.Json;
+using System.IO;
 namespace DataBaseTable
 {
     public enum ColumnDataType
@@ -29,6 +30,7 @@ namespace DataBaseTable
         TEXT,
         NTEXT
     }
+
     public class Column
     {
         public Column() { }
@@ -36,13 +38,17 @@ namespace DataBaseTable
         {
             Name = name;
         }
-        public Column(string name, ColumnDataType dataType)
+        public Column(string name, ColumnDataType dataType, int dataParam, List<string> constrains)
         {
             Name = name;
             DataType = dataType;
+            DataParam = dataParam;
+            Constrains = constrains;
         }
         public string Name { get; set; }
         public ColumnDataType DataType { get; set; }
+        public int DataParam { get; set;}
+        public List<string> Constrains { get; set; }
         public int Size { get; set; }
     }
     public class TableMetaInf
@@ -52,7 +58,7 @@ namespace DataBaseTable
         {
             Name = name;
         }
-        public OperationExecutionState AddColumn(Column column)
+        public OperationResult<string> AddColumn(Column column)
         {
             ColumnPool = ColumnPool ?? new Dictionary<string, Column>(); 
             if (!ColumnPool.ContainsKey(column.Name))
@@ -61,12 +67,15 @@ namespace DataBaseTable
             }
             else
             {
-                Console.WriteLine("Error AddColumn, Column with name {0} alredy exist in Table {1}", column.Name, Name);
-                return OperationExecutionState.failed;
+                using (var sw = new StringWriter())
+                {
+                    sw.WriteLine("Error AddColumn, Column with name {0} alredy exist in Table {1}", column.Name, Name);
+                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
+                }
             }
-            return OperationExecutionState.performed;
+            return new OperationResult<string>(OperationExecutionState.performed,"ok");
         }
-        public OperationExecutionState DeleteColumn(string ColumName)
+        public OperationResult<string> DeleteColumn(string ColumName)
         {
             ColumnPool = ColumnPool ?? new Dictionary<string, Column>();
             if (ColumnPool.ContainsKey(ColumName))
@@ -75,10 +84,13 @@ namespace DataBaseTable
             }
             else
             {
-                Console.WriteLine("Error DeleteColumn, Column with name {0} not exist in Table {1}", ColumName, Name);
-                return OperationExecutionState.failed;
+                using (var sw = new StringWriter())
+                {
+                    sw.WriteLine("Error DeleteColumn, Column with name {0} not exist in Table {1}", ColumName, Name);
+                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
+                }
             }
-            return OperationExecutionState.performed;
+            return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
         public string Name { get; set; }
         public Dictionary<string, Column> ColumnPool { get; set; }
@@ -111,11 +123,11 @@ namespace DataBaseTable
             TableData = tableData ?? throw new ArgumentNullException(nameof(tableData));
             TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
         }
-        public OperationExecutionState DeleteColumn(string ColumName)
+        public OperationResult<string> DeleteColumn(string ColumName)
         {
             return TableMetaInf.DeleteColumn(ColumName);
         }
-        public OperationExecutionState AddColumn(Column column)
+        public OperationResult<string> AddColumn(Column column)
         {
           return TableMetaInf.AddColumn(column);
         }

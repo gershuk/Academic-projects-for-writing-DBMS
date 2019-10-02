@@ -1,17 +1,18 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DataBaseEngine;
 using DataBaseTable;
+using System.Collections.Generic;
 
 namespace DataBaseEngineUnitTest
 {
     [TestClass]
     public class DataBaseUnitTests
     {
-        DataBase dataBase;
+        DataBaseEngineMain dataBase;
         [TestInitialize]
         public void TestInitialize()
         {
-            dataBase = new DataBase();
+            dataBase = new DataBaseEngineMain();
         }
         [TestMethod]
         public void AddTableOnlyNameTest()
@@ -39,7 +40,7 @@ namespace DataBaseEngineUnitTest
         {
             var tableName = "Table1";
             var tableName2 = "Table2";
-            var column = new Column("age", ColumnDataType.CHAR);
+            var column = new Column("age", ColumnDataType.CHAR,0,new List<string>());
             var path = "SaveLoadTablePoolTest.db";
             var tableMetaInf = new TableMetaInf(tableName);
             tableMetaInf.AddColumn(column);
@@ -61,7 +62,7 @@ namespace DataBaseEngineUnitTest
             var tableName = "Table1";
             var columnName = "age";
             var columnType = ColumnDataType.FLOAT;
-            var column = new Column(columnName, columnType);
+            var column = new Column(columnName, columnType,0, new List<string>());
             var result = dataBase.CreateTable(tableName);
             Assert.AreEqual(result, OperationExecutionState.performed);
             Assert.AreEqual(dataBase.TablePool.ContainsKey(tableName), true);

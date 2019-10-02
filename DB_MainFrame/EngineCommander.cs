@@ -9,9 +9,9 @@ namespace DB_MainFrame
 {
     class EngineCommander
     {
-        public EngineCommander(SimpleDataBaseEngine engine) => Engine = engine ?? throw new ArgumentNullException(nameof(engine));
+        public EngineCommander(DataBaseEngineMain engine) => Engine = engine ?? throw new ArgumentNullException(nameof(engine));
 
-        public SimpleDataBaseEngine Engine { get; set; }
+        public DataBaseEngineMain Engine { get; set; }
 
         public OperationResult<string> CreateTable(ParseTreeNode node)
         {
@@ -34,7 +34,7 @@ namespace DB_MainFrame
                 var _typeNameNode = FindChildNodeByName(fieldDef, "typeName")[0];
                 var _typeParamsNode = FindChildNodeByName(fieldDef, "typeParams")[0];
                 var _columnName = BuildNameFromId(id);
-                var _type = ParseEnum<DataBaseTypes>(_typeNameNode.ChildNodes[0].Token.Text);
+                var _type = ParseEnum<ColumnDataType>(_typeNameNode.ChildNodes[0].Token.Text);
                 var _typeParams = _typeParamsNode?.ChildNodes.Count > 0 ? _typeParamsNode?.ChildNodes[0].Token.Text : null;
                 var _constraintListOptNode = FindChildNodeByName(fieldDef, "constraintListOpt")[0];
                 var _constraintDefList = FindChildNodeByName(_constraintListOptNode, "constraintDef");
@@ -62,15 +62,15 @@ namespace DB_MainFrame
                     constrain = constrain.Trim();
                     _constraintList.Add(constrain);
                 }
-
-                var _state = Engine.AddColumnToTable(tableName, _columnName, _type, _typeParams, _constraintList.ToArray());
-
+                var _typeParamsInt = _typeParams == null ? 0 : int.Parse(_typeParams);
+                var column = new Column(_columnName, _type, _typeParamsInt, _constraintList);
+                var _state = Engine.AddColumnToTable(tableName, column);
                 if (_state.State == OperationExecutionState.failed)
                 {
                     return new OperationResult<string>(OperationExecutionState.failed, "added column " + _columnName + " faild");
                 }
             }
-            return state;
+            return state; ;
         }
 
         public OperationResult<string> DropTable(ParseTreeNode node)
@@ -88,7 +88,7 @@ namespace DB_MainFrame
 
             var name = BuildNameFromId(idNode);
 
-            return Engine.GetTableMetaInf(name);
+            return Engine.ShowCreateTable(name);
         }
 
         private List<ParseTreeNode> FindChildNodeByName(ParseTreeNode treeNode, string name)

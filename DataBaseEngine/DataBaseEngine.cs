@@ -30,107 +30,124 @@ namespace DataBaseEngine
 
     public interface IDataBaseEngineFunction
     {
-        OperationExecutionState CreateTable(string name);
-        OperationExecutionState CreateTable(TableMetaInf metaInf);
+        OperationResult<string> CreateTable(string name);
+        OperationResult<string> CreateTable(TableMetaInf metaInf);
 
-        OperationExecutionState DeleteColumnFromTable(string tableName, string ColumnName);
+        OperationResult<string> DeleteColumnFromTable(string tableName, string ColumnName);
 
-        OperationExecutionState AddColumnToTable(string tableName, Column column);
+        OperationResult<string> AddColumnToTable(string tableName, Column column);
 
-        OperationResult<string> GetTableData(string name);
-        OperationResult<string> GetTableMetaInf(string name);
+        OperationResult<TableData> GetTableData(string name);
+        OperationResult<TableMetaInf> GetTableMetaInf(string name);
 
         OperationResult<string> DeleteTable(string name);
+        OperationResult<string> ShowCreateTable(string name);
     }
 
     public interface IDataBaseEngineDuty
     {
-        OperationExecutionState LoadTablePool(string path);
-        OperationExecutionState SaveTablePool(string path);
+        OperationResult<string> LoadTablePool(string path);
+        OperationResult<string> SaveTablePool(string path);
     }
 
     public class SimpleDataBaseEngine : IDataBaseEngineDuty, IDataBaseEngineFunction
     {
         public Dictionary<string, Table> TablePool { get; set; }
 
-        public OperationExecutionState AddColumnToTable(string tableName, Column column) => throw new NotImplementedException();
-        public OperationExecutionState CreateTable(string name) => throw new NotImplementedException();
-        public OperationExecutionState CreateTable(TableMetaInf metaInf) => throw new NotImplementedException();
-        public OperationExecutionState DeleteColumnFromTable(string tableName, string ColumnName) => throw new NotImplementedException();
-        public OperationExecutionState DeleteTable(string name) => throw new NotImplementedException();
+        public OperationResult<string> AddColumnToTable(string tableName, Column column) => throw new NotImplementedException();
+        public OperationResult<string> CreateTable(string name) => throw new NotImplementedException();
+        public OperationResult<string> CreateTable(TableMetaInf metaInf) => throw new NotImplementedException();
+        public OperationResult<string> DeleteColumnFromTable(string tableName, string ColumnName) => throw new NotImplementedException();
+        public OperationResult<string> DeleteTable(string name) => throw new NotImplementedException();
         public OperationResult<TableData> GetTableData(string name) => throw new NotImplementedException();
         public OperationResult<TableMetaInf> GetTableMetaInf(string name) => throw new NotImplementedException();
-        public OperationExecutionState LoadTablePool(string path) => throw new NotImplementedException();
-        public OperationExecutionState SaveTablePool(string path) => throw new NotImplementedException();
+        public OperationResult<string> LoadTablePool(string path) => throw new NotImplementedException();
+        public OperationResult<string> SaveTablePool(string path) => throw new NotImplementedException();
+        public OperationResult<string> ShowCreateTable(string name) => throw new NotImplementedException();
     }
 
-    public class DataBase : IDataBaseEngineDuty, IDataBaseEngineFunction
+    public class DataBaseEngineMain : IDataBaseEngineDuty, IDataBaseEngineFunction
     {
-
         public Dictionary<string, Table> TablePool { get; set; }
-        public DataBase()
+        const string fileMark = "DATA_BASE_FILE";
+        public DataBaseEngineMain()
         {
             TablePool = new Dictionary<string, Table>();
         }
-        public DataBase(string path)
+        public DataBaseEngineMain(string path)
         {
             LoadTablePool(path);
         }
-        public OperationExecutionState AddColumnToTable(string tableName,Column column) {
+        public OperationResult<string> AddColumnToTable(string tableName,Column column) {
             if (!TablePool.ContainsKey(tableName))
             {
-                Console.WriteLine("Error DeleteColumnFromTable, Table named {0} doesn't exist", tableName);
-                return OperationExecutionState.failed;
+                using (var sw = new StringWriter())
+                {
+                    sw.WriteLine("Error DeleteColumnFromTable, Table named {0} doesn't exist", tableName);
+                    return new OperationResult<string>(OperationExecutionState.failed,sw.ToString());
+                } 
             }
 
             return TablePool[tableName].AddColumn(column);
         }
-        public OperationExecutionState CreateTable(string name)
+        public OperationResult<string> CreateTable(string name)
         {
             if (TablePool.ContainsKey(name))
             {
-                Console.WriteLine("Error CreateTable, Table with name {0} already exist.", name);
-                return OperationExecutionState.failed;
+                using (var sw = new StringWriter())
+                {
+                    sw.WriteLine("Error CreateTable, Table with name {0} already exist.", name);
+                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
+                }
             }
             else
             {
                 TablePool.Add(name, new Table(name));
             }
 
-            return OperationExecutionState.performed;
+            return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
-        public OperationExecutionState CreateTable(TableMetaInf metaInf)
+        public OperationResult<string> CreateTable(TableMetaInf metaInf)
         {
             if (TablePool.ContainsKey(metaInf.Name))
             {
-                Console.WriteLine("Error CreateTable, Table with name {0} already exist.", metaInf.Name);
-                return OperationExecutionState.failed;
+                using (var sw = new StringWriter())
+                {
+                    sw.WriteLine("Error CreateTable, Table with name {0} already exist.", metaInf.Name);
+                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
+                }
             }
             else
             {
                 TablePool.Add(metaInf.Name, new Table(metaInf));
             }
 
-            return OperationExecutionState.performed;
+            return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
-        public OperationExecutionState DeleteColumnFromTable(string tableName, string ColumnName)
+        public OperationResult<string> DeleteColumnFromTable(string tableName, string ColumnName)
         {
             if (!TablePool.ContainsKey(tableName))
             {
-                Console.WriteLine("Error DeleteColumnFromTable, Table named {0} doesn't exist", tableName);
-                return OperationExecutionState.failed;
+                using (var sw = new StringWriter())
+                {
+                    sw.WriteLine("Error DeleteColumnFromTable, Table named {0} doesn't exist", tableName);
+                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
+                }
             }
             return TablePool[tableName].DeleteColumn(ColumnName);
         }
-        public OperationExecutionState DeleteTable(string tableName)
+        public OperationResult<string> DeleteTable(string tableName)
         {
             if (!TablePool.ContainsKey(tableName))
             {
-                Console.WriteLine("Error DeleteTable, Table named {0} doesn't exist", tableName);
-                return OperationExecutionState.failed;
+                using (var sw = new StringWriter())
+                {
+                    sw.WriteLine("Error DeleteTable, Table named {0} doesn't exist", tableName);
+                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
+                }
             }
             TablePool.Remove(tableName);
-            return OperationExecutionState.performed;
+            return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
         public OperationResult<TableData> GetTableData(string tableName)
         {
@@ -151,32 +168,38 @@ namespace DataBaseEngine
             }
             return new OperationResult<TableMetaInf>(OperationExecutionState.performed, TablePool[tableName].TableMetaInf);
         }
-        public OperationExecutionState LoadTablePool(string path)
+        public OperationResult<string> LoadTablePool(string path)
         {
             if (!File.Exists(path))
             {
-                Console.WriteLine("Error LoadTablePool, File named {0} doesn't exist ", path);
-                return OperationExecutionState.failed;
+                using (var sw = new StringWriter())
+                {
+                    sw.WriteLine("Error LoadTablePool, File named {0} doesn't exist ", path);
+                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
+                }
             }
             using (var sr = new StreamReader(path))
             {
                 if (sr.ReadLine() != fileMark)
                 {
-                    Console.WriteLine("Error LoadTablePool, File named {0} doesn't contain 'file mark' '{1}'  ", path, fileMark);
-                    return OperationExecutionState.failed;
+                    using (var sw = new StringWriter())
+                    {
+                        sw.WriteLine("Error LoadTablePool, File named {0} doesn't contain 'file mark' '{1}'  ", path, fileMark);
+                        return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
+                    }
                 }
                 TablePool = new Dictionary<string, Table>();
                 string line;
                 while ((line = sr.ReadLine()) != null)
                 {
-                    Table table = new Table();
+                    var table = new Table();
                     table.LoadTableMetaInf(line);
                     TablePool.Add(table.TableMetaInf.Name,table);
                 }
             }
-            return OperationExecutionState.performed;
+            return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
-        public OperationExecutionState SaveTablePool(string path)
+        public OperationResult<string> SaveTablePool(string path)
         {
             using (var sw = new StreamWriter(path))
             {
@@ -187,9 +210,39 @@ namespace DataBaseEngine
                     sw.WriteLine("");
                 }
             }
-            return OperationExecutionState.performed;
+            return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
-        const string fileMark = "DATA_BASE_FILE";
+        public OperationResult<string> ShowCreateTable(string tableName)
+        {
+            if (!TablePool.ContainsKey(tableName))
+            {
+                using (var sw = new StringWriter())
+                {
+                    sw.WriteLine("Error DeleteTable, Table named {0} doesn't exist", tableName);
+                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
+                }
+            }
+            using (var sw = new StringWriter())
+            {
+                var table = TablePool[tableName];
+                sw.Write("CREATE TABLE {0}(", table.TableMetaInf.Name);
+                foreach (var key in table.TableMetaInf.ColumnPool)
+                {
+                    var column = key.Value;
+                    sw.Write("{0} {1} ({2})", column.Name, column.DataType.ToString(), column.DataParam);
+                    foreach (var key2 in column.Constrains)
+                    {
+                        sw.Write(" {0}", key2);
+                    }
+                    sw.Write(",");
+                }
+      
+                sw.WriteLine(");");
+
+                return new OperationResult<string>(OperationExecutionState.performed, sw.ToString());
+            }
+        }
+  
     }
 
 }

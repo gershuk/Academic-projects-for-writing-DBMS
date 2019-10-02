@@ -13,7 +13,7 @@ namespace SqlParserUnitTest
         {
             var parser = new SqlSequenceParser();
 
-            var goodSequences = new List<string>() { "CREATE TABLE Customers (Id INT,Age FLOAT, Name VARCHAR);" ,
+            var goodSequences = new List<string>() { "CREATE TABLE Customers (Id INT Not Null,Age FLOAT, Name VARCHAR);" ,
                                                     "CREATE TABLE Customers (Id INT);",
                                                     "CREATE TABLE Customers.Microsoft (Id INT);"};
             foreach (var sequence in goodSequences)

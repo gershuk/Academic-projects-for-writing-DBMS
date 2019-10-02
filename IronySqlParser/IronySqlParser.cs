@@ -48,9 +48,6 @@ namespace IronySqlParser
             var typeParamsOpt = new NonTerminal("typeParams");
             var constraintDef = new NonTerminal("constraintDef");
             var constraintListOpt = new NonTerminal("constraintListOpt");
-            var constraintTypeOpt = new NonTerminal("constraintTypeOpt");
-            var idlist = new NonTerminal("idlist");
-            var idlistPar = new NonTerminal("idlistPar");
             var alterCmd = new NonTerminal("alterCmd");
             var expression = new NonTerminal("expression");
             var asOpt = new NonTerminal("asOpt");
@@ -76,20 +73,17 @@ namespace IronySqlParser
             sqlSequence.Rule = createTableStmt | alterStmt
                       | dropTableStmt | showTableStmt;
             //Create table
-            createTableStmt.Rule = CREATE + TABLE + id + "(" + fieldDefList + ")" + constraintListOpt;
+            createTableStmt.Rule = CREATE + TABLE + id + "(" + fieldDefList  + ")" ;
             fieldDefList.Rule = MakePlusRule(fieldDefList, comma, fieldDef);
-            fieldDef.Rule = id + typeName + typeParamsOpt + nullSpecOpt;
+            fieldDef.Rule = id + typeName + typeParamsOpt + constraintListOpt + nullSpecOpt;
             nullSpecOpt.Rule = NULL | NOT + NULL | Empty;
             typeName.Rule = ToTerm("BIT") | "DATE" | "TIME" | "TIMESTAMP" | "DECIMAL" | "REAL" | "FLOAT" | "SMALLINT" | "INTEGER"
                                          | "INTERVAL" | "CHARACTER" | "DATETIME" | "INT" | "DOUBLE" | "CHAR" | "NCHAR" | "VARCHAR"
                                          | "NVARCHAR" | "IMAGE" | "TEXT" | "NTEXT";
             typeParamsOpt.Rule = "(" + number + ")" | "(" + number + comma + number + ")" | Empty;
-            constraintDef.Rule = CONSTRAINT + id + constraintTypeOpt;
+
             constraintListOpt.Rule = MakeStarRule(constraintListOpt, constraintDef);
-            constraintTypeOpt.Rule = PRIMARY + KEY + idlistPar | UNIQUE + idlistPar | NOT + NULL + idlistPar
-                                   | "Foreign" + KEY + idlistPar + "References" + id + idlistPar;
-            idlistPar.Rule = "(" + idlist + ")";
-            idlist.Rule = MakePlusRule(idlist, comma, id);
+            constraintDef.Rule = (NOT + NULL) | (UNIQUE) | (PRIMARY + KEY) | ("Foreign" + KEY + "References" + id) | ("Default" + stringLiteral) | ("Index" + id);
 
             //Alter 
             alterStmt.Rule = ALTER + TABLE + id + alterCmd;
@@ -132,12 +126,7 @@ namespace IronySqlParser
             return root != null;
         }
 
-        public ParseTreeNode BuildLexicalTree(string sequence)
-        {
-            var parseTree = parser.Parse(sequence);
-            var root = parseTree.Root;
-            return root;
-        }
+        public ParseTree BuildLexicalTree(string sequence) => parser.Parse(sequence);
 
         public void ShowLexicalTree(ParseTreeNode node, int level)
         {

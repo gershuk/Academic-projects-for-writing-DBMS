@@ -4,13 +4,40 @@ using DataBaseTable;
 
 namespace DataBaseEngine
 {
+    public enum DataBaseTypes
+    {
+        BIT,
+        DATE,
+        TIME,
+        TIMESTAMP,
+        DECIMAL,
+        REAL,
+        FLOAT,
+        SMALLINT,
+        INTEGER,
+        INTERVAL,
+        CHARACTER,
+        DATETIME,
+        INT,
+        DOUBLE,
+        CHAR,
+        NCHAR,
+        VARCHAR,
+        NVARCHAR,
+        IMAGE,
+        TEXT,
+        NTEXT
+    }
+
     public enum OperationExecutionState
     {
+        notProcessed,
+        parserError,
         failed,
         performed
     }
 
-    public struct OperationResult<T>
+    public class OperationResult<T>
     {
         public OperationExecutionState State { get; set; }
         public T Result { get; set; }
@@ -24,17 +51,17 @@ namespace DataBaseEngine
 
     public interface IDataBaseEngineFunction
     {
-        OperationExecutionState CreateTable(string name);
-        OperationExecutionState CreateTable(string name, TableMetaInf metaInf);
+        OperationResult<string> CreateTable(string name);
+        OperationResult<string> CreateTable(string name, TableMetaInf metaInf);
 
-        OperationExecutionState DeleteColumnFromTable(string id);
+        OperationResult<string> DeleteColumnFromTable(string id);
 
-        OperationExecutionState AddColumnToTable<T>(T columnName);
+        OperationResult<string> AddColumnToTable(string tableName, string columnName, DataBaseTypes type, string typeParams,params string[] constraint);
 
-        OperationResult<TableData> GetTableData(string name);
-        OperationResult<TableMetaInf> GetTableMetaInf(string name);
+        OperationResult<string> GetTableData(string name);
+        OperationResult<string> GetTableMetaInf(string name);
 
-        OperationExecutionState DeleteTable(string name);
+        OperationResult<string> DeleteTable(string name);
     }
 
     public interface IDataBaseEngineDuty
@@ -45,15 +72,13 @@ namespace DataBaseEngine
 
     public class SimpleDataBaseEngine : IDataBaseEngineDuty, IDataBaseEngineFunction
     {
-        public Dictionary<string, Table> TablePool { get; set; }
-
-        public OperationExecutionState AddColumnToTable<T>(T columnName) => throw new NotImplementedException();
-        public OperationExecutionState CreateTable(string name) => throw new NotImplementedException();
-        public OperationExecutionState CreateTable(string name, TableMetaInf metaInf) => throw new NotImplementedException();
-        public OperationExecutionState DeleteColumnFromTable(string id) => throw new NotImplementedException();
-        public OperationExecutionState DeleteTable(string name) => throw new NotImplementedException();
-        public OperationResult<TableData> GetTableData(string name) => throw new NotImplementedException();
-        public OperationResult<TableMetaInf> GetTableMetaInf(string name) => throw new NotImplementedException();
+        public OperationResult<string> AddColumnToTable(string tableName, string columnName, DataBaseTypes type, string typeParams, params string[] constraint) { return new OperationResult<String>(OperationExecutionState.performed, ""); }
+        public OperationResult<string> CreateTable(string name) { return new OperationResult<String>(OperationExecutionState.performed, ""); }
+        public OperationResult<string> CreateTable(string name, TableMetaInf metaInf) => throw new NotImplementedException();
+        public OperationResult<string> DeleteColumnFromTable(string id) => throw new NotImplementedException();
+        public OperationResult<string> DeleteTable(string name) => throw new NotImplementedException();
+        public OperationResult<string> GetTableData(string name) => throw new NotImplementedException();
+        public OperationResult<string> GetTableMetaInf(string name) => throw new NotImplementedException();
         public OperationExecutionState LoadTablePool(string path) => throw new NotImplementedException();
         public OperationExecutionState SaveTablePool(string path) => throw new NotImplementedException();
     }

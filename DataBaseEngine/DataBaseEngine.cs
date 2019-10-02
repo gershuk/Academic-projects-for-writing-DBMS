@@ -19,13 +19,13 @@ namespace DataBaseEngine
         {
             State = state;
             Result = result;
-        }          
+        }
     }
 
     public interface IDataBaseEngineFunction
     {
         OperationExecutionState CreateTable(string name);
-        OperationExecutionState CreateTable(string name,TableMetaInf metaInf);
+        OperationExecutionState CreateTable(string name, TableMetaInf metaInf);
 
         OperationExecutionState DeleteColumnFromTable(string id);
 
@@ -33,6 +33,8 @@ namespace DataBaseEngine
 
         OperationResult<TableData> GetTableData(string name);
         OperationResult<TableMetaInf> GetTableMetaInf(string name);
+
+        OperationExecutionState DeleteTable(string name);
     }
 
     public interface IDataBaseEngineDuty
@@ -49,6 +51,7 @@ namespace DataBaseEngine
         public OperationExecutionState CreateTable(string name) => throw new NotImplementedException();
         public OperationExecutionState CreateTable(string name, TableMetaInf metaInf) => throw new NotImplementedException();
         public OperationExecutionState DeleteColumnFromTable(string id) => throw new NotImplementedException();
+        public OperationExecutionState DeleteTable(string name) => throw new NotImplementedException();
         public OperationResult<TableData> GetTableData(string name) => throw new NotImplementedException();
         public OperationResult<TableMetaInf> GetTableMetaInf(string name) => throw new NotImplementedException();
         public OperationExecutionState LoadTablePool(string path) => throw new NotImplementedException();

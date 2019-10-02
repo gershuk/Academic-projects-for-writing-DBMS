@@ -37,10 +37,10 @@ namespace IronySqlParser
 
             var id = new NonTerminal("id");
             var sqlSequence = new NonTerminal("sqlSequence");
-            var createTableStmt = new NonTerminal("createTableStmt");
-            var showTableStmt = new NonTerminal("showTableStmt");
+            var createTableStmt = new NonTerminal("CreateTableStmt");
+            var showTableStmt = new NonTerminal("ShowTableStmt");
             var alterStmt = new NonTerminal("alterStmt");
-            var dropTableStmt = new NonTerminal("dropTableStmt");
+            var dropTableStmt = new NonTerminal("DropTableStmt");
             var fieldDef = new NonTerminal("fieldDef");
             var fieldDefList = new NonTerminal("fieldDefList");
             var nullSpecOpt = new NonTerminal("nullSpecOpt");
@@ -102,7 +102,7 @@ namespace IronySqlParser
             dropTableStmt.Rule = DROP + TABLE + id;
 
             //Show table
-            showTableStmt.Rule=SHOW + TABLE + id;
+            showTableStmt.Rule = SHOW + TABLE + id;
 
             MarkPunctuation(",", "(", ")");
             MarkPunctuation(asOpt, semiOpt);

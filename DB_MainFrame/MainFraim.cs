@@ -24,8 +24,7 @@ namespace DB_MainFrame
     sealed class MainFrame
     {
         private Queue<SqlSequenceParser> _sqlParsers;
-
-        private SimpleDataBaseEngine _baseEngine;
+        private EngineCommander _engineCommander;
         private Queue<SqlPipelineNode> _sleepSqlCommands;
         private Queue<SqlPipelineNode> _workingSqlCommands;
         private object _sleepSequencesQueueLocker;
@@ -42,7 +41,7 @@ namespace DB_MainFrame
             _sleepSequencesQueueLocker = new object();
             _parsersLocker = new object();
 
-            _baseEngine = baseEngine;
+            _engineCommander = new EngineCommander(baseEngine);
             _sqlParsers = new Queue<SqlSequenceParser>();
             _sleepSqlCommands = new Queue<SqlPipelineNode>();
             _workingSqlCommands = new Queue<SqlPipelineNode>();
@@ -139,6 +138,22 @@ namespace DB_MainFrame
                     }
 
                     //ToDO:ExecuteCommandFunction
+                    treeNode = treeNode.ChildNodes[0];
+
+                    switch (treeNode.Term.Name)
+                    {
+                        case "DropTableStmt":
+                            _engineCommander.DropTable(treeNode);
+                            break;
+                        case "CreateTableStmt":
+                            _engineCommander.CreateTable(treeNode);
+                            break;
+                        case "ShowTableStmt":
+                            _engineCommander.ShowTable(treeNode);
+                            break;
+                        default:
+                            break;
+                    }
 
                     lock (_workingSequencesQueueLocker)
                     {
@@ -151,18 +166,11 @@ namespace DB_MainFrame
 
     class Program
     {
+
         static void Main()
         {
-            var core = new MainFrame(1, new SimpleDataBaseEngine());
-
-            //var parser = new SqlSequenceParser();
-            for (var i = 0; i < 1_000_000; i++)
-            {
-                core.GetSqlSequence($"CREATE TABLE Customers{i} (Id INT, Age FLOAT, Name VARCHAR);");
-                //parser.BuildLexicalTree($"CREATE TABLE Customers{i} (Id INT, Age FLOAT, Name VARCHAR);");
-            }
-
-            while (true) { }
+            var t = new SqlSequenceParser();
+            t.ShowLexicalTree(t.BuildLexicalTree("DROP TABLE table.faf.aadad;"), 0);
         }
     }
 }

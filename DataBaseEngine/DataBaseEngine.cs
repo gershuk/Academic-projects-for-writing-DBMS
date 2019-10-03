@@ -6,7 +6,7 @@ using System.IO;
 
 namespace DataBaseEngine
 {
-   
+
     public enum OperationExecutionState
     {
         notProcessed,
@@ -74,22 +74,26 @@ namespace DataBaseEngine
         {
             TablePool = new Dictionary<string, Table>();
         }
+
         public DataBaseEngineMain(string path)
         {
             LoadTablePool(path);
         }
-        public OperationResult<string> AddColumnToTable(string tableName,Column column) {
+
+        public OperationResult<string> AddColumnToTable(string tableName, Column column)
+        {
             if (!TablePool.ContainsKey(tableName))
             {
                 using (var sw = new StringWriter())
                 {
                     sw.WriteLine("Error DeleteColumnFromTable, Table named {0} doesn't exist", tableName);
-                    return new OperationResult<string>(OperationExecutionState.failed,sw.ToString());
-                } 
+                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
+                }
             }
 
             return TablePool[tableName].AddColumn(column);
         }
+
         public OperationResult<string> CreateTable(string name)
         {
             if (TablePool.ContainsKey(name))
@@ -107,6 +111,7 @@ namespace DataBaseEngine
 
             return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
+
         public OperationResult<string> CreateTable(TableMetaInf metaInf)
         {
             if (TablePool.ContainsKey(metaInf.Name))
@@ -124,6 +129,7 @@ namespace DataBaseEngine
 
             return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
+
         public OperationResult<string> DeleteColumnFromTable(string tableName, string ColumnName)
         {
             if (!TablePool.ContainsKey(tableName))
@@ -136,6 +142,7 @@ namespace DataBaseEngine
             }
             return TablePool[tableName].DeleteColumn(ColumnName);
         }
+
         public OperationResult<string> DeleteTable(string tableName)
         {
             if (!TablePool.ContainsKey(tableName))
@@ -149,6 +156,7 @@ namespace DataBaseEngine
             TablePool.Remove(tableName);
             return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
+
         public OperationResult<TableData> GetTableData(string tableName)
         {
             if (!TablePool.ContainsKey(tableName))
@@ -168,6 +176,7 @@ namespace DataBaseEngine
             }
             return new OperationResult<TableMetaInf>(OperationExecutionState.performed, TablePool[tableName].TableMetaInf);
         }
+
         public OperationResult<string> LoadTablePool(string path)
         {
             if (!File.Exists(path))
@@ -194,11 +203,12 @@ namespace DataBaseEngine
                 {
                     var table = new Table();
                     table.LoadTableMetaInf(line);
-                    TablePool.Add(table.TableMetaInf.Name,table);
+                    TablePool.Add(table.TableMetaInf.Name, table);
                 }
             }
             return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
+
         public OperationResult<string> SaveTablePool(string path)
         {
             using (var sw = new StreamWriter(path))
@@ -212,6 +222,7 @@ namespace DataBaseEngine
             }
             return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
+
         public OperationResult<string> ShowCreateTable(string tableName)
         {
             if (!TablePool.ContainsKey(tableName))
@@ -225,7 +236,7 @@ namespace DataBaseEngine
             using (var sw = new StringWriter())
             {
                 var table = TablePool[tableName];
-                sw.Write("CREATE TABLE {0}(", table.TableMetaInf.Name);
+                sw.Write("CREATE TABLE {0} (", table.TableMetaInf.Name);
                 foreach (var key in table.TableMetaInf.ColumnPool)
                 {
                     var column = key.Value;
@@ -236,13 +247,14 @@ namespace DataBaseEngine
                     }
                     sw.Write(",");
                 }
-      
-                sw.WriteLine(");");
+                string str = sw.ToString();
+                str = str.TrimEnd(new char[] { ',' });
+                str += ");";
 
-                return new OperationResult<string>(OperationExecutionState.performed, sw.ToString());
+                return new OperationResult<string>(OperationExecutionState.performed, str);
             }
         }
-  
+
     }
 
 }

@@ -16,7 +16,7 @@ namespace DataBaseEngine
     }
 
 
-    public struct OperationResult<T>
+    public class OperationResult<T>
     {
         public OperationExecutionState State { get; set; }
         public T Result { get; set; }

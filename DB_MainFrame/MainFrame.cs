@@ -183,6 +183,7 @@ namespace DB_MainFrame
                             "CreateTableStmt" => _engineCommander.CreateTable(treeNode),
                             "ShowTableStmt" => _engineCommander.ShowTable(treeNode)
                         };
+                        _engineCommander.Engine.Commit();
                     }
 
                     command.AnswerNotify.Set();

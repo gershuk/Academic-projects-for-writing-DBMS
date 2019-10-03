@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiThreadedExecutor", "Mu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IronySqlParser.Tests", "IronySqlParser.Tests\IronySqlParser.Tests.csproj", "{748479AF-A95E-45F1-9E01-4913113CC895}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DB_MainFrame.Tests", "DB_MainFrame.Tests\DB_MainFrame.Tests.csproj", "{DC75C808-0434-46C2-B57D-0A4459FE5D03}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DB_MainFrame.Tests", "DB_MainFrame.Tests\DB_MainFrame.Tests.csproj", "{DC75C808-0434-46C2-B57D-0A4459FE5D03}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataBaseEngineUnitTest", "DataBaseEngineUnitTest\DataBaseEngineUnitTest.csproj", "{74303328-CA67-46B6-8C6A-E27B348A486E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{DC75C808-0434-46C2-B57D-0A4459FE5D03}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC75C808-0434-46C2-B57D-0A4459FE5D03}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC75C808-0434-46C2-B57D-0A4459FE5D03}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74303328-CA67-46B6-8C6A-E27B348A486E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74303328-CA67-46B6-8C6A-E27B348A486E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74303328-CA67-46B6-8C6A-E27B348A486E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74303328-CA67-46B6-8C6A-E27B348A486E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

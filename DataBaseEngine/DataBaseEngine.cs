@@ -50,22 +50,6 @@ namespace DataBaseEngine
         OperationResult<string> SaveTablePool(string path);
     }
 
-    public class SimpleDataBaseEngine : IDataBaseEngineDuty, IDataBaseEngineFunction
-    {
-        public Dictionary<string, Table> TablePool { get; set; }
-
-        public OperationResult<string> AddColumnToTable(string tableName, Column column) => throw new NotImplementedException();
-        public OperationResult<string> CreateTable(string name) => throw new NotImplementedException();
-        public OperationResult<string> CreateTable(TableMetaInf metaInf) => throw new NotImplementedException();
-        public OperationResult<string> DeleteColumnFromTable(string tableName, string ColumnName) => throw new NotImplementedException();
-        public OperationResult<string> DeleteTable(string name) => throw new NotImplementedException();
-        public OperationResult<TableData> GetTableData(string name) => throw new NotImplementedException();
-        public OperationResult<TableMetaInf> GetTableMetaInf(string name) => throw new NotImplementedException();
-        public OperationResult<string> LoadTablePool(string path) => throw new NotImplementedException();
-        public OperationResult<string> SaveTablePool(string path) => throw new NotImplementedException();
-        public OperationResult<string> ShowCreateTable(string name) => throw new NotImplementedException();
-    }
-
     public class DataBaseEngineMain : IDataBaseEngineDuty, IDataBaseEngineFunction
     {
         public Dictionary<string, Table> TablePool { get; set; }

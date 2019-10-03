@@ -30,12 +30,13 @@ namespace DB_MainFrame
 
             foreach (var fieldDef in fieldDefs)
             {
-                var id = FindChildNodeByName(fieldDef, "id")[0];
+                var _idfieldDef = FindChildNodeByName(fieldDef, "id")[0];
                 var _typeNameNode = FindChildNodeByName(fieldDef, "typeName")[0];
                 var _typeParamsNode = FindChildNodeByName(fieldDef, "typeParams")[0];
-                var _columnName = BuildNameFromId(id);
+                var _columnName = BuildNameFromId(_idfieldDef);
                 var _type = ParseEnum<ColumnDataType>(_typeNameNode.ChildNodes[0].Token.Text);
-                var _typeParams = _typeParamsNode?.ChildNodes.Count > 0 ? _typeParamsNode?.ChildNodes[0].Token.Text : null;
+                var _typeParams = _typeParamsNode?.ChildNodes.Count > 0 ? 
+                                  _typeParamsNode?.ChildNodes[0].Token.Text : null;
                 var _constraintListOptNode = FindChildNodeByName(fieldDef, "constraintListOpt")[0];
                 var _constraintDefList = FindChildNodeByName(_constraintListOptNode, "constraintDef");
 
@@ -62,6 +63,7 @@ namespace DB_MainFrame
                     constrain = constrain.Trim();
                     _constraintList.Add(constrain);
                 }
+
                 var _typeParamsInt = _typeParams == null ? 0 : int.Parse(_typeParams);
                 var column = new Column(_columnName, _type, _typeParamsInt, _constraintList);
                 var _state = Engine.AddColumnToTable(tableName, column);

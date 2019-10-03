@@ -70,7 +70,7 @@ namespace DB_MainFrame
                     return new OperationResult<string>(OperationExecutionState.failed, "added column " + _columnName + " faild");
                 }
             }
-            return state; ;
+            return state;
         }
 
         public OperationResult<string> DropTable(ParseTreeNode node)

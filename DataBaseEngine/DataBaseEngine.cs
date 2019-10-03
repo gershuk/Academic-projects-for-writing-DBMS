@@ -247,7 +247,7 @@ namespace DataBaseEngine
                     }
                     sw.Write(",");
                 }
-                string str = sw.ToString();
+                var str = sw.ToString();
                 str = str.TrimEnd(new char[] { ',' });
                 str += ");";
 

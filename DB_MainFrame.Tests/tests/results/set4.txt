@@ -1,14 +1,13 @@
 Hello!
 Please enter your sql request.
 If you want to quit write 'exit'.
- notProcessed
+Syntax error, expected: CREATE, ALTER, DROP, SHOW (1:1) parserError
 --------------------------------------------------------------------------------
- notProcessed
+Syntax error, expected: CREATE, ALTER, DROP, SHOW (1:1) parserError
 --------------------------------------------------------------------------------
- notProcessed
+Syntax error, expected: CREATE, ALTER, DROP, SHOW (1:1) parserError
 --------------------------------------------------------------------------------
- notProcessed
+Syntax error, expected: CREATE, ALTER, DROP, SHOW (1:1) parserError
 --------------------------------------------------------------------------------
- notProcessed
+Syntax error, expected: CREATE, ALTER, DROP, SHOW (1:1) parserError
 --------------------------------------------------------------------------------
-

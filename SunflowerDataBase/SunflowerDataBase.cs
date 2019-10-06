@@ -208,5 +208,14 @@ namespace SunflowerDataBase
                 //"SHOW TABLE Customers;"
             }
         }
+
+        public static SqlCommandResult RunQuery(string query)
+        {
+            var core = new SunflowerDataBase(1, new DataBaseEngineMain());
+            var ans = core.SendSqlSequence(query);
+            ans.AnswerNotify.WaitOne();
+            core.Dispose();
+            return ans;
+        }
     }
 }

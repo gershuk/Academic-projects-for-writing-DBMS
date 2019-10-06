@@ -5,7 +5,7 @@ using DataBaseEngine;
 using DataBaseTable;
 using Irony.Parsing;
 
-namespace DB_MainFrame
+namespace SunflowerDataBase
 {
     class EngineCommander
     {
@@ -33,40 +33,22 @@ namespace DB_MainFrame
                 var _idfieldDef = FindChildNodeByName(fieldDef, "id")[0];
                 var _typeNameNode = FindChildNodeByName(fieldDef, "typeName")[0];
                 var _typeParamsNode = FindChildNodeByName(fieldDef, "typeParams")[0];
+
                 var _columnName = BuildNameFromId(_idfieldDef);
+
                 var _type = ParseEnum<ColumnDataType>(_typeNameNode.ChildNodes[0].Token.Text);
-                var _typeParams = _typeParamsNode?.ChildNodes.Count > 0 ? 
+                var _typeParams = _typeParamsNode?.ChildNodes.Count > 0 ?
                                   _typeParamsNode?.ChildNodes[0].Token.Text : null;
+
                 var _constraintListOptNode = FindChildNodeByName(fieldDef, "constraintListOpt")[0];
                 var _constraintDefList = FindChildNodeByName(_constraintListOptNode, "constraintDef");
 
-                var _constraintList = new List<string>();
-                foreach (var constDef in _constraintDefList)
-                {
-                    var constrain = "";
-                    foreach (var childNode in constDef.ChildNodes)
-                    {
-                        string _id = null;
-                        if (childNode.Term.Name == "id")
-                        {
-                            _id = BuildNameFromId(childNode);
-                            if (_id != null)
-                            {
-                                constrain += _id + " ";
-                            }
-                        }
-                        else
-                        {
-                            constrain += childNode.Token.Text + " ";
-                        }
-                    }
-                    constrain = constrain.Trim();
-                    _constraintList.Add(constrain);
-                }
+                var _constraintList = BuildConstraintList(_constraintDefList);
 
                 var _typeParamsInt = _typeParams == null ? 0 : int.Parse(_typeParams);
                 var column = new Column(_columnName, _type, _typeParamsInt, _constraintList);
                 var _state = Engine.AddColumnToTable(tableName, column);
+
                 if (_state.State == OperationExecutionState.failed)
                 {
                     return new OperationResult<string>(OperationExecutionState.failed, "added column " + _columnName + " faild");
@@ -120,6 +102,35 @@ namespace DB_MainFrame
             name.Remove(name.Length - 1, 1);
 
             return name.ToString();
+        }
+
+        private List<string> BuildConstraintList(List<ParseTreeNode> _constraintDefList)
+        {
+            var _constraintList = new List<string>();
+            foreach (var _constraintDef in _constraintDefList)
+            {
+                var constrain = "";
+                foreach (var childNode in _constraintDef.ChildNodes)
+                {
+                    if (childNode.Term.Name == "id")
+                    {
+                        var _id = BuildNameFromId(childNode);
+                        if (_id != null)
+                        {
+                            constrain += _id + ".";
+                        }
+                    }
+                    else
+                    {
+                        constrain += childNode.Token.Text + ".";
+                    }
+                }
+
+                constrain = constrain.Trim('.');
+                _constraintList.Add(constrain);
+            }
+
+            return _constraintList;
         }
 
         private static T ParseEnum<T>(string value) => (T)Enum.Parse(typeof(T), value, true);

@@ -8,17 +8,6 @@ namespace DataBaseTable
 {
     public enum ColumnDataType
     {
-        BIT,
-        DATE,
-        TIME,
-        TIMESTAMP,
-        DECIMAL,
-        REAL,
-        FLOAT,
-        SMALLINT,
-        INTEGER,
-        INTERVAL,
-        CHARACTER,
         DATETIME,
         INT,
         DOUBLE,
@@ -34,10 +23,8 @@ namespace DataBaseTable
     public class Column
     {
         public Column() { }
-        public Column(string name)
-        {
-            Name = name;
-        }
+        public Column(string name) => Name = name;
+
         public Column(string name, ColumnDataType dataType, int dataParam, List<string> constrains)
         {
             Name = name;
@@ -51,13 +38,12 @@ namespace DataBaseTable
         public List<string> Constrains { get; set; }
         public int Size { get; set; }
     }
+
     public class TableMetaInf
     {
         public TableMetaInf() { }
-        public TableMetaInf(string name)
-        {
-            Name = name;
-        }
+        public TableMetaInf(string name) => Name = name;
+
         public OperationResult<string> AddColumn(Column column)
         {
             ColumnPool = ColumnPool ?? new Dictionary<string, Column>(); 
@@ -75,6 +61,7 @@ namespace DataBaseTable
             }
             return new OperationResult<string>(OperationExecutionState.performed,"ok");
         }
+
         public OperationResult<string> DeleteColumn(string ColumName)
         {
             ColumnPool = ColumnPool ?? new Dictionary<string, Column>();
@@ -92,6 +79,7 @@ namespace DataBaseTable
             }
             return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
+
         public string Name { get; set; }
         public Dictionary<string, Column> ColumnPool { get; set; }
         public int SizeInBytes { get; }
@@ -110,38 +98,31 @@ namespace DataBaseTable
         public Table()
         {
         }
-        public Table(string name)
-        {
-            TableMetaInf = new TableMetaInf(name);
-        }
-        public Table(TableMetaInf tableMetaInf)
-        {
-            TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
-        }
+
+        public Table(string name) => TableMetaInf = new TableMetaInf(name);
+
+        public Table(TableMetaInf tableMetaInf) => TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
+
         public Table(TableData tableData, TableMetaInf tableMetaInf)
         {
             TableData = tableData ?? throw new ArgumentNullException(nameof(tableData));
             TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
         }
-        public OperationResult<string> DeleteColumn(string ColumName)
-        {
-            return TableMetaInf.DeleteColumn(ColumName);
-        }
-        public OperationResult<string> AddColumn(Column column)
-        {
-          return TableMetaInf.AddColumn(column);
-        }
+
+        public OperationResult<string> DeleteColumn(string ColumName) => TableMetaInf.DeleteColumn(ColumName);
+
+        public OperationResult<string> AddColumn(Column column) => TableMetaInf.AddColumn(column);
+
         public OperationExecutionState LoadTableData(string data) => throw new NotImplementedException();
         public OperationExecutionState SerializeTableData() => throw new NotImplementedException();
+
         public OperationExecutionState LoadTableMetaInf(string data)
         {
             TableMetaInf = JsonConvert.DeserializeObject<TableMetaInf>(data);
             return OperationExecutionState.performed;
         }
-        public OperationResult<string> SerializeTableMetaInf()
-        {
-            return new OperationResult<string>(OperationExecutionState.performed, JsonConvert.SerializeObject(TableMetaInf));
-        }
+
+        public OperationResult<string> SerializeTableMetaInf() => new OperationResult<string>(OperationExecutionState.performed, JsonConvert.SerializeObject(TableMetaInf));
 
     }
 }

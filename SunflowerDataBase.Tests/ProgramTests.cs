@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 
-namespace DB_MainFrame.Tests
+namespace SunflowerDataBase.Tests
 {
     [TestClass()]
     public class ProgramTests
@@ -32,13 +32,11 @@ namespace DB_MainFrame.Tests
             var answer = sw.ToString().Split("\n");
             var i = 0;
 
-            using (var sr = File.OpenText(PREFIX + result))
+            using var sr = File.OpenText(PREFIX + result);
+            string s;
+            while ((s = sr.ReadLine()) != null)
             {
-                string s;
-                while ((s = sr.ReadLine()) != null)
-                {
-                    Assert.AreEqual(s.Trim(), answer[i++].Trim());
-                }
+                Assert.AreEqual(s.Trim(), answer[i++].Trim());
             }
         }
     }

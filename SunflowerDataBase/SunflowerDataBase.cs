@@ -5,42 +5,47 @@ using DataBaseEngine;
 using Irony.Parsing;
 using System.Threading.Tasks;
 using System.Threading;
-using MultiThreadExecutor;
+using System.Collections.Concurrent;
 
-namespace DB_MainFrame
+namespace SunflowerDataBase
 {
-    class SqlCommand
+
+    public class SqlCommandResult
     {
-        public SqlSequenceParser Parser { get; set; }
-        public Task<ParseTree> Task { get; }
         public OperationResult<string> Answer { get; set; }
         public ManualResetEvent AnswerNotify;
-
-        private readonly string _sqlSequence;
-
-        public SqlCommand(string sql)
-        {
-            Answer = new OperationResult<string>(OperationExecutionState.notProcessed, new string(""));
-            AnswerNotify = new ManualResetEvent(false);
-            _sqlSequence = sql ?? throw new ArgumentNullException(nameof(sql));
-            Task = new Task<ParseTree>(() => Parser.BuildLexicalTree(_sqlSequence));
-        }
-
         public override string ToString() => Answer.Result + " " + Answer.State;
     }
-    sealed class MainFrame : IDisposable
+
+    sealed class SunflowerDataBase : IDisposable
     {
+        private class SqlCommand
+        {
+            public SqlSequenceParser Parser { get; set; }
+            public Task<ParseTree> Task { get; }
+            public SqlCommandResult CommandResult { get; set; }
+
+            private readonly string _sqlSequence;
+
+            public SqlCommand(string sql)
+            {
+                CommandResult = new SqlCommandResult
+                {
+                    Answer = new OperationResult<string>(OperationExecutionState.notProcessed, new string("")),
+                    AnswerNotify = new ManualResetEvent(false)
+                };
+                _sqlSequence = sql ?? throw new ArgumentNullException(nameof(sql));
+                Task = new Task<ParseTree>(() => Parser.BuildLexicalTree(_sqlSequence));
+            }
+        }
+
         private EngineCommander _engineCommander;
 
-        private Queue<SqlSequenceParser> _sqlParsers;
-        private Queue<SqlCommand> _sleepSqlCommands;
-        private Queue<SqlCommand> _workingSqlCommands;
+        private ConcurrentQueue<SqlSequenceParser> _sqlParsers;
+        private ConcurrentQueue<SqlCommand> _waitingSqlCommands;
+        private ConcurrentQueue<SqlCommand> _workingSqlCommands;
 
         private Semaphore _parsersSemaphore;
-
-        private object _sleepSequencesQueueLocker;
-        private object _workingSequencesQueueLocker;
-        private object _parsersLocker;
 
         private Thread _inputQueueControler;
         private Thread _executeControler;
@@ -48,17 +53,13 @@ namespace DB_MainFrame
         private bool _disposed = false;
         private bool _stopWorking = false;
 
-        public MainFrame(int parsersCount, DataBaseEngineMain baseEngine)
+        public SunflowerDataBase(int parsersCount, DataBaseEngineMain baseEngine)
         {
-            _workingSequencesQueueLocker = new object();
-            _sleepSequencesQueueLocker = new object();
-            _parsersLocker = new object();
-
             _engineCommander = new EngineCommander(baseEngine);
 
-            _sqlParsers = new Queue<SqlSequenceParser>();
-            _sleepSqlCommands = new Queue<SqlCommand>();
-            _workingSqlCommands = new Queue<SqlCommand>();
+            _sqlParsers = new ConcurrentQueue<SqlSequenceParser>();
+            _waitingSqlCommands = new ConcurrentQueue<SqlCommand>();
+            _workingSqlCommands = new ConcurrentQueue<SqlCommand>();
 
             _parsersSemaphore = new Semaphore(parsersCount, parsersCount, "Parsers Semaphore");
 
@@ -75,16 +76,11 @@ namespace DB_MainFrame
         }
 
 
-        public SqlCommand SendSqlSequence(string sqlSequence)
+        public SqlCommandResult SendSqlSequence(string sqlSequence)
         {
             var command = new SqlCommand(sqlSequence);
-
-            lock (_sleepSequencesQueueLocker)
-            {
-                _sleepSqlCommands.Enqueue(command);
-            }
-
-            return command;
+            _waitingSqlCommands.Enqueue(command);
+            return command.CommandResult;
         }
 
         private void TryParseSql()
@@ -96,40 +92,16 @@ namespace DB_MainFrame
                     return;
                 }
 
-                var queueNotEmpty = false;
 
-                lock (_sleepSequencesQueueLocker)
-                {
-                    queueNotEmpty = _sleepSqlCommands?.Count > 0;
-                }
-
-                while (queueNotEmpty)
+                while (_waitingSqlCommands.TryDequeue(out var sqlCommand))
                 {
                     _parsersSemaphore.WaitOne();
-
-                    SqlCommand sqlCommand;
-
-                    lock (_sleepSequencesQueueLocker)
-                    {
-                        sqlCommand = _sleepSqlCommands.Dequeue();
-                    }
-
-                    lock (_parsersLocker)
-                    {
-                        sqlCommand.Parser = _sqlParsers.Dequeue();
-                    }
+                    _sqlParsers.TryDequeue(out var parser);
+                    sqlCommand.Parser = parser;
 
                     sqlCommand.Task.Start();
 
-                    lock (_workingSequencesQueueLocker)
-                    {
-                        _workingSqlCommands.Enqueue(sqlCommand);
-                    }
-
-                    lock (_sleepSequencesQueueLocker)
-                    {
-                        queueNotEmpty = _sleepSqlCommands?.Count > 0;
-                    }
+                    _workingSqlCommands.Enqueue(sqlCommand);
                 }
             }
         }
@@ -142,34 +114,19 @@ namespace DB_MainFrame
                     return;
                 }
 
-                var queueNotEmpty = false;
-
-                lock (_workingSequencesQueueLocker)
+                while (_workingSqlCommands.TryDequeue(out var sqlCommand))
                 {
-                    queueNotEmpty = _workingSqlCommands?.Count > 0;
-                }
 
-                while (queueNotEmpty)
-                {
-                    SqlCommand command;
+                    var parserTree = sqlCommand.Task.Result;
 
-                    lock (_workingSequencesQueueLocker)
-                    {
-                        command = _workingSqlCommands.Dequeue();
-                    }
+                    _sqlParsers.Enqueue(sqlCommand.Parser);
+                    sqlCommand.Parser = null;
+                    _parsersSemaphore.Release();
 
-                    var parserTree = command.Task.Result;
-
-                    lock (_parsersLocker)
-                    {
-                        _sqlParsers.Enqueue(command.Parser);
-                        command.Parser = null;
-                        _parsersSemaphore.Release();
-                    }
 
                     if (parserTree.Root == null)
                     {
-                        var answer = command.Answer;
+                        var answer = sqlCommand.CommandResult.Answer;
                         answer.State = OperationExecutionState.parserError;
                         answer.Result = parserTree.ParserMessages[0].Message + " " + parserTree.ParserMessages[0].Location.ToString();
                     }
@@ -177,7 +134,7 @@ namespace DB_MainFrame
                     {
                         var treeNode = parserTree.Root.ChildNodes[0];
 
-                        command.Answer = treeNode.Term.Name switch
+                        sqlCommand.CommandResult.Answer = treeNode.Term.Name switch
                         {
                             "DropTableStmt" => _engineCommander.DropTable(treeNode),
                             "CreateTableStmt" => _engineCommander.CreateTable(treeNode),
@@ -186,12 +143,7 @@ namespace DB_MainFrame
                         _engineCommander.Engine.Commit();
                     }
 
-                    command.AnswerNotify.Set();
-
-                    lock (_workingSequencesQueueLocker)
-                    {
-                        queueNotEmpty = _workingSqlCommands?.Count > 0;
-                    }
+                    sqlCommand.CommandResult.AnswerNotify.Set();
                 }
             }
         }
@@ -221,7 +173,7 @@ namespace DB_MainFrame
             _disposed = true;
         }
 
-        ~MainFrame()
+        ~SunflowerDataBase()
         {
             Dispose(false);
         }
@@ -232,11 +184,11 @@ namespace DB_MainFrame
 
         public static void Main()
         {
-            var core = new MainFrame(10, new DataBaseEngineMain());
+            var core = new SunflowerDataBase(200, new DataBaseEngineMain());
             var exitState = true;
             Console.WriteLine("Hello!");
             Console.WriteLine("Please enter your sql request.");
-            Console.WriteLine("If you want to quit write 'exit'."); 
+            Console.WriteLine("If you want to quit write 'exit'.");
             while (exitState)
             {
                 var input = Console.ReadLine();

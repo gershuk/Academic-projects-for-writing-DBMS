@@ -20,7 +20,6 @@ namespace DataBaseEngine
         performed
     }
 
-
     public class OperationResult<T>
     {
         public OperationExecutionState State { get; set; }
@@ -62,29 +61,37 @@ namespace DataBaseEngine
         public DataBaseEngineMain()
         {
             var result = LoadEngineConfig(_pathToEngineConfig);
+
             if (result.State == OperationExecutionState.failed)
             {
                 CreateDefaultEngineConfig(_pathToEngineConfig);   
             }
+
             result  = LoadTablePool();
+
             if (result.State == OperationExecutionState.failed)
             {
                 TablePool = new Dictionary<string, Table>();
             }
         }
+
         public DataBaseEngineMain(string configPath)
         {
             var result = LoadEngineConfig(configPath);
+
             if (result.State == OperationExecutionState.failed)
             {
                 CreateDefaultEngineConfig(configPath);
             }
+
             result = LoadTablePool();
+
             if (result.State == OperationExecutionState.failed)
             {
                 TablePool = new Dictionary<string, Table>();
             }
         }
+
         private void CreateDefaultEngineConfig(string path)
         {
             EngineConfig = new EngineConfig
@@ -104,6 +111,7 @@ namespace DataBaseEngine
                     return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
                 }
             }
+
             using (var sr = new StreamReader(path))
             {
                 if (sr.ReadLine() != _fileMarkEngineConfig)
@@ -116,8 +124,10 @@ namespace DataBaseEngine
                 }
               EngineConfig = JsonConvert.DeserializeObject<EngineConfig>(sr.ReadToEnd());
             }
+
             return new OperationResult<string>(OperationExecutionState.performed, "Config loaded.");
         }
+
         private OperationResult<string> SaveEngineConfig(string path)
         {
             using (var sw = new StreamWriter(path))
@@ -125,6 +135,7 @@ namespace DataBaseEngine
                 sw.WriteLine(_fileMarkEngineConfig);
                 sw.Write(JsonConvert.SerializeObject(EngineConfig));
             }
+
             return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
 
@@ -188,6 +199,7 @@ namespace DataBaseEngine
                     return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
                 }
             }
+
             return TablePool[tableName].DeleteColumn(ColumnName);
         }
 
@@ -201,7 +213,9 @@ namespace DataBaseEngine
                     return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
                 }
             }
+
             TablePool.Remove(tableName);
+
             return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
 
@@ -222,12 +236,14 @@ namespace DataBaseEngine
                 Console.WriteLine("Error GetTableMetaInf, Table named {0} doesn't exist", tableName);
                 return new OperationResult<TableMetaInf>(OperationExecutionState.failed, null);
             }
+
             return new OperationResult<TableMetaInf>(OperationExecutionState.performed, TablePool[tableName].TableMetaInf);
         }
 
         public OperationResult<string> LoadTablePool()
         {
             var path = EngineConfig.Path;
+
             if (!File.Exists(path))
             {
                 using (var sw = new StringWriter())
@@ -236,6 +252,7 @@ namespace DataBaseEngine
                     return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
                 }
             }
+
             using (var sr = new StreamReader(path))
             {
                 if (sr.ReadLine() != _fileMarkTableMetaInf)
@@ -246,8 +263,10 @@ namespace DataBaseEngine
                         return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
                     }
                 }
+
                 TablePool = new Dictionary<string, Table>();
                 string line;
+
                 while ((line = sr.ReadLine()) != null)
                 {
                     var table = new Table();
@@ -255,6 +274,7 @@ namespace DataBaseEngine
                     TablePool.Add(table.TableMetaInf.Name, table);
                 }
             }
+
             return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
 
@@ -269,6 +289,7 @@ namespace DataBaseEngine
                     sw.WriteLine("");
                 }
             }
+
             return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
 
@@ -282,6 +303,7 @@ namespace DataBaseEngine
                     return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
                 }
             }
+
             using (var sw = new StringWriter())
             {
                 var table = TablePool[tableName];
@@ -296,6 +318,7 @@ namespace DataBaseEngine
                     }
                     sw.Write(",");
                 }
+
                 var str = sw.ToString();
                 str = str.TrimEnd(new char[] { ',' });
                 str += ");";
@@ -303,6 +326,7 @@ namespace DataBaseEngine
                 return new OperationResult<string>(OperationExecutionState.performed, str);
             }
         }
+
         public OperationResult<string> Commit()
         {
             SaveTablePool(EngineConfig.Path);

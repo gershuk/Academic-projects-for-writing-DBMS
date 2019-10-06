@@ -11,11 +11,7 @@ namespace DataBaseEngineUnitTest
         DataBaseEngineMain dataBase;
         const string testConfigPath = "TestConfig.json";
         [TestInitialize]
-        public void TestInitialize()
-        {
-            
-            dataBase = new DataBaseEngineMain(testConfigPath);
-        }
+        public void TestInitialize() => dataBase = new DataBaseEngineMain(testConfigPath);
 
         [TestCleanup]
         public void TestCleanup()

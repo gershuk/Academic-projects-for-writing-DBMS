@@ -30,6 +30,14 @@ namespace IronySqlParser
             var CONSTRAINT = ToTerm("CONSTRAINT");
             var KEY = ToTerm("KEY");
             var PRIMARY = ToTerm("PRIMARY");
+            var SELECT = ToTerm("SELECT");
+            var FROM = ToTerm("FROM");
+            var AS = ToTerm("AS");
+            var COUNT = ToTerm("COUNT");
+            var JOIN = ToTerm("JOIN");
+            var BY = ToTerm("BY");
+            var INTO = ToTerm("INTO");
+            var ON = ToTerm("ON");
 
             var id = new NonTerminal("id");
             var sqlSequence = new NonTerminal("sqlSequence");
@@ -56,6 +64,41 @@ namespace IronySqlParser
             var semiOpt = new NonTerminal("semiOpt");
             var stmtList = new NonTerminal("stmtList");
 
+            var selectStmt = new NonTerminal("selectStmt");
+            var exprList = new NonTerminal("exprList");
+            var selRestrOpt = new NonTerminal("selRestrOpt");
+            var selList = new NonTerminal("selList");
+            var intoClauseOpt = new NonTerminal("intoClauseOpt");
+            var fromClauseOpt = new NonTerminal("fromClauseOpt");
+            var groupClauseOpt = new NonTerminal("groupClauseOpt");
+            var havingClauseOpt = new NonTerminal("havingClauseOpt");
+            var orderClauseOpt = new NonTerminal("orderClauseOpt");
+            var whereClauseOpt = new NonTerminal("whereClauseOpt");
+            var columnItemList = new NonTerminal("columnItemList");
+            var columnItem = new NonTerminal("columnItem");
+            var columnSource = new NonTerminal("columnSource");
+            var idlist = new NonTerminal("idlist");
+            var idlistPar = new NonTerminal("idlistPar");
+            var aggregate = new NonTerminal("aggregate");
+            var aggregateArg = new NonTerminal("aggregateArg");
+            var aggregateName = new NonTerminal("aggregateName");
+            var joinChainOpt = new NonTerminal("joinChainOpt");
+            var joinKindOpt = new NonTerminal("joinKindOpt");
+            var orderList = new NonTerminal("orderList");
+            var orderMember = new NonTerminal("orderMember");
+            var orderDirOpt = new NonTerminal("orderDirOpt");
+
+            var unExpr = new NonTerminal("unExpr");
+            var binExpr = new NonTerminal("binExpr");
+            var funCall = new NonTerminal("funCall");
+            var parSelectStmt = new NonTerminal("parSelectStmt");
+            var betweenExpr = new NonTerminal("betweenExpr");
+            var notOpt = new NonTerminal("notOpt");
+            var funArgs = new NonTerminal("funArgs");
+            var inStmt = new NonTerminal("inStmt");
+
+            sqlSequence.Rule = createTableStmt | alterStmt
+                      | dropTableStmt | showTableStmt | selectStmt;
 
             //BNF Rules
             this.Root = stmtList;
@@ -65,34 +108,84 @@ namespace IronySqlParser
 
             //ID
             id.Rule = MakePlusRule(id, dot, simpleId);
+            idlistPar.Rule = "(" + idlist + ")";
+            idlist.Rule = MakePlusRule(idlist, comma, id);
 
-            sqlSequence.Rule = createTableStmt | alterStmt
-                      | dropTableStmt | showTableStmt;
             //Create table
             createTableStmt.Rule = CREATE + TABLE + id + "(" + fieldDefList  + ")" ;
             fieldDefList.Rule = MakePlusRule(fieldDefList, comma, fieldDef);
             fieldDef.Rule = id + typeName + typeParamsOpt + constraintListOpt + nullSpecOpt;
             nullSpecOpt.Rule = NULL | NOT + NULL | Empty;
-            typeName.Rule = ToTerm("BIT") | "DATE" | "TIME" | "TIMESTAMP" | "DECIMAL" | "REAL" | "FLOAT" | "SMALLINT" | "INTEGER"
-                                         | "INTERVAL" | "CHARACTER" | "DATETIME" | "INT" | "DOUBLE" | "CHAR" | "NCHAR" | "VARCHAR"
-                                         | "NVARCHAR" | "IMAGE" | "TEXT" | "NTEXT";
+            typeName.Rule = ToTerm("DATETIME") | "INT" | "DOUBLE" | "CHAR" | "NCHAR" | "VARCHAR" | "NVARCHAR"
+                                   | "IMAGE" | "TEXT" | "NTEXT"; ;
+
             typeParamsOpt.Rule = "(" + number + ")" | "(" + number + comma + number + ")" | Empty;
 
             constraintListOpt.Rule = MakeStarRule(constraintListOpt, constraintDef);
-            constraintDef.Rule = (NOT + NULL) | (UNIQUE) | (PRIMARY + KEY) | ("Foreign" + KEY + "References" + id) | ("Default" + stringLiteral) | ("Index" + id);
+            constraintDef.Rule = (UNIQUE) | (PRIMARY + KEY) | ("FOREIGN" + KEY + "REFERENCES" + id) | ("DEFAULT" + stringLiteral) | ("INDEX" + id);
 
             //Alter 
             alterStmt.Rule = ALTER + TABLE + id + alterCmd;
-            alterCmd.Rule = ADD + COLUMN + fieldDefList + constraintListOpt
-                          | ADD + constraintDef
-                          | DROP + COLUMN + id
-                          | DROP + CONSTRAINT + id;
+            alterCmd.Rule = ADD + simpleId + "(" + fieldDefList + ")" | DROP + COLUMN + id | ALTER + COLUMN + id + typeName + (ADD + CONSTRAINT + constraintListOpt 
+                                                                                                                               | DROP + CONSTRAINT + constraintListOpt);
 
             //Drop stmts
             dropTableStmt.Rule = DROP + TABLE + id;
 
             //Show table
             showTableStmt.Rule = SHOW + TABLE + id;
+
+            //Select stmt
+            selectStmt.Rule = SELECT + selRestrOpt + selList + intoClauseOpt + fromClauseOpt + whereClauseOpt +
+                              groupClauseOpt + havingClauseOpt + orderClauseOpt;
+            selRestrOpt.Rule = Empty | "ALL" | "DISTINCT";
+            selList.Rule = columnItemList | "*";
+            columnItemList.Rule = MakePlusRule(columnItemList, comma, columnItem);
+            columnItem.Rule = columnSource + aliasOpt;
+            aliasOpt.Rule = Empty | asOpt + id;
+            asOpt.Rule = Empty | AS;
+            columnSource.Rule = aggregate | id;
+            aggregate.Rule = aggregateName + "(" + aggregateArg + ")";
+            aggregateArg.Rule = expression | "*";
+            aggregateName.Rule = COUNT | "Avg" | "Min" | "Max" | "StDev" | "StDevP" | "Sum" | "Var" | "VarP";
+            intoClauseOpt.Rule = Empty | INTO + id;
+            fromClauseOpt.Rule = Empty | FROM + idlist + joinChainOpt;
+            joinChainOpt.Rule = Empty | joinKindOpt + JOIN + idlist + ON + id + "=" + id;
+            joinKindOpt.Rule = Empty | "INNER" | "LEFT" | "RIGHT";
+            whereClauseOpt.Rule = Empty | "WHERE" + expression;
+            groupClauseOpt.Rule = Empty | "GROUP" + BY + idlist;
+            havingClauseOpt.Rule = Empty | "HAVING" + expression;
+            orderClauseOpt.Rule = Empty | "ORDER" + BY + orderList;
+            orderList.Rule = MakePlusRule(orderList, comma, orderMember);
+            orderMember.Rule = id + orderDirOpt;
+            orderDirOpt.Rule = Empty | "ASC" | "DESC";
+
+            //Expression
+            exprList.Rule = MakePlusRule(exprList, comma, expression);
+            expression.Rule = term | unExpr | binExpr;// Add betweenExpr
+            term.Rule = id | stringLiteral | number | funCall | tuple | parSelectStmt;// | inStmt;
+            tuple.Rule = "(" + exprList + ")";
+            parSelectStmt.Rule = "(" + selectStmt + ")";
+            unExpr.Rule = unOp + term;
+            unOp.Rule = NOT | "+" | "-" | "~";
+            binExpr.Rule = expression + binOp + expression;
+            binOp.Rule = ToTerm("+") | "-" | "*" | "/" | "%" | "&" | "|" | "^" 
+                       | "=" | ">" | "<" | ">=" | "<=" | "<>" | "!=" | "!<" | "!>"
+                       | "AND" | "OR" | "LIKE" | NOT + "LIKE" | "IN" | NOT + "IN";
+            betweenExpr.Rule = expression + notOpt + "BETWEEN" + expression + "AND" + expression;
+            notOpt.Rule = Empty | NOT;
+            funCall.Rule = id + "(" + funArgs + ")";
+            funArgs.Rule = selectStmt | exprList;
+            inStmt.Rule = expression + "IN" + "(" + exprList + ")";
+
+            //Operators
+            RegisterOperators(10, "*", "/", "%");
+            RegisterOperators(9, "+", "-");
+            RegisterOperators(8, "=", ">", "<", ">=", "<=", "<>", "!=", "!<", "!>", "LIKE", "IN");
+            RegisterOperators(7, "^", "&", "|");
+            RegisterOperators(6, NOT);
+            RegisterOperators(5, "AND");
+            RegisterOperators(4, "OR");
 
             MarkPunctuation(",", "(", ")");
             MarkPunctuation(asOpt, semiOpt);

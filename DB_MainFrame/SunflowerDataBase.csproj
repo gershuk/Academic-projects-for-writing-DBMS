@@ -8,7 +8,6 @@
   <ItemGroup>
     <ProjectReference Include="..\DataBaseEngine\DataBaseEngine.csproj" />
     <ProjectReference Include="..\IronySqlParser\IronySqlParser.csproj" />
-    <ProjectReference Include="..\MultiThreadedExecutor\MultiThreadedExecutor.csproj" />
   </ItemGroup>
 
 </Project>

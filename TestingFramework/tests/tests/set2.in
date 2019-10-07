@@ -1,0 +1,29 @@
+{
+  "description": "Tests from DB_MainFrame tests",
+  "set2": [
+    {
+      "input": "CREATE TABLE t (id INT);SHOW TABLE t;DROP TABLE t;",
+      "output": "ok; CREATE TABLE t (id INT (0)); ok",
+      "status": "performed;performed;performed;",
+      "expect_output": true
+    },
+    {
+      "input": "CREATE TABLE t (id INT NOT NULL);SHOW TABLE t;DROP TABLE t;",
+      "output": "ok; CREATE TABLE t (id INT (0) NOT NULL); ok",
+      "status": "performed;performed;performed;",
+      "expect_output": true
+    },
+    {
+      "input": "CREATE TABLE t (id INT);SHOW TABLE t;DROP TABLE t;SHOW TABLE t;",
+      "output": "ok; CREATE TABLE t (id INT (0)); ok; Error DeleteTable, Table named t doesn't exist;",
+      "status": "performed;performed;performed;failed;",
+      "expect_output": true
+    },
+    {
+      "input": "SHOW TABLE t; DROP TABLE t;",
+      "output": "Error DeleteTable, Table named t doesn't exist;Error DeleteTable, Table named t doesn't exist",
+      "status": "failed;failed;",
+      "expect_output": true
+    }
+  ]
+}

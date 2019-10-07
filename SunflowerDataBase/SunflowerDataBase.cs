@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Concurrent;
 
-namespace SunflowerDataBase
+namespace SunflowerDB
 {
 
     public class SqlCommandResult
@@ -17,7 +17,7 @@ namespace SunflowerDataBase
         public override string ToString() => Answer.Result + " " + Answer.State;
     }
 
-    sealed public class SunflowerDataBase : IDisposable
+    sealed public class DataBase : IDisposable
     {
         private class SqlCommand
         {
@@ -53,7 +53,7 @@ namespace SunflowerDataBase
         private bool _disposed = false;
         private bool _stopWorking = false;
 
-        public SunflowerDataBase(int parsersCount, DataBaseEngineMain baseEngine)
+        public DataBase(int parsersCount, DataBaseEngineMain baseEngine)
         {
             _engineCommander = new EngineCommander(baseEngine);
 
@@ -167,7 +167,7 @@ namespace SunflowerDataBase
             _disposed = true;
         }
 
-        ~SunflowerDataBase()
+        ~DataBase()
         {
             Dispose(false);
         }

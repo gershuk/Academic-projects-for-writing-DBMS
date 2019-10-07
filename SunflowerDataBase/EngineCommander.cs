@@ -5,7 +5,7 @@ using DataBaseEngine;
 using DataBaseTable;
 using Irony.Parsing;
 
-namespace SunflowerDataBase
+namespace SunflowerDB
 {
     class EngineCommander
     {

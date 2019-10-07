@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 
-namespace SunflowerDataBase.Tests
+namespace SunflowerDB.Tests
 {
     [TestClass()]
     public class ProgramTests

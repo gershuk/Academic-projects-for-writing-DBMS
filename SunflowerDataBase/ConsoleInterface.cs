@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using DataBaseEngine;
 
-namespace SunflowerDataBase
+namespace SunflowerDB
 {
     class ConsoleInterface
     {
@@ -13,7 +13,7 @@ namespace SunflowerDataBase
 
         public static void Main()
         {
-            var core = new SunflowerDataBase(200, new DataBaseEngineMain());
+            var core = new DataBase(200, new DataBaseEngineMain());
             var exitState = true;
             Console.WriteLine("Hello!");
             Console.WriteLine("Please enter your sql request.");

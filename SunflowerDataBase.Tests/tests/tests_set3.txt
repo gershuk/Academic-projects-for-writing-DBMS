@@ -1,3 +1,0 @@
-SHOW TABLE t;
-DROP TABLE t;
-exit

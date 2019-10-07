@@ -1,6 +1,0 @@
-asdjhsjdf;
-asdasd;
-CREAT TABLE;
-
-
-exit

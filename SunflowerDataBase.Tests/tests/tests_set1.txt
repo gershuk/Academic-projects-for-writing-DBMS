@@ -1,4 +1,0 @@
-CREATE TABLE t (id INT NOT NULL);
-SHOW TABLE t;
-DROP TABLE t;
-exit

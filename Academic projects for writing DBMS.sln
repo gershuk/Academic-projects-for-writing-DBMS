@@ -19,6 +19,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SunflowerDataBase", "Sunflo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SunflowerDataBase.Tests", "SunflowerDataBase.Tests\SunflowerDataBase.Tests.csproj", "{2F785BA0-B907-4C7C-9E85-62257A51C33A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestingFramework", "TestingFramework\TestingFramework.csproj", "{85876682-F970-4612-A402-2A7B9FAAA4D6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DF44233D-B94F-46B8-AFC5-A95384A65E9E} = {DF44233D-B94F-46B8-AFC5-A95384A65E9E}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +54,10 @@ Global
 		{2F785BA0-B907-4C7C-9E85-62257A51C33A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F785BA0-B907-4C7C-9E85-62257A51C33A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F785BA0-B907-4C7C-9E85-62257A51C33A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85876682-F970-4612-A402-2A7B9FAAA4D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85876682-F970-4612-A402-2A7B9FAAA4D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85876682-F970-4612-A402-2A7B9FAAA4D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85876682-F970-4612-A402-2A7B9FAAA4D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -60,6 +69,7 @@ Global
 		{74303328-CA67-46B6-8C6A-E27B348A486E} = {ED99B55D-5439-4728-9DB2-3AE000041644}
 		{DF44233D-B94F-46B8-AFC5-A95384A65E9E} = {E510A1CA-BBE3-43DF-AE59-3A224192AEF8}
 		{2F785BA0-B907-4C7C-9E85-62257A51C33A} = {ED99B55D-5439-4728-9DB2-3AE000041644}
+		{85876682-F970-4612-A402-2A7B9FAAA4D6} = {ED99B55D-5439-4728-9DB2-3AE000041644}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {69AB1310-1EEE-4BBD-8DD1-49E1B5F01F23}

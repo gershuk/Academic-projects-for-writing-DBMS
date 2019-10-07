@@ -54,28 +54,21 @@ namespace DataBaseEngine
     {
         public Dictionary<string, Table> TablePool { get; set; }
         public EngineConfig EngineConfig { get; set; }
-        private const string _fileMarkTableMetaInf = "DATA_BASE_TABLE_METAINF_FILE";
+        protected IDataStorage dataStorage;
         private const string _fileMarkEngineConfig = "ENGINE_CONFIG_FILE";
-        private const string _pathToEngineConfig = "DataEngineConfig.json";
+        private const string _DefPathToEngineConfig = "DataEngineConfig.json";
 
         public DataBaseEngineMain()
         {
-            var result = LoadEngineConfig(_pathToEngineConfig);
-
-            if (result.State == OperationExecutionState.failed)
-            {
-                CreateDefaultEngineConfig(_pathToEngineConfig);   
-            }
-
-            result  = LoadTablePool();
-
-            if (result.State == OperationExecutionState.failed)
-            {
-                TablePool = new Dictionary<string, Table>();
-            }
+            LoadEngine(_DefPathToEngineConfig);
         }
 
         public DataBaseEngineMain(string configPath)
+        {
+            LoadEngine(configPath);
+        }
+
+        private void LoadEngine(string configPath)
         {
             var result = LoadEngineConfig(configPath);
 
@@ -83,15 +76,18 @@ namespace DataBaseEngine
             {
                 CreateDefaultEngineConfig(configPath);
             }
+            dataStorage = new DataStorageInFiles(EngineConfig.Path);
+            var resultLoad = dataStorage.LoadTablePoolMetaInf();
 
-            result = LoadTablePool();
-
-            if (result.State == OperationExecutionState.failed)
+            if (resultLoad.State == OperationExecutionState.performed)
+            {
+                TablePool = resultLoad.Result;
+            }
+            else
             {
                 TablePool = new Dictionary<string, Table>();
             }
         }
-
         private void CreateDefaultEngineConfig(string path)
         {
             EngineConfig = new EngineConfig
@@ -240,58 +236,6 @@ namespace DataBaseEngine
             return new OperationResult<TableMetaInf>(OperationExecutionState.performed, TablePool[tableName].TableMetaInf);
         }
 
-        public OperationResult<string> LoadTablePool()
-        {
-            var path = EngineConfig.Path;
-
-            if (!File.Exists(path))
-            {
-                using (var sw = new StringWriter())
-                {
-                    sw.WriteLine("Error LoadTablePool, File named {0} doesn't exist ", path);
-                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
-                }
-            }
-
-            using (var sr = new StreamReader(path))
-            {
-                if (sr.ReadLine() != _fileMarkTableMetaInf)
-                {
-                    using (var sw = new StringWriter())
-                    {
-                        sw.WriteLine("Error LoadTablePool, File named {0} doesn't contain 'file mark' '{1}'  ", path, _fileMarkTableMetaInf);
-                        return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
-                    }
-                }
-
-                TablePool = new Dictionary<string, Table>();
-                string line;
-
-                while ((line = sr.ReadLine()) != null)
-                {
-                    var table = new Table();
-                    table.LoadTableMetaInf(line);
-                    TablePool.Add(table.TableMetaInf.Name, table);
-                }
-            }
-
-            return new OperationResult<string>(OperationExecutionState.performed, "ok");
-        }
-
-        private OperationResult<string> SaveTablePool(string path)
-        {
-            using (var sw = new StreamWriter(path))
-            {
-                sw.WriteLine(_fileMarkTableMetaInf);
-                foreach (var keyValue in TablePool)
-                {
-                    sw.Write(keyValue.Value.SerializeTableMetaInf().Result);
-                    sw.WriteLine("");
-                }
-            }
-
-            return new OperationResult<string>(OperationExecutionState.performed, "ok");
-        }
 
         public OperationResult<string> ShowCreateTable(string tableName)
         {
@@ -329,7 +273,7 @@ namespace DataBaseEngine
 
         public OperationResult<string> Commit()
         {
-            SaveTablePool(EngineConfig.Path);
+            dataStorage.SaveTablePoolMetaInf(TablePool);
             return new OperationResult<string>(OperationExecutionState.performed, "Commited");
         }
 

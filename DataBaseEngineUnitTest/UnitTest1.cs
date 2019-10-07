@@ -59,8 +59,7 @@ namespace DataBaseEngineUnitTest
             Assert.AreEqual(result.State, OperationExecutionState.performed);
             result =  dataBase.Commit();
             Assert.AreEqual(result.State, OperationExecutionState.performed);
-            result = dataBase.LoadTablePool();
-            Assert.AreEqual(result.State, OperationExecutionState.performed);
+            dataBase = new DataBaseEngineMain(testConfigPath);
             Assert.AreEqual(dataBase.TablePool.ContainsKey(tableName), true);
             Assert.AreEqual(dataBase.TablePool.ContainsKey(tableName2), true);
             Assert.AreEqual(dataBase.TablePool[tableName].TableMetaInf.ColumnPool.ContainsKey(column.Name), true);
@@ -81,7 +80,7 @@ namespace DataBaseEngineUnitTest
             Assert.AreEqual(result.State, OperationExecutionState.performed);
             result = dataBase.Commit();
             Assert.AreEqual(result.State, OperationExecutionState.performed);
-            result = dataBase.LoadTablePool();
+            dataBase = new DataBaseEngineMain(testConfigPath);
             Assert.AreEqual(result.State, OperationExecutionState.performed);
             Assert.AreEqual(dataBase.TablePool.ContainsKey(tableName), true);
             Assert.AreEqual(dataBase.TablePool.ContainsKey(tableName2), true);
@@ -93,7 +92,7 @@ namespace DataBaseEngineUnitTest
         {
             var tableName = "Table1";
             var columnName = "age";
-            var columnType = ColumnDataType.FLOAT;
+            var columnType = ColumnDataType.DOUBLE;
             var column = new Column(columnName, columnType,0, new List<string>());
             var result = dataBase.CreateTable(tableName);
             Assert.AreEqual(result.State, OperationExecutionState.performed);

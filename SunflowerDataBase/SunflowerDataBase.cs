@@ -17,7 +17,7 @@ namespace SunflowerDataBase
         public override string ToString() => Answer.Result + " " + Answer.State;
     }
 
-    sealed class SunflowerDataBase : IDisposable
+    sealed public class SunflowerDataBase : IDisposable
     {
         private class SqlCommand
         {
@@ -133,14 +133,8 @@ namespace SunflowerDataBase
                     else
                     {
                         var treeNode = parserTree.Root.ChildNodes[0];
-
-                        sqlCommand.CommandResult.Answer = treeNode.Term.Name switch
-                        {
-                            "DropTableStmt" => _engineCommander.DropTable(treeNode),
-                            "CreateTableStmt" => _engineCommander.CreateTable(treeNode),
-                            "ShowTableStmt" => _engineCommander.ShowTable(treeNode)
-                        };
-                        _engineCommander.Engine.Commit();
+                        sqlCommand.CommandResult.Answer = _engineCommander.ExecuteCommand(treeNode);
+                        //_engineCommander.Engine.Commit();
                     }
 
                     sqlCommand.CommandResult.AnswerNotify.Set();
@@ -176,37 +170,6 @@ namespace SunflowerDataBase
         ~SunflowerDataBase()
         {
             Dispose(false);
-        }
-    }
-
-    public class Program
-    {
-
-        public static void Main()
-        {
-            var core = new SunflowerDataBase(200, new DataBaseEngineMain());
-            var exitState = true;
-            Console.WriteLine("Hello!");
-            Console.WriteLine("Please enter your sql request.");
-            Console.WriteLine("If you want to quit write 'exit'.");
-            while (exitState)
-            {
-                var input = Console.ReadLine();
-                if (input == "exit")
-                {
-                    exitState = false;
-                    core.Dispose();
-                }
-                else
-                {
-                    var ans = core.SendSqlSequence(input);
-                    ans.AnswerNotify.WaitOne();
-                    Console.WriteLine(ans);
-                    Console.WriteLine("--------------------------------------------------------------------------------");
-                }
-                //"CREATE TABLE Customers (Id INT NOT NULL,Age FLOAT, Name VARCHAR(20));"
-                //"SHOW TABLE Customers;"
-            }
         }
     }
 }

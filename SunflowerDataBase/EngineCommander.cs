@@ -13,6 +13,18 @@ namespace SunflowerDataBase
 
         public DataBaseEngineMain Engine { get; set; }
 
+        public OperationResult<string> ExecuteCommand(ParseTreeNode treeNode)
+        {
+            var ans = treeNode.Term.Name switch
+            {
+                "DropTableStmt" => DropTable(treeNode),
+                "CreateTableStmt" => CreateTable(treeNode),
+                "ShowTableStmt" => ShowTable(treeNode)
+            };
+
+            return ans;
+        }
+
         public OperationResult<string> CreateTable(ParseTreeNode node)
         {
             var idNode = FindChildNodeByName(node, "id")[0];

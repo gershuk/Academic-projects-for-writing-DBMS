@@ -38,9 +38,11 @@ namespace IronySqlParser
             var BY = ToTerm("BY");
             var INTO = ToTerm("INTO");
             var ON = ToTerm("ON");
-
+            var BEGIN_TRANSACTION = ToTerm("BEGIN TRANSACTION");
+            var COMMIT = ToTerm("COMMIT");
+          
             var id = new NonTerminal("id");
-            var sqlSequence = new NonTerminal("sqlSequence");
+            var sqlCommand = new NonTerminal("sqlSequence");
             var createTableStmt = new NonTerminal("CreateTableStmt");
             var showTableStmt = new NonTerminal("ShowTableStmt");
             var alterStmt = new NonTerminal("alterStmt");
@@ -97,12 +99,13 @@ namespace IronySqlParser
             var funArgs = new NonTerminal("funArgs");
             var inStmt = new NonTerminal("inStmt");
 
-            sqlSequence.Rule = createTableStmt | alterStmt
+            var sqlSequence = new NonTerminal("sqlSequence");
+            sqlCommand.Rule = createTableStmt | alterStmt
                       | dropTableStmt | showTableStmt | selectStmt;
 
             //BNF Rules
             this.Root = stmtList;
-            stmtLine.Rule = sqlSequence + semiOpt;
+            stmtLine.Rule = sqlCommand + semiOpt;
             semiOpt.Rule = Empty | ";";
             stmtList.Rule = MakePlusRule(stmtList, stmtLine);
 
@@ -126,8 +129,9 @@ namespace IronySqlParser
 
             //Alter 
             alterStmt.Rule = ALTER + TABLE + id + alterCmd;
-            alterCmd.Rule = ADD + simpleId + "(" + fieldDefList + ")" | DROP + COLUMN + id | ALTER + COLUMN + id + typeName + (ADD + CONSTRAINT + constraintListOpt 
-                                                                                                                               | DROP + CONSTRAINT + constraintListOpt);
+            alterCmd.Rule = ADD + simpleId + "(" + fieldDefList + ")" | DROP + COLUMN + id 
+                          | ALTER + COLUMN + id + typeName + (ADD + CONSTRAINT + constraintListOpt 
+                          | DROP + CONSTRAINT + constraintListOpt);
 
             //Drop stmts
             dropTableStmt.Rule = DROP + TABLE + id;
@@ -190,7 +194,7 @@ namespace IronySqlParser
             MarkPunctuation(",", "(", ")");
             MarkPunctuation(asOpt, semiOpt);
 
-            base.MarkTransient(sqlSequence, term, asOpt, aliasOpt, stmtLine, expression, unOp, tuple);
+            base.MarkTransient(sqlCommand, term, asOpt, aliasOpt, stmtLine, expression, unOp, tuple);
             binOp.SetFlag(TermFlags.InheritPrecedence);
         }
     }

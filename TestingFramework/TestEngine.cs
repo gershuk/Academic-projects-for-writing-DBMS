@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using System.Collections;
 using SunflowerDB;
 using DataBaseEngine;
@@ -9,20 +10,31 @@ namespace TestingFramework
 {
     class Test
     {
-        public string Input { get; }
-        public string Output { get; }
-        public string Status { get; }
-        public bool ExpectOutput { get; } 
+        public string Input { get; set; }
+        public string Output { get; set; }
+        public string Status { get; set; }
+        public bool ExpectOutput { get; set; } 
+    }
 
-        public Test(JObject json)
+
+    class TestResult
+    {
+        public Test UsedTest { get; set; }
+        public string ReturnedOutput { get; set; }
+        public string ReturnedStatus { get; set; }
+        public bool TestPassed { get; set; }
+
+        public TestResult() { }
+
+        public TestResult(Test t, string output, string status, bool passed)
         {
-            Input = ((string)json["input"]).Trim(';');
-            Output = ((string)json["output"]).Trim(';');
-            Status = ((string)json["status"]).Trim(';');
-            ExpectOutput = (bool)json["expect_output"];
+            UsedTest = t;
+            ReturnedOutput = output;
+            ReturnedStatus = status;
+            TestPassed = passed;
         }
 
-        public override string ToString() => Input;
+        public string ToJson() => JsonConvert.SerializeObject(this);
     }
 
 
@@ -38,8 +50,10 @@ namespace TestingFramework
 
         private PrintLevel selectedLevel;
         private PrintLevel currentLevel;
+        private string groupName;
         private string groupDescription;
         private ArrayList testsList;
+        private ArrayList resultsList;
         private DataBase core;
 
 
@@ -48,11 +62,12 @@ namespace TestingFramework
             selectedLevel = PrintLevel.normal;
             currentLevel = PrintLevel.normal;
             testsList = new ArrayList();
-            core = GetDataBaseCore();
+            resultsList = new ArrayList();
+            core = GetDataBase();
         }
 
 
-        private DataBase GetDataBaseCore() => new DataBase(1, new DataBaseEngineMain(DataBaseConfigPath));
+        private static DataBase GetDataBase() => new DataBase(1, new DataBaseEngineMain(DataBaseConfigPath));
 
 
         public void Dispose() => core.Dispose();
@@ -73,11 +88,11 @@ namespace TestingFramework
         private void PrintError(string msg, bool line = true) => ColoredOutput(msg, forColor: ConsoleColor.Red, newLine: line);
 
 
-        private void PrintHeader(string groupName, string groupDescription)
+        private void PrintHeader()
         {
             ColoredOutput(Delimeter, forColor: ConsoleColor.Cyan);
             ColoredOutput("Running test set: " + groupName, forColor: ConsoleColor.Yellow);
-            ColoredOutput("Description: " + this.groupDescription, forColor: ConsoleColor.Yellow);
+            ColoredOutput("Description: " + groupDescription, forColor: ConsoleColor.Yellow);
             ColoredOutput(Delimeter, forColor: ConsoleColor.Cyan);
         }
 
@@ -93,6 +108,7 @@ namespace TestingFramework
             ColoredOutput(Delimeter, forColor: ConsoleColor.Cyan);
         }
 
+
         private SqlCommandResult CommandRunner(string query)
         {
             var ans = core.SendSqlSequence(query);
@@ -101,47 +117,64 @@ namespace TestingFramework
         }
 
 
-        bool LoadTests(string set_name)
+        private void WriteTestResults()
+        {
+            var tests = new JArray();
+            foreach (TestResult res in resultsList)
+            {
+                tests.Add(res.ToJson());
+            }
+            var obj = new JObject
+            {
+                ["groupName"] = groupName,
+                ["groupDescription"] = groupDescription
+            };
+            obj.Add("tests", tests);
+            File.WriteAllText(ResultsPath + "/" + groupName + ".json", obj.ToString());
+        }
+
+
+        bool LoadTests()
         {
             testsList.Clear();
 
-            var path = TestsPath + "/" + set_name + ".in";
+            var path = TestsPath + "/" + groupName + ".json";
 
             if (!File.Exists(path))
             {
-                Console.WriteLine("Error: tests set with name " + set_name + ".in does not exists");
+                Console.WriteLine("Error: tests set with name " + groupName + ".json does not exists");
                 return false;
             }
 
             var obj = JObject.Parse(File.ReadAllText(path));
             groupDescription = (string)obj["description"];
-            var array = (JArray)obj[set_name];
+            var array = (JArray)obj[groupName];
             foreach (var test in array)
             {
-                testsList.Add(new Test((JObject)test));
+                testsList.Add(JsonConvert.DeserializeObject<Test>(test.ToString()));
             }
             return true;
         }
 
 
-        private void RunTests(string groupName)
+        private void RunTests()
         {
             char[] trimSyms = {';', ' ', '\n', '\r'};
             int count = 0, countFailed = 0, countSuccess = 0;
 
-            if (!LoadTests(groupName))
+            if (!LoadTests())
             {
                 return;
             }
 
             currentLevel = PrintLevel.normal;
-            PrintHeader(groupName, groupDescription);
+            PrintHeader();
             
             var watch = System.Diagnostics.Stopwatch.StartNew();
             foreach (Test test in testsList)
             {
                 currentLevel = PrintLevel.all;
-                ColoredOutput("Running test #" + ++count, forColor: ConsoleColor.Blue);
+                ColoredOutput("Running test #" + ++count, forColor: ConsoleColor.Cyan);
 
                 var queryList = test.Input.Trim(';').Split(";");
                 var outputList = test.Output.Trim(';').Split(";");
@@ -172,7 +205,7 @@ namespace TestingFramework
                         PrintError("\tFAIL IN TEST #" + count);
                     }
                     
-                    ColoredOutput("Command: " + queryList[i] + " ", newLine: false);
+                    ColoredOutput("Command: " + queryList[i] + " ", newLine: false, forColor: ConsoleColor.DarkBlue);
                     
                     if (commandPassed)
                     {
@@ -198,11 +231,15 @@ namespace TestingFramework
                 countSuccess += testPassed ? 1 : 0;
                 countFailed += !testPassed ? 1 : 0;
 
+                resultsList.Add(new TestResult(test, outputResult, statusResult, testPassed));
+
                 File.WriteAllText(DataBaseFilePath, "DATA_BASE_TABLE_METAINF_FILE");
                 core.Dispose();
-                core = GetDataBaseCore();
+                core = GetDataBase();
             }
             watch.Stop();
+
+            WriteTestResults();
 
             currentLevel = PrintLevel.silent;
             PrintResult(count, countSuccess, countFailed, watch.ElapsedMilliseconds);
@@ -214,8 +251,14 @@ namespace TestingFramework
             var exitState = false;
             while (!exitState)
             {
-                Console.Write(">> ");
+                ColoredOutput(">> ", forColor: ConsoleColor.Red, newLine: false);
                 var command = Console.ReadLine().Split();
+                
+                if (string.IsNullOrEmpty(command[0]))
+                {
+                    continue;
+                }
+                
                 switch (command[0])
                 {
                     case "run":
@@ -236,7 +279,8 @@ namespace TestingFramework
                             }
                         }
 
-                        RunTests(command[1]);
+                        groupName = command[1];
+                        RunTests();
                         break;
                     case "clear":
                         Console.Clear();
@@ -245,7 +289,7 @@ namespace TestingFramework
                         exitState = true;
                         break;
                     default:
-                        Console.WriteLine("No such command");
+                        Console.WriteLine("No such command: " + command[0]);
                         break;
                 }
             }

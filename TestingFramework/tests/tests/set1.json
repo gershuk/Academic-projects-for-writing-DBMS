@@ -1,0 +1,17 @@
+{
+  "description": "Test database clear after test function",
+  "set1": [
+    {
+      "Input": "CREATE TABLE t (id INT)",
+      "Output": "",
+      "Status": "performed",
+      "ExpectOutput": false
+    },
+    {
+      "Input": "DROP TABLE t",
+      "Output": "",
+      "Status": "failed",
+      "ExpectOutput": false
+    }
+  ]
+}

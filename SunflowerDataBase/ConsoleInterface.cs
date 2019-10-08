@@ -9,7 +9,7 @@ namespace SunflowerDB
 
         public static void Main()
         {
-            var core = new DataBase(200, new DataBaseEngineMain());
+            var core = new DataBase(20, new DataBaseEngineMain());
             var exitState = true;
             Console.WriteLine("Hello!");
             Console.WriteLine("Please enter your sql request.");

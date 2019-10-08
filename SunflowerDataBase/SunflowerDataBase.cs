@@ -5,6 +5,10 @@ using System.Threading.Tasks;
 
 using DataBaseEngine;
 
+using DataBaseErrors;
+
+using DataBaseTable;
+
 using Irony.Parsing;
 
 using IronySqlParser;
@@ -13,9 +17,15 @@ namespace SunflowerDB
 {
     public class SqlCommandResult
     {
-        public OperationResult<string> Answer { get; set; }
+        public OperationResult<Table> Answer { get; set; }
         public ManualResetEvent AnswerNotify;
-        public override string ToString() => Answer.Result + " " + Answer.State;
+        public override string ToString() => Answer.State switch
+        {
+            OperationExecutionState.parserError => $"{Answer.OperationException}",
+            OperationExecutionState.failed => $"{Answer.OperationException}",
+            OperationExecutionState.performed => $"{Answer.Result}"
+        };
+
     }
 
     sealed public class DataBase : IDisposable
@@ -32,7 +42,7 @@ namespace SunflowerDB
             {
                 CommandResult = new SqlCommandResult
                 {
-                    Answer = new OperationResult<string>(OperationExecutionState.notProcessed, new string("")),
+                    Answer = new OperationResult<Table>(OperationExecutionState.notProcessed, null),
                     AnswerNotify = new ManualResetEvent(false)
                 };
                 _sqlSequence = sql ?? throw new ArgumentNullException(nameof(sql));
@@ -93,7 +103,6 @@ namespace SunflowerDB
                     return;
                 }
 
-
                 while (_waitingSqlCommands.TryDequeue(out var sqlCommand))
                 {
                     _parsersSemaphore.WaitOne();
@@ -129,13 +138,13 @@ namespace SunflowerDB
                     {
                         var answer = sqlCommand.CommandResult.Answer;
                         answer.State = OperationExecutionState.parserError;
-                        answer.Result = parserTree.ParserMessages[0].Message + " " + parserTree.ParserMessages[0].Location.ToString();
+                        answer.Result = null;
+                        answer.OperationException = new ParsingRequestError(parserTree.ParserMessages[0].Message, parserTree.ParserMessages[0].Location.ToString());
                     }
                     else
                     {
                         var treeNode = parserTree.Root.ChildNodes[0];
                         sqlCommand.CommandResult.Answer = _engineCommander.ExecuteCommand(treeNode);
-                        //_engineCommander.Engine.Commit();
                     }
 
                     sqlCommand.CommandResult.AnswerNotify.Set();

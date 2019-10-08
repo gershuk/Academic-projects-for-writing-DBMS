@@ -22,23 +22,33 @@ namespace DataBaseTable
         NTEXT
     }
 
+    public enum NullSpecOpt
+    {
+        Null,
+        NotNull,
+        Empty
+    }
+
     public class Column
     {
         public Column() { }
         public Column(string name) => Name = name;
 
-        public Column(string name, ColumnDataType dataType, int dataParam, List<string> constrains)
+        public Column(string name, ColumnDataType dataType, int dataParam, List<string> constrains,NullSpecOpt typeState)
         {
             Name = name;
             DataType = dataType;
             DataParam = dataParam;
             Constrains = constrains;
+            TypeState = typeState;
         }
+
         public string Name { get; set; }
         public ColumnDataType DataType { get; set; }
         public int DataParam { get; set;}
         public List<string> Constrains { get; set; }
         public int Size { get; set; }
+        public NullSpecOpt TypeState { get; set; }
     }
 
     public class TableMetaInf

@@ -16,19 +16,82 @@ namespace SunflowerDB
 
         public DataBaseEngineMain Engine { get; set; }
 
-        public OperationResult<string> ExecuteCommand(ParseTreeNode treeNode)
+        public OperationResult<Table> ExecuteCommand(ParseTreeNode treeNode)
         {
             var ans = treeNode.Term.Name switch
             {
                 "DropTableStmt" => DropTable(treeNode),
                 "CreateTableStmt" => CreateTable(treeNode),
-                "ShowTableStmt" => ShowTable(treeNode)
+                "ShowTableStmt" => ShowTable(treeNode),
+                "SelectStmt" => Select(treeNode)
             };
 
+            Engine.Commit();
             return ans;
         }
 
-        public OperationResult<string> CreateTable(ParseTreeNode node)
+        public OperationResult<Table> Select(ParseTreeNode node)
+        {
+            var _selListNode = FindChildNodeByName(node, "selList")[0];
+            var _allStateNode = FindChildNodeByName(_selListNode, "*");
+            var _columnItemList = FindChildNodeByName(_selListNode, "columnItemList");
+
+            var _selsId = new List<String>();
+
+            if (_allStateNode.Count == 0)
+            {
+                foreach (var columnItem in _columnItemList[0].ChildNodes)
+                {
+                    var _columnSourceNode = FindChildNodeByName(columnItem, "columnSource")[0];
+                    var _idList = FindChildNodeByName(_columnSourceNode, "id");
+
+                    foreach (var id in _idList)
+                    {
+                        _selsId.Add(BuildNameFromId(id));
+                    }
+                }
+            }
+            else
+            {
+                _selsId.Add("*");
+            }
+
+            var _fromClauseOpt = FindChildNodeByName(node, "fromClauseOpt");
+            var _fromId = new List<String>();
+
+            if (_fromClauseOpt.Count > 0)
+            {
+                var _fromClauseOptNode = _fromClauseOpt[0];
+                var _idListNode = FindChildNodeByName(_fromClauseOptNode, "idList")[0];
+                var _idList = FindChildNodeByName(_idListNode, "id");
+                foreach (var id in _idList)
+                {
+                    _fromId.Add(BuildNameFromId(id));
+                }
+            }
+
+            var _whereClauseOptList = FindChildNodeByName(node, "whereClauseOpt");
+            string _whereClauseOpt;
+
+            if (_whereClauseOptList.Count > 0)
+            {
+                var _whereClauseOptNode = _whereClauseOptList[0];
+                //костыль ->
+                var _binExpr= FindChildNodeByName(_whereClauseOptNode, "binExpr");
+                if (_binExpr.Count>0)
+                {
+                    var _binExprNode = _binExpr[0];
+                    foreach (var child in _binExprNode.ChildNodes)
+                    {
+                       
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public OperationResult<Table> CreateTable(ParseTreeNode node)
         {
             var idNode = FindChildNodeByName(node, "id")[0];
             var fieldDefList = FindChildNodeByName(node, "fieldDefList")[0];
@@ -40,7 +103,7 @@ namespace SunflowerDB
 
             if (state.State == OperationExecutionState.failed)
             {
-                return new OperationResult<string>(OperationExecutionState.failed, tableName + " created fail");
+                return state;
             }
 
             foreach (var fieldDef in fieldDefs)
@@ -61,18 +124,31 @@ namespace SunflowerDB
                 var _constraintList = BuildConstraintList(_constraintDefList);
 
                 var _typeParamsInt = _typeParams == null ? 0 : int.Parse(_typeParams);
-                var column = new Column(_columnName, _type, _typeParamsInt, _constraintList);
+
+                var _nullSpecOptNode = FindChildNodeByName(fieldDef, "nullSpecOpt")[0];
+                var _nullSpecOptName = "";
+
+                foreach (var childs in _nullSpecOptNode.ChildNodes)
+                {
+                    _nullSpecOptName += childs.Term.Name;
+                }
+
+                var _nullSpecOpt = _nullSpecOptName == "" ? NullSpecOpt.Empty : ParseEnum<NullSpecOpt>(_nullSpecOptName);
+
+                var column = new Column(_columnName, _type, _typeParamsInt, _constraintList, _nullSpecOpt);
+
                 var _state = Engine.AddColumnToTable(tableName, column);
 
                 if (_state.State == OperationExecutionState.failed)
                 {
-                    return new OperationResult<string>(OperationExecutionState.failed, "added column " + _columnName + " faild");
+                    return _state;
                 }
             }
+
             return state;
         }
 
-        public OperationResult<string> DropTable(ParseTreeNode node)
+        public OperationResult<Table> DropTable(ParseTreeNode node)
         {
             var idNode = FindChildNodeByName(node, "id")[0];
 
@@ -81,7 +157,7 @@ namespace SunflowerDB
             return Engine.DeleteTable(name);
         }
 
-        public OperationResult<string> ShowTable(ParseTreeNode node)
+        public OperationResult<Table> ShowTable(ParseTreeNode node)
         {
             var idNode = FindChildNodeByName(node, "id")[0];
 

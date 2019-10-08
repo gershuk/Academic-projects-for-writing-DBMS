@@ -67,7 +67,7 @@ namespace IronySqlParser
             var semiOpt = new NonTerminal("semiOpt");
             var stmtList = new NonTerminal("stmtList");
 
-            var selectStmt = new NonTerminal("selectStmt");
+            var selectStmt = new NonTerminal("SelectStmt");
             var exprList = new NonTerminal("exprList");
             var selRestrOpt = new NonTerminal("selRestrOpt");
             var selList = new NonTerminal("selList");
@@ -80,7 +80,7 @@ namespace IronySqlParser
             var columnItemList = new NonTerminal("columnItemList");
             var columnItem = new NonTerminal("columnItem");
             var columnSource = new NonTerminal("columnSource");
-            var idlist = new NonTerminal("idlist");
+            var idList = new NonTerminal("idList");
             var idlistPar = new NonTerminal("idlistPar");
             var aggregate = new NonTerminal("aggregate");
             var aggregateArg = new NonTerminal("aggregateArg");
@@ -112,8 +112,8 @@ namespace IronySqlParser
 
             //ID
             id.Rule = MakePlusRule(id, dot, simpleId);
-            idlistPar.Rule = "(" + idlist + ")";
-            idlist.Rule = MakePlusRule(idlist, comma, id);
+            idlistPar.Rule = "(" + idList + ")";
+            idList.Rule = MakePlusRule(idList, comma, id);
 
             //Create table
             createTableStmt.Rule = CREATE + TABLE + id + "(" + fieldDefList  + ")" ;
@@ -154,11 +154,11 @@ namespace IronySqlParser
             aggregateArg.Rule = expression | "*";
             aggregateName.Rule = COUNT | "Avg" | "Min" | "Max" | "StDev" | "StDevP" | "Sum" | "Var" | "VarP";
             intoClauseOpt.Rule = Empty | INTO + id;
-            fromClauseOpt.Rule = Empty | FROM + idlist + joinChainOpt;
-            joinChainOpt.Rule = Empty | joinKindOpt + JOIN + idlist + ON + id + "=" + id;
+            fromClauseOpt.Rule = Empty | FROM + idList + joinChainOpt;
+            joinChainOpt.Rule = Empty | joinKindOpt + JOIN + idList + ON + id + "=" + id;
             joinKindOpt.Rule = Empty | "INNER" | "LEFT" | "RIGHT";
             whereClauseOpt.Rule = Empty | "WHERE" + expression;
-            groupClauseOpt.Rule = Empty | "GROUP" + BY + idlist;
+            groupClauseOpt.Rule = Empty | "GROUP" + BY + idList;
             havingClauseOpt.Rule = Empty | "HAVING" + expression;
             orderClauseOpt.Rule = Empty | "ORDER" + BY + orderList;
             orderList.Rule = MakePlusRule(orderList, comma, orderMember);

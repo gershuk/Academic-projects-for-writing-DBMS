@@ -2,18 +2,13 @@
 using System.IO;
 using Newtonsoft.Json.Linq;
 using System.Collections;
-using SunflowerDataBase;
+using SunflowerDB;
+using DataBaseEngine;
 
 namespace TestingFramework
 {
     class Test
     {
-        // Status codes: 
-        // 0 notProcessed
-        // 1 parserError
-        // 2 failed
-        // 3 performed
-
         public string input;
         public string output;
         public string status;
@@ -31,38 +26,34 @@ namespace TestingFramework
     }
 
 
-    class TestResult
-    {
-        public bool passed;
-        public string status;
-        public string output;
-
-        public JObject ToJson() => new JObject
-        {
-            ["passed"] = passed,
-            ["status"] = status,
-            ["output"] = output
-        };
-    }
-
-
-    class Engine
+    class Engine : IDisposable
     {
         private const string CONFIG_PATH = "testing.cfg";
+        private const string DB_CONFIG_PATH = "../../../tests/DataEngineConfig.json";
+        private const string DBFILE_PATH = "../../../tests/TestDataBase.db";
+
+        private enum PrintLevel { silent, normal, all }
 
         private string tests_dir;
         private string results_dir;
         private PrintLevel print_level;
         private string set_description;
         private ArrayList tests;
+        private DataBase core;
 
-        private enum PrintLevel { silent, normal, all }
 
         public Engine()
         {
             print_level = PrintLevel.normal;
             tests = new ArrayList();
+            core = GetDB();
         }
+
+
+        private DataBase GetDB() => new DataBase(1, new DataBaseEngineMain(DB_CONFIG_PATH));
+
+
+        public void Dispose() => core.Dispose();
 
 
         private void ColoredOutput(PrintLevel level, string msg = "", ConsoleColor backColor = ConsoleColor.Black, ConsoleColor forColor = ConsoleColor.White, bool newLine = true)
@@ -84,6 +75,14 @@ namespace TestingFramework
             }
             
             Console.ResetColor();
+        }
+
+
+        private SqlCommandResult CommandRunner(string query)
+        {
+            var ans = core.SendSqlSequence(query);
+            ans.AnswerNotify.WaitOne();
+            return ans;
         }
 
 
@@ -122,7 +121,7 @@ namespace TestingFramework
 
         bool LoadTests(string set_name)
         {
-            tests.Clear(); // TODO
+            tests.Clear();
 
             var path = tests_dir + "/" + set_name + ".in";
 
@@ -146,6 +145,7 @@ namespace TestingFramework
         private void RunTests(string set_name)
         {
             const string DELIMETER = "------------------------------------------------------------------------------";
+            char[] symbols = {';', ' ', '\n', '\r'};
             int count = 0, count_failed = 0, count_success = 0;
 
             if (!LoadTests(set_name))
@@ -166,17 +166,17 @@ namespace TestingFramework
                 var queries = test.input.Trim(';').Split(";");
                 var outputs = test.output.Trim(';').Split(";");
                 var status_list = test.status.Trim(';').Split(";");
-
+                
                 var output_result = "";
                 var status_result = "";
                 var test_passed = true;
-
+               
                 for (var i = 0; i < queries.Length; i++)
                 {
                     var command_passed = true;
                     
-                    var ans = Program.RunQuery(queries[i]);
-                    if (ans.Answer.State.ToString() != status_list[i].Trim() || (test.expect_output && outputs[i].Trim() != ans.Answer.Result))
+                    var ans = CommandRunner(queries[i]);
+                    if (ans.Answer.State.ToString() != status_list[i].Trim(symbols) || (test.expect_output && outputs[i].Trim(symbols) != ans.Answer.Result.Trim(symbols)))
                     {
                         test_passed = false;
                         command_passed = false;
@@ -188,7 +188,7 @@ namespace TestingFramework
                     var level = command_passed ? PrintLevel.all : PrintLevel.normal;
                     if (!test_passed)
                     {
-                        ColoredOutput(level, "FAIL IN TEST #" + count, forColor: ConsoleColor.Red);
+                        ColoredOutput(level, "\tFAIL IN TEST #" + count, forColor: ConsoleColor.Red);
                     }
                     ColoredOutput(level, "Command: " + queries[i] + " ", newLine: false);
                     if (command_passed)
@@ -199,7 +199,7 @@ namespace TestingFramework
                     {
                         ColoredOutput(level, "NOT PASSED", forColor: ConsoleColor.Red);
                     }
-                    ColoredOutput(level, "Result: " + ans.Answer.Result + " | STATUS: " + ans.Answer.State.ToString());
+                    ColoredOutput(level, "Output: " + ans.Answer.Result.Trim(symbols) + "\nSTATUS: " + ans.Answer.State.ToString());
                     
                     if (!command_passed)
                     {
@@ -213,6 +213,10 @@ namespace TestingFramework
 
                 count_success += test_passed ? 1 : 0;
                 count_failed += !test_passed ? 1 : 0;
+
+                File.WriteAllText(DBFILE_PATH, "DATA_BASE_TABLE_METAINF_FILE");
+                core.Dispose();
+                core = GetDB();
             }
             watch.Stop();
 
@@ -224,14 +228,6 @@ namespace TestingFramework
             ColoredOutput(PrintLevel.silent, " | " + Math.Round((double) 100 * count_success / count) + "% | Time " + watch.ElapsedMilliseconds + " ms");
             ColoredOutput(PrintLevel.silent, DELIMETER, forColor: ConsoleColor.Cyan);
         } 
-
-
-        private void CleanAfterTest()
-        {
-            tests.Clear();
-            print_level = PrintLevel.normal;
-            File.Delete("MainDataBase.db");
-        }
 
 
         public void Run()
@@ -256,7 +252,7 @@ namespace TestingFramework
                                 case "--silent":
                                     print_level = PrintLevel.silent;
                                     break;
-                                case "--printall":
+                                case "--all":
                                     print_level = PrintLevel.all;
                                     break;
                                 default:
@@ -266,7 +262,6 @@ namespace TestingFramework
                         }
 
                         RunTests(command[1]);
-                        CleanAfterTest();
                         break;
                     case "clear":
                         Console.Clear();
@@ -289,6 +284,7 @@ namespace TestingFramework
         {
             var engine = new Engine();
             engine.Run();
+            engine.Dispose();
         }
     }
 }

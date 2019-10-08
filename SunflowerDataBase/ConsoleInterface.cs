@@ -5,10 +5,7 @@ using DataBaseEngine;
 
 namespace SunflowerDB
 {
-    class ConsoleInterface
-    {
-    }
-    public class Program
+    public class ConsoleInterface
     {
 
         public static void Main()

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.6">
@@ -11,6 +11,10 @@
   <ItemGroup>
     <ProjectReference Include="..\DataBaseEngine\DataBaseEngine.csproj" />
     <ProjectReference Include="..\SunflowerDataBase\SunflowerDataBase.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="tests\" />
   </ItemGroup>
 
   <PropertyGroup>

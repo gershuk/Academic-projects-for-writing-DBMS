@@ -9,7 +9,6 @@ using System.Collections.Concurrent;
 
 namespace SunflowerDB
 {
-
     public class SqlCommandResult
     {
         public OperationResult<string> Answer { get; set; }

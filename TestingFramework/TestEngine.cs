@@ -1,14 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using System.Collections;
-using SunflowerDB;
+
 using DataBaseEngine;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+using SunflowerDB;
 
 namespace TestingFramework
 {
-    class Test
+    public class Test
     {
         public string Input { get; set; }
         public string Output { get; set; }
@@ -52,8 +55,8 @@ namespace TestingFramework
         private PrintLevel currentLevel;
         private string groupName;
         private string groupDescription;
-        private ArrayList testsList;
-        private ArrayList resultsList;
+        private readonly List<Test> testsList;
+        private readonly List<TestResult> resultsList;
         private DataBase core;
 
 
@@ -61,8 +64,8 @@ namespace TestingFramework
         {
             selectedLevel = PrintLevel.normal;
             currentLevel = PrintLevel.normal;
-            testsList = new ArrayList();
-            resultsList = new ArrayList();
+            testsList = new List<Test>();
+            resultsList = new List<TestResult>();
             core = GetDataBase();
         }
 
@@ -109,6 +112,20 @@ namespace TestingFramework
         }
 
 
+        private void CleanAfterTest()
+        {
+            File.WriteAllText(DataBaseFilePath, "DATA_BASE_TABLE_METAINF_FILE");
+            core.Dispose();
+            core = GetDataBase();
+        }
+
+        private void CleanData()
+        {
+            currentLevel = PrintLevel.normal;
+            testsList.Clear();
+            resultsList.Clear();
+        }
+
         private SqlCommandResult CommandRunner(string query)
         {
             var ans = core.SendSqlSequence(query);
@@ -120,7 +137,7 @@ namespace TestingFramework
         private void WriteTestResults()
         {
             var tests = new JArray();
-            foreach (TestResult res in resultsList)
+            foreach (var res in resultsList)
             {
                 tests.Add(res.ToJson());
             }
@@ -153,6 +170,7 @@ namespace TestingFramework
             {
                 testsList.Add(JsonConvert.DeserializeObject<Test>(test.ToString()));
             }
+
             return true;
         }
 
@@ -171,7 +189,7 @@ namespace TestingFramework
             PrintHeader();
             
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            foreach (Test test in testsList)
+            foreach (var test in testsList)
             {
                 currentLevel = PrintLevel.all;
                 ColoredOutput("Running test #" + ++count, forColor: ConsoleColor.Cyan);
@@ -233,9 +251,7 @@ namespace TestingFramework
 
                 resultsList.Add(new TestResult(test, outputResult, statusResult, testPassed));
 
-                File.WriteAllText(DataBaseFilePath, "DATA_BASE_TABLE_METAINF_FILE");
-                core.Dispose();
-                core = GetDataBase();
+                CleanAfterTest();             
             }
             watch.Stop();
 
@@ -243,7 +259,29 @@ namespace TestingFramework
 
             currentLevel = PrintLevel.silent;
             PrintResult(count, countSuccess, countFailed, watch.ElapsedMilliseconds);
+            CleanData();
         } 
+
+
+        private void Shell()
+        {
+            while (true)
+            {
+                ColoredOutput("$$ ", forColor: ConsoleColor.Red, newLine: false);
+                var command = Console.ReadLine();
+                
+                if (command == "exit")
+                {
+                    CleanAfterTest();
+                    CleanData();
+                    return;
+                }
+                
+                var ans = CommandRunner(command);
+                Console.WriteLine(ans.Answer.Result);
+                Console.WriteLine("State: " + ans.Answer.State.ToString());
+            }
+        }
 
 
         public void Run()
@@ -281,6 +319,9 @@ namespace TestingFramework
 
                         groupName = command[1];
                         RunTests();
+                        break;
+                    case "shell":
+                        Shell();
                         break;
                     case "clear":
                         Console.Clear();

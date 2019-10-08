@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using DataBaseTable;
-using Newtonsoft.Json;
 using System.IO;
+
+using DataBaseErrors;
+
+using DataBaseTable;
+
+using Newtonsoft.Json;
 
 namespace DataBaseEngine
 {
-
     public class EngineConfig
     {
         public string Path { get; set; }
@@ -23,12 +26,14 @@ namespace DataBaseEngine
     public class OperationResult<T>
     {
         public OperationExecutionState State { get; set; }
+        public Exception OpException { get; set; }
         public T Result { get; set; }
 
-        public OperationResult(OperationExecutionState state, T result)
+        public OperationResult(OperationExecutionState state, T result, Exception opException = null)
         {
             State = state;
             Result = result;
+            OpException = opException;
         }
     }
 
@@ -101,24 +106,17 @@ namespace DataBaseEngine
         {
             if (!File.Exists(path))
             {
-                using (var sw = new StringWriter())
-                {
-                    sw.WriteLine("Error LoadEngineConfig, File named {0} doesn't exist ", path);
-                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
-                }
+                return new OperationResult<string>(OperationExecutionState.failed, "", new FileNotExistExeption(path));
             }
 
             using (var sr = new StreamReader(path))
             {
                 if (sr.ReadLine() != _fileMarkEngineConfig)
                 {
-                    using (var sw = new StringWriter())
-                    {
-                        sw.WriteLine("Error LoadTablePool, File named {0} doesn't contain 'file mark' '{1}'  ", path, _fileMarkEngineConfig);
-                        return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
-                    }
+                    return new OperationResult<string>(OperationExecutionState.failed, "", new FileMarkNotExistExeption(path, _fileMarkEngineConfig));
+
                 }
-              EngineConfig = JsonConvert.DeserializeObject<EngineConfig>(sr.ReadToEnd());
+                EngineConfig = JsonConvert.DeserializeObject<EngineConfig>(sr.ReadToEnd());
             }
 
             return new OperationResult<string>(OperationExecutionState.performed, "Config loaded.");
@@ -139,13 +137,8 @@ namespace DataBaseEngine
         {
             if (!TablePool.ContainsKey(tableName))
             {
-                using (var sw = new StringWriter())
-                {
-                    sw.WriteLine("Error DeleteColumnFromTable, Table named {0} doesn't exist", tableName);
-                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
-                }
+                return new OperationResult<string>(OperationExecutionState.failed, "", new TableNotExistExeption(tableName));
             }
-
             return TablePool[tableName].AddColumn(column);
         }
 
@@ -153,36 +146,20 @@ namespace DataBaseEngine
         {
             if (TablePool.ContainsKey(name))
             {
-                using (var sw = new StringWriter())
-                {
-                    sw.WriteLine("Error CreateTable, Table with name {0} already exist.", name);
-                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
-                }
+                return new OperationResult<string>(OperationExecutionState.failed, "", new TableAlreadyExistExeption(name));
             }
-            else
-            {
-                TablePool.Add(name, new Table(name));
-            }
-
-            return new OperationResult<string>(OperationExecutionState.performed, "ok");
+            TablePool.Add(name, new Table(name));
+            return new OperationResult<string>(OperationExecutionState.performed, "");
         }
 
         public OperationResult<string> CreateTable(TableMetaInf metaInf)
         {
             if (TablePool.ContainsKey(metaInf.Name))
             {
-                using (var sw = new StringWriter())
-                {
-                    sw.WriteLine("Error CreateTable, Table with name {0} already exist.", metaInf.Name);
-                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
-                }
+                return new OperationResult<string>(OperationExecutionState.failed, "", new TableAlreadyExistExeption(name));
             }
-            else
-            {
-                TablePool.Add(metaInf.Name, new Table(metaInf));
-            }
-
-            return new OperationResult<string>(OperationExecutionState.performed, "ok");
+            TablePool.Add(metaInf.Name, new Table(metaInf));
+            return new OperationResult<string>(OperationExecutionState.performed, "");
         }
 
         public OperationResult<string> DeleteColumnFromTable(string tableName, string ColumnName)
@@ -203,15 +180,9 @@ namespace DataBaseEngine
         {
             if (!TablePool.ContainsKey(tableName))
             {
-                using (var sw = new StringWriter())
-                {
-                    sw.WriteLine("Error DeleteTable, Table named {0} doesn't exist", tableName);
-                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
-                }
+                return new OperationResult<string>(OperationExecutionState.failed, "", new TableNotExistExeption(tableName));
             }
-
             TablePool.Remove(tableName);
-
             return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
 
@@ -219,8 +190,7 @@ namespace DataBaseEngine
         {
             if (!TablePool.ContainsKey(tableName))
             {
-                Console.WriteLine("Error GetTableData, Table named {0} doesn't exist", tableName);
-                return new OperationResult<TableData>(OperationExecutionState.failed, null);
+                return new OperationResult<TableData>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
             }
             return new OperationResult<TableData>(OperationExecutionState.performed, TablePool[tableName].TableData);
         }
@@ -229,8 +199,7 @@ namespace DataBaseEngine
         {
             if (!TablePool.ContainsKey(tableName))
             {
-                Console.WriteLine("Error GetTableMetaInf, Table named {0} doesn't exist", tableName);
-                return new OperationResult<TableMetaInf>(OperationExecutionState.failed, null);
+                return new OperationResult<TableMetaInf>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
             }
 
             return new OperationResult<TableMetaInf>(OperationExecutionState.performed, TablePool[tableName].TableMetaInf);
@@ -241,11 +210,7 @@ namespace DataBaseEngine
         {
             if (!TablePool.ContainsKey(tableName))
             {
-                using (var sw = new StringWriter())
-                {
-                    sw.WriteLine("Error DeleteTable, Table named {0} doesn't exist", tableName);
-                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
-                }
+                return new OperationResult<string>(OperationExecutionState.failed, "", new TableNotExistExeption(tableName));
             }
 
             using (var sw = new StringWriter())

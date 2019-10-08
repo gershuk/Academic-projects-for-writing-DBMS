@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using DataBaseTable;
-using Newtonsoft.Json;
 using System.IO;
+
+using DataBaseErrors;
+
+using DataBaseTable;
 
 namespace DataBaseEngine
 {
@@ -17,32 +18,27 @@ namespace DataBaseEngine
     {
         public string PathToTableMetaInf { get; set; }
         private const string _fileMarkTableMetaInf = "DATA_BASE_TABLE_METAINF_FILE";
+
         public DataStorageInFiles(string path)
         {
             PathToTableMetaInf = path;
         }
+
         public OperationResult<Dictionary<string, Table>> LoadTablePoolMetaInf()
         {
             var path = PathToTableMetaInf;
             Dictionary<string, Table> TablePool;
             if (!File.Exists(path))
             {
-                using (var sw = new StringWriter())
-                {
-                    sw.WriteLine("Error LoadTablePool, File named {0} doesn't exist ", path);
-                    return new OperationResult<Dictionary<string, Table>>(OperationExecutionState.failed, null);
-                }
+                return new OperationResult<Dictionary<string, Table>>
+                           (OperationExecutionState.failed, null, new FileNotExistExeption(path));
             }
 
             using (var sr = new StreamReader(path))
             {
                 if (sr.ReadLine() != _fileMarkTableMetaInf)
                 {
-                    using (var sw = new StringWriter())
-                    {
-                        sw.WriteLine("Error LoadTablePool, File named {0} doesn't contain 'file mark' '{1}'  ", path, _fileMarkTableMetaInf);
-                        return new OperationResult<Dictionary<string, Table>>(OperationExecutionState.failed, null);
-                    }
+                    return new OperationResult<Dictionary<string, Table>>(OperationExecutionState.failed, null, new FileMarkNotExistExeption(path, _fileMarkTableMetaInf));
                 }
 
                 TablePool = new Dictionary<string, Table>();
@@ -71,7 +67,7 @@ namespace DataBaseEngine
                 }
             }
 
-            return new OperationResult<string>(OperationExecutionState.performed, "ok");
+            return new OperationResult<string>(OperationExecutionState.performed, "");
         }
 
         public OperationResult<string> SaveTableData(Table table) => throw new NotImplementedException();

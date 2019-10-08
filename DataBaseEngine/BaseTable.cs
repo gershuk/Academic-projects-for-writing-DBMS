@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using DataBaseEngine;
-using Newtonsoft.Json;
 using System.IO;
+
+using DataBaseEngine;
+
+using DataBaseErrors;
+
+using Newtonsoft.Json;
 namespace DataBaseTable
 {
     public enum ColumnDataType
@@ -15,7 +18,6 @@ namespace DataBaseTable
         NCHAR,
         VARCHAR,
         NVARCHAR,
-        IMAGE,
         TEXT,
         NTEXT
     }
@@ -56,10 +58,10 @@ namespace DataBaseTable
                 using (var sw = new StringWriter())
                 {
                     sw.WriteLine("Error AddColumn, Column with name {0} alredy exist in Table {1}", column.Name, Name);
-                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
+                    return new OperationResult<string>(OperationExecutionState.failed, null, new ColumnAlreadyExistExeption(column.Name, Name));
                 }
             }
-            return new OperationResult<string>(OperationExecutionState.performed,"ok");
+            return new OperationResult<string>(OperationExecutionState.performed,"");
         }
 
         public OperationResult<string> DeleteColumn(string ColumName)

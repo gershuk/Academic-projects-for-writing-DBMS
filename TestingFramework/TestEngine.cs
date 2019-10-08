@@ -121,7 +121,6 @@ namespace TestingFramework
 
         private void CleanData()
         {
-            currentLevel = PrintLevel.normal;
             testsList.Clear();
             resultsList.Clear();
         }
@@ -272,15 +271,16 @@ namespace TestingFramework
                 
                 if (command == "exit")
                 {
-                    CleanAfterTest();
-                    CleanData();
-                    return;
+                    break;
                 }
                 
                 var ans = CommandRunner(command);
                 Console.WriteLine(ans.Answer.Result);
                 Console.WriteLine("State: " + ans.Answer.State.ToString());
             }
+
+            CleanAfterTest();
+            CleanData();
         }
 
 

@@ -1,5 +1,6 @@
-﻿using Irony.Parsing;
-using System;
+﻿using System;
+
+using Irony.Parsing;
 
 namespace IronySqlParser
 {

@@ -156,7 +156,7 @@ namespace DataBaseEngine
         {
             if (TablePool.ContainsKey(metaInf.Name))
             {
-                return new OperationResult<string>(OperationExecutionState.failed, "", new TableAlreadyExistExeption(name));
+                return new OperationResult<string>(OperationExecutionState.failed, "", new TableAlreadyExistExeption(metaInf.Name));
             }
             TablePool.Add(metaInf.Name, new Table(metaInf));
             return new OperationResult<string>(OperationExecutionState.performed, "");

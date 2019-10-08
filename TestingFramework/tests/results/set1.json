@@ -1,8 +1,0 @@
-{
-  "groupName": "set1",
-  "groupDescription": "Test database clear after test function",
-  "tests": [
-    "{\"UsedTest\":{\"Input\":\"CREATE TABLE t (id INT)\",\"Output\":\"\",\"Status\":\"performed\",\"ExpectOutput\":false},\"ReturnedOutput\":\";\",\"ReturnedStatus\":\"performed;\",\"TestPassed\":true}",
-    "{\"UsedTest\":{\"Input\":\"DROP TABLE t\",\"Output\":\"\",\"Status\":\"failed\",\"ExpectOutput\":false},\"ReturnedOutput\":\";\",\"ReturnedStatus\":\"failed;\",\"TestPassed\":true}"
-  ]
-}

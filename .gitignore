@@ -340,4 +340,4 @@ ASALocalRun/
 healthchecksdb
 
 # Test Results folder
-/TestingFramework/tests/results/
+TestingFramework/tests/results/

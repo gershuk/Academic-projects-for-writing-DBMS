@@ -9,74 +9,89 @@ namespace TestingFramework
 {
     class Test
     {
-        public string input;
-        public string output;
-        public string status;
-        public bool expect_output;
+        public string Input { get; }
+        public string Output { get; }
+        public string Status { get; }
+        public bool ExpectOutput { get; } 
 
         public Test(JObject json)
         {
-            input = ((string)json["input"]).Trim(';');
-            output = ((string)json["output"]).Trim(';');
-            status = ((string)json["status"]).Trim(';');
-            expect_output = (bool)json["expect_output"];
+            Input = ((string)json["input"]).Trim(';');
+            Output = ((string)json["output"]).Trim(';');
+            Status = ((string)json["status"]).Trim(';');
+            ExpectOutput = (bool)json["expect_output"];
         }
 
-        public override string ToString() => input;
+        public override string ToString() => Input;
     }
 
 
     class Engine : IDisposable
     {
-        private const string CONFIG_PATH = "testing.cfg";
-        private const string DB_CONFIG_PATH = "../../../tests/DataEngineConfig.json";
-        private const string DBFILE_PATH = "../../../tests/TestDataBase.db";
+        private const string Delimeter = "------------------------------------------------------------------------------";
+        private const string DataBaseConfigPath = "../../../tests/DataEngineConfig.json";
+        private const string DataBaseFilePath = "../../../tests/TestDataBase.db";
+        private const string TestsPath = "../../../tests/tests/";
+        private const string ResultsPath = "../../../tests/results";
 
         private enum PrintLevel { silent, normal, all }
 
-        private string tests_dir;
-        private string results_dir;
-        private PrintLevel print_level;
-        private string set_description;
-        private ArrayList tests;
+        private PrintLevel selectedLevel;
+        private PrintLevel currentLevel;
+        private string groupDescription;
+        private ArrayList testsList;
         private DataBase core;
 
 
         public Engine()
         {
-            print_level = PrintLevel.normal;
-            tests = new ArrayList();
-            core = GetDB();
+            selectedLevel = PrintLevel.normal;
+            currentLevel = PrintLevel.normal;
+            testsList = new ArrayList();
+            core = GetDataBaseCore();
         }
 
 
-        private DataBase GetDB() => new DataBase(1, new DataBaseEngineMain(DB_CONFIG_PATH));
+        private DataBase GetDataBaseCore() => new DataBase(1, new DataBaseEngineMain(DataBaseConfigPath));
 
 
         public void Dispose() => core.Dispose();
 
 
-        private void ColoredOutput(PrintLevel level, string msg = "", ConsoleColor backColor = ConsoleColor.Black, ConsoleColor forColor = ConsoleColor.White, bool newLine = true)
+        private void ColoredOutput(string msg = "", ConsoleColor backColor = ConsoleColor.Black, ConsoleColor forColor = ConsoleColor.White, bool newLine = true)
         {
-            if (level > print_level)
+            if (currentLevel <= selectedLevel)
             {
-                return;
+                Console.BackgroundColor = backColor;
+                Console.ForegroundColor = forColor;
+                Console.Write(msg + (newLine ? "\n" : ""));
+                Console.ResetColor();
             }
-
-            Console.BackgroundColor = backColor;
-            Console.ForegroundColor = forColor;
-            if (newLine)
-            {
-                Console.WriteLine(msg);
-            }
-            else
-            {
-                Console.Write(msg);
-            }
-            
-            Console.ResetColor();
         }
 
+
+        private void PrintError(string msg, bool line = true) => ColoredOutput(msg, forColor: ConsoleColor.Red, newLine: line);
+
+
+        private void PrintHeader(string groupName, string groupDescription)
+        {
+            ColoredOutput(Delimeter, forColor: ConsoleColor.Cyan);
+            ColoredOutput("Running test set: " + groupName, forColor: ConsoleColor.Yellow);
+            ColoredOutput("Description: " + this.groupDescription, forColor: ConsoleColor.Yellow);
+            ColoredOutput(Delimeter, forColor: ConsoleColor.Cyan);
+        }
+
+
+        private void PrintResult(int count, int countSuccess, int countFailed, long ms)
+        {
+            ColoredOutput(Delimeter, forColor: ConsoleColor.Cyan);
+            ColoredOutput("Results | Passed ", newLine: false);
+            ColoredOutput(countSuccess + "/" + count, ConsoleColor.Green, newLine: false);
+            ColoredOutput(" Failed ", newLine: false);
+            ColoredOutput(countFailed + "/" + count, ConsoleColor.Red, newLine: false);
+            ColoredOutput(" | " + Math.Round((double)100 * countSuccess / count) + "% | Time " + ms + " ms");
+            ColoredOutput(Delimeter, forColor: ConsoleColor.Cyan);
+        }
 
         private SqlCommandResult CommandRunner(string query)
         {
@@ -86,44 +101,11 @@ namespace TestingFramework
         }
 
 
-        void CreateConfig()
-        {
-            var file = File.CreateText(CONFIG_PATH);
-            Console.Write("Input tests dir: ");
-            var temp = Console.ReadLine();
-            Directory.CreateDirectory(temp);
-            tests_dir = temp;
-            file.WriteLine(temp);
-            Console.Write("Input tests results dir: ");
-            temp = Console.ReadLine();
-            Directory.CreateDirectory(temp);
-            results_dir = temp;
-            file.WriteLine(temp);
-            file.Close();
-        }
-
-
-        bool LoadConfig()
-        {
-            if (File.Exists(CONFIG_PATH))
-            {
-                var lines = File.ReadAllLines(CONFIG_PATH);
-                if (lines.Length > 0)
-                {
-                    tests_dir = lines[0];
-                    results_dir = lines[1];
-                    return true;
-                }
-            }
-            return false;
-        }
-
-
         bool LoadTests(string set_name)
         {
-            tests.Clear();
+            testsList.Clear();
 
-            var path = tests_dir + "/" + set_name + ".in";
+            var path = TestsPath + "/" + set_name + ".in";
 
             if (!File.Exists(path))
             {
@@ -132,111 +114,103 @@ namespace TestingFramework
             }
 
             var obj = JObject.Parse(File.ReadAllText(path));
-            set_description = (string)obj["description"];
+            groupDescription = (string)obj["description"];
             var array = (JArray)obj[set_name];
             foreach (var test in array)
             {
-                tests.Add(new Test((JObject)test));
+                testsList.Add(new Test((JObject)test));
             }
             return true;
         }
 
 
-        private void RunTests(string set_name)
+        private void RunTests(string groupName)
         {
-            const string DELIMETER = "------------------------------------------------------------------------------";
-            char[] symbols = {';', ' ', '\n', '\r'};
-            int count = 0, count_failed = 0, count_success = 0;
+            char[] trimSyms = {';', ' ', '\n', '\r'};
+            int count = 0, countFailed = 0, countSuccess = 0;
 
-            if (!LoadTests(set_name))
+            if (!LoadTests(groupName))
             {
                 return;
             }
 
-            ColoredOutput(PrintLevel.normal, DELIMETER, forColor: ConsoleColor.Cyan);
-            ColoredOutput(PrintLevel.normal, "Running test set: " + set_name, forColor: ConsoleColor.Yellow);
-            ColoredOutput(PrintLevel.normal, "Description: " + set_description, forColor: ConsoleColor.Yellow);
-            ColoredOutput(PrintLevel.normal, DELIMETER, forColor: ConsoleColor.Cyan);
-
+            currentLevel = PrintLevel.normal;
+            PrintHeader(groupName, groupDescription);
+            
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            foreach (Test test in tests)
+            foreach (Test test in testsList)
             {
-                ColoredOutput(PrintLevel.all, "Running test #" + ++count, forColor: ConsoleColor.Blue);
+                currentLevel = PrintLevel.all;
+                ColoredOutput("Running test #" + ++count, forColor: ConsoleColor.Blue);
 
-                var queries = test.input.Trim(';').Split(";");
-                var outputs = test.output.Trim(';').Split(";");
-                var status_list = test.status.Trim(';').Split(";");
+                var queryList = test.Input.Trim(';').Split(";");
+                var outputList = test.Output.Trim(';').Split(";");
+                var statusList = test.Status.Trim(';').Split(";");
                 
-                var output_result = "";
-                var status_result = "";
-                var test_passed = true;
+                var outputResult = "";
+                var statusResult = "";
+                var testPassed = true;
                
-                for (var i = 0; i < queries.Length; i++)
+                for (var i = 0; i < queryList.Length; i++)
                 {
-                    var command_passed = true;
+                    var commandPassed = true;
                     
-                    var ans = CommandRunner(queries[i]);
-                    if (ans.Answer.State.ToString() != status_list[i].Trim(symbols) || (test.expect_output && outputs[i].Trim(symbols) != ans.Answer.Result.Trim(symbols)))
+                    var ans = CommandRunner(queryList[i]);
+                    if (ans.Answer.State.ToString() != statusList[i].Trim(trimSyms) || (test.ExpectOutput && outputList[i].Trim(trimSyms) != ans.Answer.Result.Trim(trimSyms)))
                     {
-                        test_passed = false;
-                        command_passed = false;
+                        testPassed = false;
+                        commandPassed = false;
                     }
 
-                    output_result += ans.Answer.Result + ";";
-                    status_result += ans.Answer.State + ";";
+                    outputResult += ans.Answer.Result + ";";
+                    statusResult += ans.Answer.State + ";";
 
-                    var level = command_passed ? PrintLevel.all : PrintLevel.normal;
-                    if (!test_passed)
+                    currentLevel = commandPassed ? PrintLevel.all : PrintLevel.normal;
+                    
+                    if (!commandPassed && selectedLevel < PrintLevel.all)
                     {
-                        ColoredOutput(level, "\tFAIL IN TEST #" + count, forColor: ConsoleColor.Red);
+                        PrintError("\tFAIL IN TEST #" + count);
                     }
-                    ColoredOutput(level, "Command: " + queries[i] + " ", newLine: false);
-                    if (command_passed)
+                    
+                    ColoredOutput("Command: " + queryList[i] + " ", newLine: false);
+                    
+                    if (commandPassed)
                     {
-                        ColoredOutput(level, "PASSED", forColor: ConsoleColor.Green);
+                        ColoredOutput("PASSED", forColor: ConsoleColor.Green);
                     }
                     else
                     {
-                        ColoredOutput(level, "NOT PASSED", forColor: ConsoleColor.Red);
+                        PrintError("NOT PASSED");
                     }
-                    ColoredOutput(level, "Output: " + ans.Answer.Result.Trim(symbols) + "\nSTATUS: " + ans.Answer.State.ToString());
                     
-                    if (!command_passed)
+                    ColoredOutput("Output: " + ans.Answer.Result.Trim(trimSyms) + "\nSTATUS: " + ans.Answer.State.ToString());
+                    
+                    if (!commandPassed)
                     {
-                        ColoredOutput(level, "EXPECTED STATUS: " + status_list[i].Trim(), forColor: ConsoleColor.Red);
-                        if (test.expect_output)
+                        ColoredOutput("EXPECTED STATUS: " + statusList[i].Trim(), forColor: ConsoleColor.Red);
+                        if (test.ExpectOutput)
                         {
-                            ColoredOutput(level, "EXPECTED OUTPUT: " + outputs[i].Trim(), forColor: ConsoleColor.Red);
+                            ColoredOutput("EXPECTED OUTPUT: " + outputList[i].Trim(), forColor: ConsoleColor.Red);
                         }
                     }
                 }
 
-                count_success += test_passed ? 1 : 0;
-                count_failed += !test_passed ? 1 : 0;
+                countSuccess += testPassed ? 1 : 0;
+                countFailed += !testPassed ? 1 : 0;
 
-                File.WriteAllText(DBFILE_PATH, "DATA_BASE_TABLE_METAINF_FILE");
+                File.WriteAllText(DataBaseFilePath, "DATA_BASE_TABLE_METAINF_FILE");
                 core.Dispose();
-                core = GetDB();
+                core = GetDataBaseCore();
             }
             watch.Stop();
 
-            ColoredOutput(PrintLevel.silent, DELIMETER, forColor: ConsoleColor.Cyan);
-            ColoredOutput(PrintLevel.silent, "Results | Passed ", newLine: false);
-            ColoredOutput(PrintLevel.silent, count_success + "/" + count, ConsoleColor.Green, newLine: false);
-            ColoredOutput(PrintLevel.silent, " Failed ", newLine: false);
-            ColoredOutput(PrintLevel.silent, count_failed + "/" + count, ConsoleColor.Red, newLine: false);
-            ColoredOutput(PrintLevel.silent, " | " + Math.Round((double) 100 * count_success / count) + "% | Time " + watch.ElapsedMilliseconds + " ms");
-            ColoredOutput(PrintLevel.silent, DELIMETER, forColor: ConsoleColor.Cyan);
+            currentLevel = PrintLevel.silent;
+            PrintResult(count, countSuccess, countFailed, watch.ElapsedMilliseconds);
         } 
 
 
         public void Run()
         {
-            if (!LoadConfig())
-            {
-                CreateConfig();
-            }
-
             var exitState = false;
             while (!exitState)
             {
@@ -245,15 +219,16 @@ namespace TestingFramework
                 switch (command[0])
                 {
                     case "run":
+                        selectedLevel = PrintLevel.normal;
                         foreach (var s in new ArraySegment<string>(command, 2, command.Length - 2))
                         {
                             switch (s.Trim())
                             {
                                 case "--silent":
-                                    print_level = PrintLevel.silent;
+                                    selectedLevel = PrintLevel.silent;
                                     break;
                                 case "--all":
-                                    print_level = PrintLevel.all;
+                                    selectedLevel = PrintLevel.all;
                                     break;
                                 default:
                                     Console.WriteLine("Error: unknown keyword " + s.Trim());

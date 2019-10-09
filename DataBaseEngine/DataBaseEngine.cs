@@ -53,7 +53,7 @@ namespace DataBaseEngine
         OperationResult<Table> DeleteTable(string name);
 
         OperationResult<Table> Insert(string tableName, List<string> columnNames, List<List<string>> rows);
-        OperationResult<Table> Select(List<string> tableName, Dictionary<string, string> columnNames);
+        OperationResult<Table> Select(List<string> tableName, List<Tuple<string, string>> columnNames);
         OperationResult<Table> Update(string tableName, Dictionary<string, string> row);
     }
 
@@ -240,8 +240,13 @@ namespace DataBaseEngine
             }
             return new OperationResult<Table>(OperationExecutionState.performed, table);
         }
-
-        public OperationResult<Table> Select(List<string> tableNames, Dictionary<string, string> columnNames)
+        /// <summary>
+        /// Select statment
+        /// </summary>
+        /// <param name="tableNames">tableNames</param>
+        /// <param name="columnNames">Item1 - tableName, Item2 - columnName. For *, Item2 == "*" then adding all colums from table Item1</param>
+        /// <returns>New table</returns>
+        public OperationResult<Table> Select(List<string> tableNames, List<Tuple<string, string>> columnNames)
         {
           
             foreach (var L in tableNames)
@@ -251,15 +256,25 @@ namespace DataBaseEngine
                     return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(L));
                 }
             }
-
-            if (columnNames[tableNames[0]] == "*")
+            foreach (var L in columnNames)
+            {
+                var tableName = L.Item1 ?? tableNames[0];
+                if (L.Item2 == "*") { 
+                    foreach (var column in TablePool[tableName].TableMetaInf.ColumnPool)
+                    {
+                        columnNames.Add(new Tuple<string, string>(L.Item1,column.Key));
+                    }
+                }
+            }
+            columnNames.RemoveAll(item => item.Item2 == "*");
+                if (columnNames[0].Item2 == "*")
             {
                 columnNames.Clear();
                 foreach (var L in tableNames)
                 {
                     foreach (var d in TablePool[L].TableMetaInf.ColumnPool)
                     {
-                        columnNames.Add(L,d.Value.Name);
+                        columnNames.Add(new Tuple<string, string>(L,d.Value.Name));
                     }
                 }
             }
@@ -267,7 +282,7 @@ namespace DataBaseEngine
             var tableOut = new Table("tableOut");
             foreach (var d in columnNames)
             {
-                tableOut.AddColumn(TablePool[d.Key].TableMetaInf.ColumnPool[d.Value]);
+                tableOut.AddColumn(TablePool[d.Item1].TableMetaInf.ColumnPool[d.Item2]);
             }
             var tableData = new TableData();
             foreach (var L in tableNames)

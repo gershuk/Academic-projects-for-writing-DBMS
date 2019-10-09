@@ -53,7 +53,7 @@ namespace DataBaseEngine
         OperationResult<Table> DeleteTable(string name);
 
         OperationResult<Table> Insert(string tableName,List<string> columnNames, List<Dictionary<string,string>> rows);
-        OperationResult<Table> Select(string tableName, List<string> columnNames);
+        OperationResult<Table> Select(List<string> tableName, List<Dictionary<string, string>> columnNames);
         OperationResult<Table> Update(string tableName, Dictionary<string, string> row);
 
     }

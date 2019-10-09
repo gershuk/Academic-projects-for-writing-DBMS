@@ -47,10 +47,10 @@ namespace DataBaseEngine
         OperationResult<Table> AddColumnToTable(string tableName, Column column);
 
         OperationResult<TableData> GetTableData(string name);
+        OperationResult<Table> GetTable(string name);
         OperationResult<TableMetaInf> GetTableMetaInf(string name);
 
         OperationResult<Table> DeleteTable(string name);
-        OperationResult<Table> ShowCreateTable(string name);
     }
 
 
@@ -133,123 +133,82 @@ namespace DataBaseEngine
             return new OperationResult<string>(OperationExecutionState.performed, "ok");
         }
 
-        //public OperationResult<string> AddColumnToTable(string tableName, Column column)
-        //{
-        //    if (!TablePool.ContainsKey(tableName))
-        //    {
-        //        return new OperationResult<string>(OperationExecutionState.failed, "", new TableNotExistExeption(tableName));
-        //    }
-        //    return TablePool[tableName].AddColumn(column);
-        //}
+        public OperationResult<Table> AddColumnToTable(string tableName, Column column)
+        {
+            if (!TablePool.ContainsKey(tableName))
+            {
+                return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
+            }
+            return TablePool[tableName].AddColumn(column);
+        }
 
-        //public OperationResult<string> CreateTable(string name)
-        //{
-        //    if (TablePool.ContainsKey(name))
-        //    {
-        //        return new OperationResult<string>(OperationExecutionState.failed, "", new TableAlreadyExistExeption(name));
-        //    }
-        //    TablePool.Add(name, new Table(name));
-        //    return new OperationResult<string>(OperationExecutionState.performed, "");
-        //}
+        public OperationResult<Table> CreateTable(string name)
+        {
+            if (TablePool.ContainsKey(name))
+            {
+                return new OperationResult<Table>(OperationExecutionState.failed, null, new TableAlreadyExistExeption(name));
+            }
+            TablePool.Add(name, new Table(name));
+            return new OperationResult<Table>(OperationExecutionState.performed, TablePool[name]);
+        }
 
-        //public OperationResult<string> CreateTable(TableMetaInf metaInf)
-        //{
-        //    if (TablePool.ContainsKey(metaInf.Name))
-        //    {
-        //        return new OperationResult<string>(OperationExecutionState.failed, "", new TableAlreadyExistExeption(metaInf.Name));
-        //    }
-        //    TablePool.Add(metaInf.Name, new Table(metaInf));
-        //    return new OperationResult<string>(OperationExecutionState.performed, "");
-        //}
+        public OperationResult<Table> CreateTable(TableMetaInf metaInf)
+        {
+            if (TablePool.ContainsKey(metaInf.Name))
+            {
+                return new OperationResult<Table>(OperationExecutionState.failed, null, new TableAlreadyExistExeption(metaInf.Name));
+            }
+            TablePool.Add(metaInf.Name, new Table(metaInf));
+            return new OperationResult<Table>(OperationExecutionState.performed, TablePool[metaInf.Name]);
+        }
 
-        //public OperationResult<string> DeleteColumnFromTable(string tableName, string ColumnName)
-        //{
-        //    if (!TablePool.ContainsKey(tableName))
-        //    {
-        //        using (var sw = new StringWriter())
-        //        {
-        //            sw.WriteLine("Error DeleteColumnFromTable, Table named {0} doesn't exist", tableName);
-        //            return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
-        //        }
-        //    }
+        public OperationResult<Table> DeleteColumnFromTable(string tableName, string ColumnName)
+        {
+            return !TablePool.ContainsKey(tableName)
+                ? new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName))
+                : TablePool[tableName].DeleteColumn(ColumnName);
+        }
 
-        //    return TablePool[tableName].DeleteColumn(ColumnName);
-        //}
+        public OperationResult<Table> DeleteTable(string tableName)
+        {
+            if (!TablePool.ContainsKey(tableName))
+            {
+                return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
+            }
+            TablePool.Remove(tableName);
+            return new OperationResult<Table>(OperationExecutionState.performed, TablePool[tableName]);
+        }
 
-        //public OperationResult<string> DeleteTable(string tableName)
-        //{
-        //    if (!TablePool.ContainsKey(tableName))
-        //    {
-        //        return new OperationResult<string>(OperationExecutionState.failed, "", new TableNotExistExeption(tableName));
-        //    }
-        //    TablePool.Remove(tableName);
-        //    return new OperationResult<string>(OperationExecutionState.performed, "ok");
-        //}
+        public OperationResult<TableData> GetTableData(string tableName)
+        {
+            if (!TablePool.ContainsKey(tableName))
+            {
+                return new OperationResult<TableData>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
+            }
+            return new OperationResult<TableData>(OperationExecutionState.performed, TablePool[tableName].TableData);
+        }
 
-        //public OperationResult<TableData> GetTableData(string tableName)
-        //{
-        //    if (!TablePool.ContainsKey(tableName))
-        //    {
-        //        return new OperationResult<TableData>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
-        //    }
-        //    return new OperationResult<TableData>(OperationExecutionState.performed, TablePool[tableName].TableData);
-        //}
+        public OperationResult<TableMetaInf> GetTableMetaInf(string tableName)
+        {
+            if (!TablePool.ContainsKey(tableName))
+            {
+                return new OperationResult<TableMetaInf>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
+            }
 
-        //public OperationResult<TableMetaInf> GetTableMetaInf(string tableName)
-        //{
-        //    if (!TablePool.ContainsKey(tableName))
-        //    {
-        //        return new OperationResult<TableMetaInf>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
-        //    }
-
-        //    return new OperationResult<TableMetaInf>(OperationExecutionState.performed, TablePool[tableName].TableMetaInf);
-        //}
-
-
-        //public OperationResult<string> ShowCreateTable(string tableName)
-        //{
-        //    if (!TablePool.ContainsKey(tableName))
-        //    {
-        //        return new OperationResult<string>(OperationExecutionState.failed, "", new TableNotExistExeption(tableName));
-        //    }
-
-        //    using (var sw = new StringWriter())
-        //    {
-        //        var table = TablePool[tableName];
-        //        sw.Write("CREATE TABLE {0} (", table.TableMetaInf.Name);
-        //        foreach (var key in table.TableMetaInf.ColumnPool)
-        //        {
-        //            var column = key.Value;
-        //            sw.Write("{0} {1} ({2})", column.Name, column.DataType.ToString(), column.DataParam);
-        //            foreach (var key2 in column.Constrains)
-        //            {
-        //                sw.Write(" {0}", key2);
-        //            }
-        //            sw.Write(",");
-        //        }
-
-        //        var str = sw.ToString();
-        //        str = str.TrimEnd(new char[] { ',' });
-        //        str += ");";
-
-        //        return new OperationResult<string>(OperationExecutionState.performed, str);
-        //    }
-        //}
+            return new OperationResult<TableMetaInf>(OperationExecutionState.performed, TablePool[tableName].TableMetaInf);
+        }
 
         public OperationResult<string> Commit()
         {
             dataStorage.SaveTablePoolMetaInf(TablePool);
             return new OperationResult<string>(OperationExecutionState.performed, "Commited");
         }
-
-        public OperationResult<Table> CreateTable(string name)  { return new OperationResult<Table>(OperationExecutionState.notProcessed, null); }
-        public OperationResult<Table> CreateTable(TableMetaInf metaInf) => throw new NotImplementedException();
-        public OperationResult<Table> DeleteColumnFromTable(string tableName, string ColumnName) => throw new NotImplementedException();
-        public OperationResult<Table> AddColumnToTable(string tableName, Column column) => throw new NotImplementedException();
-        public OperationResult<Table> DeleteTable(string name) => throw new NotImplementedException();
-        public OperationResult<Table> ShowCreateTable(string name) => throw new NotImplementedException();
-        public OperationResult<TableData> GetTableData(string name) => throw new NotImplementedException();
-        public OperationResult<TableMetaInf> GetTableMetaInf(string name) => throw new NotImplementedException();
+        public OperationResult<Table> GetTable(string name)
+        {
+            return !TablePool.ContainsKey(name)
+                ? new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(name))
+                : new OperationResult<Table>(OperationExecutionState.performed, TablePool[name]);
+        }
     }
 
 }

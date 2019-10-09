@@ -6,7 +6,6 @@ using DataBaseEngine;
 
 using DataBaseErrors;
 
-using Newtonsoft.Json;
 namespace DataBaseTable
 {
     public enum ColumnDataType
@@ -28,13 +27,36 @@ namespace DataBaseTable
         NotNull,
         Empty
     }
+    public abstract class Field
+    {
 
+    }
+    public class FieldInt : Field
+    {
+        public int Value { get; set; }
+    }
+    public class FieldDouble : Field
+    {
+        public double Value { get; set; }
+    }
+    public class FieldChar : Field
+    {
+        public string Value { get; set; }
+    }
+    public class FieldVarChar : Field
+    {
+        public string Value { get; set; }
+    }
+    public class FieldDate : Field
+    {
+        public int Value { get; set; }
+    }
     public class Column
     {
         public Column() { }
         public Column(string name) => Name = name;
 
-        public Column(string name, ColumnDataType dataType, int dataParam, List<string> constrains,NullSpecOpt typeState)
+        public Column(string name, ColumnDataType dataType, int dataParam, List<string> constrains, NullSpecOpt typeState)
         {
             Name = name;
             DataType = dataType;
@@ -45,7 +67,7 @@ namespace DataBaseTable
 
         public string Name { get; set; }
         public ColumnDataType DataType { get; set; }
-        public int DataParam { get; set;}
+        public int DataParam { get; set; }
         public List<string> Constrains { get; set; }
         public int Size { get; set; }
         public NullSpecOpt TypeState { get; set; }
@@ -56,41 +78,7 @@ namespace DataBaseTable
         public TableMetaInf() { }
         public TableMetaInf(string name) => Name = name;
 
-        public OperationResult<string> AddColumn(Column column)
-        {
-            ColumnPool = ColumnPool ?? new Dictionary<string, Column>(); 
-            if (!ColumnPool.ContainsKey(column.Name))
-            {
-                ColumnPool.Add(column.Name, column);
-            }
-            else
-            {
-                using (var sw = new StringWriter())
-                {
-                    sw.WriteLine("Error AddColumn, Column with name {0} alredy exist in Table {1}", column.Name, Name);
-                    return new OperationResult<string>(OperationExecutionState.failed, null, new ColumnAlreadyExistExeption(column.Name, Name));
-                }
-            }
-            return new OperationResult<string>(OperationExecutionState.performed,"");
-        }
-
-        public OperationResult<string> DeleteColumn(string ColumName)
-        {
-            ColumnPool = ColumnPool ?? new Dictionary<string, Column>();
-            if (ColumnPool.ContainsKey(ColumName))
-            {
-                ColumnPool.Remove(ColumName);
-            }
-            else
-            {
-                using (var sw = new StringWriter())
-                {
-                    sw.WriteLine("Error DeleteColumn, Column with name {0} not exist in Table {1}", ColumName, Name);
-                    return new OperationResult<string>(OperationExecutionState.failed, sw.ToString());
-                }
-            }
-            return new OperationResult<string>(OperationExecutionState.performed, "ok");
-        }
+        
 
         public string Name { get; set; }
         public Dictionary<string, Column> ColumnPool { get; set; }
@@ -99,7 +87,7 @@ namespace DataBaseTable
 
     public class TableData
     {
-
+        public List<Dictionary<string,Field>> Rows { get; set;}
     }
 
     public class Table
@@ -121,20 +109,58 @@ namespace DataBaseTable
             TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
         }
 
-        public OperationResult<string> DeleteColumn(string ColumName) => TableMetaInf.DeleteColumn(ColumName);
-
-        public OperationResult<string> AddColumn(Column column) => TableMetaInf.AddColumn(column);
-
-        public OperationExecutionState LoadTableData(string data) => throw new NotImplementedException();
-        public OperationExecutionState SerializeTableData() => throw new NotImplementedException();
-
-        public OperationExecutionState LoadTableMetaInf(string data)
+        public OperationResult<Table> AddColumn(Column column)
         {
-            TableMetaInf = JsonConvert.DeserializeObject<TableMetaInf>(data);
-            return OperationExecutionState.performed;
+
+            TableMetaInf.ColumnPool ??= new Dictionary<string, Column>();
+            if (!TableMetaInf.ColumnPool.ContainsKey(column.Name))
+            {
+
+                TableMetaInf.ColumnPool.Add(column.Name, column);
+            }
+            else
+            {
+                return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnAlreadyExistExeption(column.Name, TableMetaInf.Name));
+            }
+            return new OperationResult<Table>(OperationExecutionState.performed, "");
         }
 
-        public OperationResult<string> SerializeTableMetaInf() => new OperationResult<string>(OperationExecutionState.performed, JsonConvert.SerializeObject(TableMetaInf));
+        public OperationResult<Table> DeleteColumn(string ColumName)
+        {
+            TableMetaInf.ColumnPool ??= new Dictionary<string, Column>();
+            if (TableMetaInf.ColumnPool.ContainsKey(ColumName))
+            {
 
+                TableMetaInf.ColumnPool.Remove(ColumName);
+            }
+            else
+            {
+                return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnNotExistExeption(ColumName, TableMetaInf.Name));
+            }
+            return new OperationResult<Table>(OperationExecutionState.performed, this);
+        }
+        public OperationResult<string> ShowCreateTable()
+        {
+            using (var sw = new StringWriter())
+            {
+                var table = this;
+                sw.Write("CREATE TABLE {0} (", table.TableMetaInf.Name);
+                foreach (var key in table.TableMetaInf.ColumnPool)
+                {
+                    var column = key.Value;
+                    sw.Write("{0} {1} ({2})", column.Name, column.DataType.ToString(), column.DataParam);
+                    foreach (var key2 in column.Constrains)
+                    {
+                        sw.Write(" {0}", key2);
+                    }
+                    sw.Write(",");
+                }
+                var str = sw.ToString();
+                str = str.TrimEnd(new char[] { ',' });
+                str += ");";
+
+                return new OperationResult<string>(OperationExecutionState.performed, str);
+            }
+        }
     }
 }

@@ -166,7 +166,7 @@ namespace SunflowerDB
 
             var name = BuildNameFromId(idNode);
 
-            return Engine.ShowCreateTable(name);
+            return Engine.GetTable(name);
         }
 
         private static List<ParseTreeNode> FindChildNodeByName(ParseTreeNode treeNode, string name)

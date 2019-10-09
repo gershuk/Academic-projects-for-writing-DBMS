@@ -326,6 +326,7 @@ namespace DataBaseEngine
                 return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
             }
             var table = TablePool[tableName];
+            dataStorage.LoadTableData(table);
             table.TableData.Rows.RemoveAll(item => true);
             return new OperationResult<Table>(OperationExecutionState.performed, table);
         }

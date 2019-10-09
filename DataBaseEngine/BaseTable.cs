@@ -6,7 +6,6 @@ using DataBaseEngine;
 
 using DataBaseErrors;
 
-using Newtonsoft.Json;
 namespace DataBaseTable
 {
     public enum ColumnDataType
@@ -28,13 +27,36 @@ namespace DataBaseTable
         NotNull,
         Empty
     }
+    public abstract class Field
+    {
 
+    }
+    public class FieldInt : Field
+    {
+        public int Value { get; set; }
+    }
+    public class FieldDouble : Field
+    {
+        public double Value { get; set; }
+    }
+    public class FieldChar : Field
+    {
+        public string Value { get; set; }
+    }
+    public class FieldVarChar : Field
+    { 
+        public string Value { get; set; }
+    }
+    public class FieldDate : Field
+    {
+        public int Value { get; set; }
+    }
     public class Column
     {
         public Column() { }
         public Column(string name) => Name = name;
 
-        public Column(string name, ColumnDataType dataType, int dataParam, List<string> constrains,NullSpecOpt typeState)
+        public Column(string name, ColumnDataType dataType, int dataParam, List<string> constrains, NullSpecOpt typeState)
         {
             Name = name;
             DataType = dataType;
@@ -45,7 +67,7 @@ namespace DataBaseTable
 
         public string Name { get; set; }
         public ColumnDataType DataType { get; set; }
-        public int DataParam { get; set;}
+        public int DataParam { get; set; }
         public List<string> Constrains { get; set; }
         public int Size { get; set; }
         public NullSpecOpt TypeState { get; set; }
@@ -58,7 +80,7 @@ namespace DataBaseTable
 
         public OperationResult<string> AddColumn(Column column)
         {
-            ColumnPool = ColumnPool ?? new Dictionary<string, Column>(); 
+            ColumnPool = ColumnPool ?? new Dictionary<string, Column>();
             if (!ColumnPool.ContainsKey(column.Name))
             {
                 ColumnPool.Add(column.Name, column);
@@ -71,7 +93,7 @@ namespace DataBaseTable
                     return new OperationResult<string>(OperationExecutionState.failed, null, new ColumnAlreadyExistExeption(column.Name, Name));
                 }
             }
-            return new OperationResult<string>(OperationExecutionState.performed,"");
+            return new OperationResult<string>(OperationExecutionState.performed, "");
         }
 
         public OperationResult<string> DeleteColumn(string ColumName)
@@ -124,17 +146,5 @@ namespace DataBaseTable
         public OperationResult<string> DeleteColumn(string ColumName) => TableMetaInf.DeleteColumn(ColumName);
 
         public OperationResult<string> AddColumn(Column column) => TableMetaInf.AddColumn(column);
-
-        public OperationExecutionState LoadTableData(string data) => throw new NotImplementedException();
-        public OperationExecutionState SerializeTableData() => throw new NotImplementedException();
-
-        public OperationExecutionState LoadTableMetaInf(string data)
-        {
-            TableMetaInf = JsonConvert.DeserializeObject<TableMetaInf>(data);
-            return OperationExecutionState.performed;
-        }
-
-        public OperationResult<string> SerializeTableMetaInf() => new OperationResult<string>(OperationExecutionState.performed, JsonConvert.SerializeObject(TableMetaInf));
-
     }
 }

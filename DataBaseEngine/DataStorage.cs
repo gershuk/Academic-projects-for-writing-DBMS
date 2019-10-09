@@ -6,6 +6,8 @@ using DataBaseErrors;
 
 using DataBaseTable;
 
+using Newtonsoft.Json;
+
 namespace DataBaseEngine
 {
     public interface IDataStorage
@@ -47,7 +49,7 @@ namespace DataBaseEngine
                 while ((line = sr.ReadLine()) != null)
                 {
                     var table = new Table();
-                    table.LoadTableMetaInf(line);
+                    table.TableMetaInf = JsonConvert.DeserializeObject<TableMetaInf>(line);
                     TablePool.Add(table.TableMetaInf.Name, table);
                 }
             }
@@ -62,7 +64,7 @@ namespace DataBaseEngine
                 sw.WriteLine(_fileMarkTableMetaInf);
                 foreach (var keyValue in tablePool)
                 {
-                    sw.Write(keyValue.Value.SerializeTableMetaInf().Result);
+                    sw.Write(JsonConvert.SerializeObject(keyValue.Value.TableMetaInf));
                     sw.WriteLine("");
                 }
             }
@@ -72,5 +74,4 @@ namespace DataBaseEngine
 
         public OperationResult<string> SaveTableData(Table table) => throw new NotImplementedException();
     }
-
 }

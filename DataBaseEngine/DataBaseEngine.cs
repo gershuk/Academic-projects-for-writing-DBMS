@@ -51,6 +51,11 @@ namespace DataBaseEngine
         OperationResult<TableMetaInf> GetTableMetaInf(string name);
 
         OperationResult<Table> DeleteTable(string name);
+
+        OperationResult<Table> Insert(string tableName,List<string> columnNames, List<Dictionary<string,string>> rows);
+        OperationResult<Table> Select(string tableName, List<string> columnNames);
+        OperationResult<Table> Update(string tableName, Dictionary<string, string> row);
+
     }
 
 
@@ -209,6 +214,12 @@ namespace DataBaseEngine
                 ? new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(name))
                 : new OperationResult<Table>(OperationExecutionState.performed, TablePool[name]);
         }
+
+
+        public OperationResult<Table> Insert(string tableName, List<string> columnNames, List<Dictionary<string, string>> rows) => throw new NotImplementedException();
+        public OperationResult<Table> Select(string tableName, List<string> columnNames) => throw new NotImplementedException();
+        public OperationResult<Table> Update(string tableName, Dictionary<string, string> row) => throw new NotImplementedException();
+
     }
 
 }

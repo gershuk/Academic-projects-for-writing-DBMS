@@ -55,6 +55,7 @@ namespace DataBaseEngine
         OperationResult<Table> Insert(string tableName, List<string> columnNames, List<List<string>> rows);
         OperationResult<Table> Select(List<string> tableName, List<Tuple<string, string>> columnNames);
         OperationResult<Table> Update(string tableName, Dictionary<string, string> row);
+        OperationResult<Table> Delete(string tableName);
     }
 
 
@@ -316,6 +317,16 @@ namespace DataBaseEngine
                     L[d.Key] = result.Result;
                 }
             }
+            return new OperationResult<Table>(OperationExecutionState.performed, table);
+        }
+        public OperationResult<Table> Delete(string tableName)
+        {
+            if (!TablePool.ContainsKey(tableName))
+            {
+                return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
+            }
+            var table = TablePool[tableName];
+            table.TableData.Rows.RemoveAll(item => true);
             return new OperationResult<Table>(OperationExecutionState.performed, table);
         }
     }

@@ -52,10 +52,9 @@ namespace DataBaseEngine
 
         OperationResult<Table> DeleteTable(string name);
 
-        OperationResult<Table> Insert(string tableName,List<string> columnNames, List<Dictionary<string,string>> rows);
-        OperationResult<Table> Select(List<string> tableName, List<Dictionary<string, string>> columnNames);
+        OperationResult<Table> Insert(string tableName,List<string> columnNames, List<List<string>> rows);
+        OperationResult<Table> Select(List<string> tableName, Dictionary<string, string> columnNames);
         OperationResult<Table> Update(string tableName, Dictionary<string, string> row);
-
     }
 
 
@@ -215,11 +214,9 @@ namespace DataBaseEngine
                 : new OperationResult<Table>(OperationExecutionState.performed, TablePool[name]);
         }
 
-
-        public OperationResult<Table> Insert(string tableName, List<string> columnNames, List<Dictionary<string, string>> rows) => throw new NotImplementedException();
-        public OperationResult<Table> Select(string tableName, List<string> columnNames) => throw new NotImplementedException();
+        public OperationResult<Table> Insert(string tableName, List<string> columnNames, List<List<string>> rows) => throw new NotImplementedException();
+        public OperationResult<Table> Select(List<string> tableName, Dictionary<string, string> columnNames) => throw new NotImplementedException();
         public OperationResult<Table> Update(string tableName, Dictionary<string, string> row) => throw new NotImplementedException();
-
     }
 
 }

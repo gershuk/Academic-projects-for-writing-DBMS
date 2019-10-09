@@ -8,7 +8,6 @@ namespace IronySqlParser
     {
         public SqlGrammar() : base(false)
         {
-            LanguageFlags = LanguageFlags.CreateAst;
             var comment = new CommentTerminal("comment", "/*", "*/");
             var lineComment = new CommentTerminal("line_comment", "--", "\n", "\r\n");
             NonGrammarTerminals.Add(comment);

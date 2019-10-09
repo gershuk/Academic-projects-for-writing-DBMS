@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 
 using DataBaseEngine;
@@ -11,36 +12,6 @@ using SunflowerDB;
 
 namespace TestingFramework
 {
-    public class Test
-    {
-        public string Input { get; set; }
-        public string Output { get; set; }
-        public string Status { get; set; }
-        public bool ExpectOutput { get; set; } 
-    }
-
-
-    class TestResult
-    {
-        public Test UsedTest { get; set; }
-        public string ReturnedOutput { get; set; }
-        public string ReturnedStatus { get; set; }
-        public bool TestPassed { get; set; }
-
-        public TestResult() { }
-
-        public TestResult(Test t, string output, string status, bool passed)
-        {
-            UsedTest = t;
-            ReturnedOutput = output;
-            ReturnedStatus = status;
-            TestPassed = passed;
-        }
-
-        public string ToJson() => JsonConvert.SerializeObject(this);
-    }
-
-
     class Engine : IDisposable
     {
         private const string Delimeter = "------------------------------------------------------------------------------";
@@ -69,11 +40,10 @@ namespace TestingFramework
             core = GetDataBase();
         }
 
-
         private static DataBase GetDataBase() => new DataBase(1, new DataBaseEngineMain(DataBaseConfigPath));
 
-
         public void Dispose() => core.Dispose();
+
 
 
         private void ColoredOutput(string msg = "", ConsoleColor backColor = ConsoleColor.Black, ConsoleColor forColor = ConsoleColor.White, bool newLine = true)
@@ -87,9 +57,7 @@ namespace TestingFramework
             }
         }
 
-
         private void PrintError(string msg, bool line = true) => ColoredOutput(msg, forColor: ConsoleColor.Red, newLine: line);
-
 
         private void PrintHeader()
         {
@@ -99,7 +67,6 @@ namespace TestingFramework
             ColoredOutput(Delimeter, forColor: ConsoleColor.Cyan);
         }
 
-
         private void PrintResult(int count, int countSuccess, int countFailed, long ms)
         {
             ColoredOutput(Delimeter, forColor: ConsoleColor.Cyan);
@@ -107,10 +74,18 @@ namespace TestingFramework
             ColoredOutput(countSuccess + "/" + count, ConsoleColor.Green, newLine: false);
             ColoredOutput(" Failed ", newLine: false);
             ColoredOutput(countFailed + "/" + count, ConsoleColor.Red, newLine: false);
-            ColoredOutput(" | " + Math.Round((double)100 * countSuccess / count) + "% | Time " + ms + " ms");
+            ColoredOutput(" | " + Math.Round((double)100 * countSuccess / count) + "% | " + (ms == -1 ? "" : "Time " + ms + " ms"));
             ColoredOutput(Delimeter, forColor: ConsoleColor.Cyan);
         }
 
+
+
+        private SqlCommandResult CommandRunner(string query)
+        {
+            var ans = core.SendSqlSequence(query);
+            ans.AnswerNotify.WaitOne();
+            return ans;
+        }
 
         private void CleanAfterTest()
         {
@@ -125,13 +100,54 @@ namespace TestingFramework
             resultsList.Clear();
         }
 
-        private SqlCommandResult CommandRunner(string query)
-        {
-            var ans = core.SendSqlSequence(query);
-            ans.AnswerNotify.WaitOne();
-            return ans;
-        }
 
+        private void ShowTests(bool onlyErrors)
+        {
+            var path = ResultsPath + "/" + groupName + ".json";
+            
+            if (!File.Exists(path))
+            {
+                Console.WriteLine("Error: tests result with name " + groupName + ".json does not exists");
+                return;
+            }
+
+            var obj = JObject.Parse(File.ReadAllText(path));
+            groupDescription = (string)obj["description"];
+            var array = (JArray)obj["tests"];
+            foreach (var testResult in array)
+            {
+                resultsList.Add(JsonConvert.DeserializeObject<TestResult>(testResult.ToString()));
+            }
+
+            foreach (var res in resultsList)
+            {
+                if (res.TestPassed && onlyErrors)
+                {
+                    continue;
+                }
+
+                selectedLevel = PrintLevel.all;
+                currentLevel = PrintLevel.all;
+
+                ColoredOutput("Test info", forColor: ConsoleColor.White, backColor: ConsoleColor.DarkBlue, newLine: false);
+                ColoredOutput(res.TestPassed ? "PASSED" : "NOT PASSED", res.TestPassed ? ConsoleColor.Green : ConsoleColor.Red);
+                Console.WriteLine("\tInput: " + res.UsedTest.Input);
+                Console.WriteLine("\tStatus: " + res.UsedTest.Status);
+                Console.WriteLine("\tExpect output: " + res.UsedTest.ExpectOutput);
+                if (res.UsedTest.ExpectOutput)
+                {
+                    Console.WriteLine("\tExpected output: " + res.UsedTest.Output);
+                }
+                
+                if (res.UsedTest.ExpectOutput)
+                {
+                    Console.WriteLine("\tReturned output: " + res.ReturnedOutput);
+                }
+
+                Console.WriteLine("\tReturned status: " + res.ReturnedStatus);
+                Console.WriteLine();
+            }
+        }
 
         private void WriteTestResults()
         {
@@ -149,7 +165,6 @@ namespace TestingFramework
             File.WriteAllText(ResultsPath + "/" + groupName + ".json", obj.ToString());
         }
 
-
         bool LoadTests()
         {
             testsList.Clear();
@@ -158,7 +173,7 @@ namespace TestingFramework
 
             if (!File.Exists(path))
             {
-                Console.WriteLine("Error: tests set with name " + groupName + ".json does not exists");
+                Console.WriteLine("Error: tests group with name " + groupName + ".json does not exists");
                 return false;
             }
 
@@ -173,10 +188,9 @@ namespace TestingFramework
             return true;
         }
 
-
         private void RunTests()
         {
-            char[] trimSyms = {';', ' ', '\n', '\r'};
+            char[] trimSyms = { ';', ' ', '\n', '\r' };
             int count = 0, countFailed = 0, countSuccess = 0;
 
             if (!LoadTests())
@@ -186,7 +200,7 @@ namespace TestingFramework
 
             currentLevel = PrintLevel.normal;
             PrintHeader();
-            
+
             var watch = System.Diagnostics.Stopwatch.StartNew();
             foreach (var test in testsList)
             {
@@ -196,17 +210,21 @@ namespace TestingFramework
                 var queryList = test.Input.Trim(';').Split(";");
                 var outputList = test.Output.Trim(';').Split(";");
                 var statusList = test.Status.Trim(';').Split(";");
-                
+
                 var outputResult = "";
                 var statusResult = "";
                 var testPassed = true;
-               
+
                 for (var i = 0; i < queryList.Length; i++)
                 {
                     var commandPassed = true;
-                    
+
                     var ans = CommandRunner(queryList[i]);
-                    if (ans.Answer.State.ToString() != statusList[i].Trim(trimSyms) || (test.ExpectOutput && outputList[i].Trim(trimSyms) != ans.Answer.Result.Trim(trimSyms)))
+
+                    var testOutput = ans.Answer.State == OperationExecutionState.performed ? ans.Answer.Result.ToString() : ans.Answer.OperationException.ToString();
+                    testOutput = testOutput.Trim();
+
+                    if (ans.Answer.State.ToString() != statusList[i].Trim(trimSyms) || (test.ExpectOutput && outputList[i].Trim(trimSyms) != testOutput))
                     {
                         testPassed = false;
                         commandPassed = false;
@@ -216,14 +234,14 @@ namespace TestingFramework
                     statusResult += ans.Answer.State + ";";
 
                     currentLevel = commandPassed ? PrintLevel.all : PrintLevel.normal;
-                    
+
                     if (!commandPassed && selectedLevel < PrintLevel.all)
                     {
                         PrintError("\tFAIL IN TEST #" + count);
                     }
-                    
+
                     ColoredOutput("Command: " + queryList[i] + " ", newLine: false, forColor: ConsoleColor.DarkBlue);
-                    
+
                     if (commandPassed)
                     {
                         ColoredOutput("PASSED", forColor: ConsoleColor.Green);
@@ -232,9 +250,9 @@ namespace TestingFramework
                     {
                         PrintError("NOT PASSED");
                     }
-                    
-                    ColoredOutput("Output: " + ans.Answer.Result.Trim(trimSyms) + "\nSTATUS: " + ans.Answer.State.ToString());
-                    
+
+                    ColoredOutput("Output: " + testOutput + "\nSTATUS: " + ans.Answer.State.ToString());
+
                     if (!commandPassed)
                     {
                         ColoredOutput("EXPECTED STATUS: " + statusList[i].Trim(), forColor: ConsoleColor.Red);
@@ -250,7 +268,7 @@ namespace TestingFramework
 
                 resultsList.Add(new TestResult(test, outputResult, statusResult, testPassed));
 
-                CleanAfterTest();             
+                CleanAfterTest();
             }
             watch.Stop();
 
@@ -259,8 +277,7 @@ namespace TestingFramework
             currentLevel = PrintLevel.silent;
             PrintResult(count, countSuccess, countFailed, watch.ElapsedMilliseconds);
             CleanData();
-        } 
-
+        }
 
         private void Shell()
         {
@@ -268,14 +285,24 @@ namespace TestingFramework
             {
                 ColoredOutput("$$ ", forColor: ConsoleColor.Red, newLine: false);
                 var command = Console.ReadLine();
-                
+
                 if (command == "exit")
                 {
                     break;
                 }
-                
+
                 var ans = CommandRunner(command);
-                Console.WriteLine(ans.Answer.Result);
+
+                switch (ans.Answer.State)
+                {
+                    case OperationExecutionState.performed:
+                        Console.WriteLine(ans.Answer.Result.ToString());
+                        break;
+                    case OperationExecutionState.parserError:
+                    case OperationExecutionState.failed:
+                        Console.WriteLine(ans.Answer.OperationException);
+                        break;
+                }
                 Console.WriteLine("State: " + ans.Answer.State.ToString());
             }
 
@@ -283,68 +310,82 @@ namespace TestingFramework
             CleanData();
         }
 
-
         public void Run()
         {
             var exitState = false;
             while (!exitState)
             {
+                CleanData();
+
                 ColoredOutput(">> ", forColor: ConsoleColor.Red, newLine: false);
                 var command = Console.ReadLine().Split();
-                
+
                 if (string.IsNullOrEmpty(command[0]))
                 {
                     continue;
                 }
-                
-                switch (command[0])
-                {
-                    case "run":
-                        selectedLevel = PrintLevel.normal;
-                        foreach (var s in new ArraySegment<string>(command, 2, command.Length - 2))
-                        {
-                            switch (s.Trim())
-                            {
-                                case "--silent":
-                                    selectedLevel = PrintLevel.silent;
-                                    break;
-                                case "--all":
-                                    selectedLevel = PrintLevel.all;
-                                    break;
-                                default:
-                                    Console.WriteLine("Error: unknown keyword " + s.Trim());
-                                    break;
-                            }
-                        }
 
-                        groupName = command[1];
-                        RunTests();
-                        break;
-                    case "shell":
-                        Shell();
-                        break;
-                    case "clear":
-                        Console.Clear();
-                        break;
-                    case "exit":
-                        exitState = true;
-                        break;
-                    default:
-                        Console.WriteLine("No such command: " + command[0]);
-                        break;
+                if (command.Length > 1)
+                {
+                    switch (command[0])
+                    {
+                        case "run":
+                            selectedLevel = PrintLevel.normal;
+                            groupName = command[1];
+
+                            if (command.Length > 2)
+                            {
+                                foreach (var s in new ArraySegment<string>(command, 2, command.Length - 2))
+                                {
+                                    switch (s.Trim())
+                                    {
+                                        case "--silent":
+                                            selectedLevel = PrintLevel.silent;
+                                            break;
+                                        case "--all":
+                                            selectedLevel = PrintLevel.all;
+                                            break;
+                                        default:
+                                            Console.WriteLine("Error: unknown keyword " + s.Trim());
+                                            break;
+                                    }
+                                }
+                            }
+
+                            RunTests();
+                            break;
+                        case "show":
+                            var onlyErrors = false;
+                            groupName = command[1];
+                            if (command.Length > 2)
+                            {
+                                onlyErrors = true;
+                            }
+                            ShowTests(onlyErrors);
+                            break;
+                    }
+
+
+                }
+                else
+                {
+                    switch (command[0])
+                    {
+                        case "shell":
+                            Shell();
+                            break;
+                        case "clear":
+                            Console.Clear();
+                            break;
+                        case "exit":
+                            exitState = true;
+                            break;
+                        default:
+                            Console.WriteLine("No such command: " + command[0]);
+                            break;
+                    }
                 }
             }
-        }
-    }
-
-
-    class TestProgram
-    {
-        static void Main()
-        {
-            var engine = new Engine();
-            engine.Run();
-            engine.Dispose();
         }
     }
 }

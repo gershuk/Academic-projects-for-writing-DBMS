@@ -10,7 +10,7 @@ using Irony.Parsing;
 
 namespace SunflowerDB
 {
-    class EngineCommander
+    public class EngineCommander
     {
         public EngineCommander(DataBaseEngineMain engine) => Engine = engine ?? throw new ArgumentNullException(nameof(engine));
 
@@ -23,7 +23,10 @@ namespace SunflowerDB
                 "DropTableStmt" => DropTable(treeNode),
                 "CreateTableStmt" => CreateTable(treeNode),
                 "ShowTableStmt" => ShowTable(treeNode),
-                "SelectStmt" => Select(treeNode)
+                "SelectStmt" => Select(treeNode),
+                "UpdateStmt" => null,
+                "AlterStmt" => null,
+                "InsertStmt" => null,
             };
 
             Engine.Commit();
@@ -70,23 +73,23 @@ namespace SunflowerDB
                 }
             }
 
-            var _whereClauseOptList = FindChildNodeByName(node, "whereClauseOpt");
-            string _whereClauseOpt;
+            //var _whereClauseOptList = FindChildNodeByName(node, "whereClauseOpt");
+            //string _whereClauseOpt;
 
-            if (_whereClauseOptList.Count > 0)
-            {
-                var _whereClauseOptNode = _whereClauseOptList[0];
-                //костыль ->
-                var _binExpr= FindChildNodeByName(_whereClauseOptNode, "binExpr");
-                if (_binExpr.Count>0)
-                {
-                    var _binExprNode = _binExpr[0];
-                    foreach (var child in _binExprNode.ChildNodes)
-                    {
-                       
-                    }
-                }
-            }
+            //if (_whereClauseOptList.Count > 0)
+            //{
+            //    var _whereClauseOptNode = _whereClauseOptList[0];
+            //    //костыль ->
+            //    var _binExpr = FindChildNodeByName(_whereClauseOptNode, "binExpr");
+            //    if (_binExpr.Count > 0)
+            //    {
+            //        var _binExprNode = _binExpr[0];
+            //        foreach (var child in _binExprNode.ChildNodes)
+            //        {
+
+            //        }
+            //    }
+            //}
 
             return null;
         }
@@ -166,7 +169,7 @@ namespace SunflowerDB
             return Engine.GetTable(name);
         }
 
-        private List<ParseTreeNode> FindChildNodeByName(ParseTreeNode treeNode, string name)
+        private static List<ParseTreeNode> FindChildNodeByName(ParseTreeNode treeNode, string name)
         {
             var nodeList = new List<ParseTreeNode>();
 
@@ -181,7 +184,7 @@ namespace SunflowerDB
             return nodeList;
         }
 
-        private string BuildNameFromId(ParseTreeNode treeNode)
+        public static string BuildNameFromId(ParseTreeNode treeNode)
         {
             var name = new StringBuilder();
 
@@ -195,7 +198,7 @@ namespace SunflowerDB
             return name.ToString();
         }
 
-        private List<string> BuildConstraintList(List<ParseTreeNode> _constraintDefList)
+        private static List<string> BuildConstraintList(List<ParseTreeNode> _constraintDefList)
         {
             var _constraintList = new List<string>();
             foreach (var _constraintDef in _constraintDefList)

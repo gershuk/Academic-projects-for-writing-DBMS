@@ -22,6 +22,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestingFramework", "Testing
 		{DF44233D-B94F-46B8-AFC5-A95384A65E9E} = {DF44233D-B94F-46B8-AFC5-A95384A65E9E}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicExpressionBuilder", "DynamicExpressionBuilder\DynamicExpressionBuilder.csproj", "{AAA501E4-3815-4A4B-BA4F-57BEA3C55869}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{85876682-F970-4612-A402-2A7B9FAAA4D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{85876682-F970-4612-A402-2A7B9FAAA4D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{85876682-F970-4612-A402-2A7B9FAAA4D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAA501E4-3815-4A4B-BA4F-57BEA3C55869}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAA501E4-3815-4A4B-BA4F-57BEA3C55869}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAA501E4-3815-4A4B-BA4F-57BEA3C55869}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAA501E4-3815-4A4B-BA4F-57BEA3C55869}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

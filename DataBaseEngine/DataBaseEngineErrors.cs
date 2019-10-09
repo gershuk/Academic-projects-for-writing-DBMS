@@ -35,4 +35,10 @@ namespace DataBaseErrors
             : base($"Error, Column with name {columnName} alredy exist in Table {tableName}")
         { }
     }
+    class ColumnNotExistExeption : Exception
+    {
+        public ColumnNotExistExeption(string columnName, string tableName)
+            : base($"Error, Column with name {columnName} not exist in Table {tableName}")
+        { }
+    }
 }

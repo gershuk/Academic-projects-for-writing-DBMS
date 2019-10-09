@@ -11,6 +11,12 @@ namespace DataBaseErrors
             : base($"Error, File named {path} doesn't exist ")
         { }
     }
+    class DataBaseIsCorruptExeption : Exception
+    {
+        public DataBaseIsCorruptExeption(string path)
+            : base($"Error, DataBase named {path} is corrupt")
+        { }
+    }
     class FileMarkNotExistExeption : Exception
     {
         public FileMarkNotExistExeption(string path,string fileMark)
@@ -39,6 +45,12 @@ namespace DataBaseErrors
     {
         public ColumnNotExistExeption(string columnName, string tableName)
             : base($"Error, Column with name {columnName} not exist in Table {tableName}")
+        { }
+    }
+    class CastFieldExeption : Exception
+    {
+        public CastFieldExeption(string columnName, string type, string member)
+            : base($"Error cast field, Column with name {columnName} and type {type} with member {member}")
         { }
     }
 }

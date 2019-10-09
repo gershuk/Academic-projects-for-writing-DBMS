@@ -119,10 +119,14 @@ namespace TestingFramework
                 resultsList.Add(JsonConvert.DeserializeObject<TestResult>(testResult.ToString()));
             }
 
+            int count = 0, countSuccess = 0, countFailed = 0;
+
             foreach (var res in resultsList)
             {
+                count++;
                 if (res.TestPassed && onlyErrors)
                 {
+                    countSuccess++;
                     continue;
                 }
 
@@ -146,7 +150,11 @@ namespace TestingFramework
 
                 Console.WriteLine("\tReturned status: " + res.ReturnedStatus);
                 Console.WriteLine();
+
+                countSuccess += res.TestPassed ? 1 : 0;
+                countFailed += !res.TestPassed ? 1 : 0;
             }
+            PrintResult(count, countSuccess, countFailed, -1);
         }
 
         private void WriteTestResults()
@@ -293,17 +301,20 @@ namespace TestingFramework
 
                 var ans = CommandRunner(command);
 
-                switch (ans.Answer.State)
+                if (ans.Answer != null)
                 {
-                    case OperationExecutionState.performed:
-                        Console.WriteLine(ans.Answer.Result.ToString());
-                        break;
-                    case OperationExecutionState.parserError:
-                    case OperationExecutionState.failed:
-                        Console.WriteLine(ans.Answer.OperationException);
-                        break;
+                    switch (ans.Answer.State)
+                    {
+                        case OperationExecutionState.performed:
+                            Console.WriteLine(ans.Answer.Result.ToString());
+                            break;
+                        case OperationExecutionState.parserError:
+                        case OperationExecutionState.failed:
+                            Console.WriteLine(ans.Answer.OperationException);
+                            break;
+                    }
+                    Console.WriteLine("State: " + ans.Answer.State.ToString());
                 }
-                Console.WriteLine("State: " + ans.Answer.State.ToString());
             }
 
             CleanAfterTest();

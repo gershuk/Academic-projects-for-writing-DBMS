@@ -130,8 +130,6 @@ namespace DataBaseTable
         public TableMetaInf() { }
         public TableMetaInf(string name) => Name = name;
 
-
-
         public string Name { get; set; }
         public Dictionary<string, Column> ColumnPool { get; set; }
         public int SizeInBytes { get; }

@@ -5,6 +5,7 @@ using System.IO;
 using DataBaseEngine;
 
 using DataBaseErrors;
+using ProtoBuf;
 
 namespace DataBaseTable
 {
@@ -27,30 +28,47 @@ namespace DataBaseTable
         NotNull,
         Empty
     }
+    [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
+    [ProtoInclude(100, typeof(FieldInt))]
+    [ProtoInclude(101, typeof(FieldDouble))]
+    [ProtoInclude(102, typeof(FieldChar))]
+    [ProtoInclude(103, typeof(FieldVarChar))]
+    [ProtoInclude(104, typeof(FieldDate))]
     public abstract class Field
     {
 
     }
+
+    [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     public class FieldInt : Field
     {
         public int Value { get; set; }
     }
+
+    [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     public class FieldDouble : Field
     {
         public double Value { get; set; }
     }
+
+    [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     public class FieldChar : Field
     {
         public string Value { get; set; }
     }
+
+    [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     public class FieldVarChar : Field
     {
         public string Value { get; set; }
     }
+
+    [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     public class FieldDate : Field
     {
         public int Value { get; set; }
     }
+
     public class Column
     {
         public Column() { }
@@ -122,7 +140,7 @@ namespace DataBaseTable
             {
                 return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnAlreadyExistExeption(column.Name, TableMetaInf.Name));
             }
-            return new OperationResult<Table>(OperationExecutionState.performed, "");
+            return new OperationResult<Table>(OperationExecutionState.performed, this);
         }
 
         public OperationResult<Table> DeleteColumn(string ColumName)

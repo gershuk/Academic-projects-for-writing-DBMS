@@ -96,13 +96,8 @@ namespace SunflowerDB
 
         private void TryParseSql()
         {
-            while (true)
+            while (!_stopWorking)
             {
-                if (_stopWorking)
-                {
-                    return;
-                }
-
                 while (_waitingSqlCommands.TryDequeue(out var sqlCommand))
                 {
                     _parsersSemaphore.WaitOne();
@@ -115,15 +110,11 @@ namespace SunflowerDB
                 }
             }
         }
+
         private void TryExecuteCommand()
         {
-            while (true)
+            while (!_stopWorking)
             {
-                if (_stopWorking)
-                {
-                    return;
-                }
-
                 while (_workingSqlCommands.TryDequeue(out var sqlCommand))
                 {
 
@@ -137,6 +128,7 @@ namespace SunflowerDB
                     if (parserTree.Root == null)
                     {
                         var answer = sqlCommand.CommandResult.Answer;
+
                         answer.State = OperationExecutionState.parserError;
                         answer.Result = null;
                         answer.OperationException = new ParsingRequestError(parserTree.ParserMessages[0].Message, parserTree.ParserMessages[0].Location.ToString());

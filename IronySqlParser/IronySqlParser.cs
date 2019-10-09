@@ -8,6 +8,7 @@ namespace IronySqlParser
     {
         public SqlGrammar() : base(false)
         {
+            LanguageFlags = LanguageFlags.CreateAst;
             var comment = new CommentTerminal("comment", "/*", "*/");
             var lineComment = new CommentTerminal("line_comment", "--", "\n", "\r\n");
             NonGrammarTerminals.Add(comment);
@@ -41,12 +42,16 @@ namespace IronySqlParser
             var ON = ToTerm("ON");
             var BEGIN_TRANSACTION = ToTerm("BEGIN TRANSACTION");
             var COMMIT = ToTerm("COMMIT");
-          
+            var SET = ToTerm("SET");
+            var UPDATE = ToTerm("UPDATE");
+            var INSERT = ToTerm("INSERT");
+            var VALUES = ToTerm("VALUES");
+
             var id = new NonTerminal("id");
             var sqlCommand = new NonTerminal("sqlSequence");
             var createTableStmt = new NonTerminal("CreateTableStmt");
             var showTableStmt = new NonTerminal("ShowTableStmt");
-            var alterStmt = new NonTerminal("alterStmt");
+            var alterStmt = new NonTerminal("AlterStmt");
             var dropTableStmt = new NonTerminal("DropTableStmt");
             var fieldDef = new NonTerminal("fieldDef");
             var fieldDefList = new NonTerminal("fieldDefList");
@@ -100,9 +105,17 @@ namespace IronySqlParser
             var funArgs = new NonTerminal("funArgs");
             var inStmt = new NonTerminal("inStmt");
 
+            var updateStmt = new NonTerminal("UpdateStmt");
+            var insertStmt = new NonTerminal("InsertStmt");
+            var intoOpt = new NonTerminal("intoOpt");
+            var insertData = new NonTerminal("InsertData");
+            var assignList = new NonTerminal("assignList");
+            var assignment = new NonTerminal("assignment");
+
             var sqlSequence = new NonTerminal("sqlSequence");
+
             sqlCommand.Rule = createTableStmt | alterStmt
-                      | dropTableStmt | showTableStmt | selectStmt;
+                      | dropTableStmt | showTableStmt | selectStmt | updateStmt | insertStmt;
 
             //BNF Rules
             this.Root = stmtList;
@@ -164,6 +177,17 @@ namespace IronySqlParser
             orderList.Rule = MakePlusRule(orderList, comma, orderMember);
             orderMember.Rule = id + orderDirOpt;
             orderDirOpt.Rule = Empty | "ASC" | "DESC";
+
+            //Insert stmt
+            insertStmt.Rule = INSERT + intoOpt + id + idlistPar + insertData;
+            insertData.Rule = selectStmt | VALUES + "(" + exprList + ")";
+            intoOpt.Rule = Empty | INTO; //Into is optional in MSSQL
+
+            //Update stmt
+            updateStmt.Rule = UPDATE + id + SET + assignList + whereClauseOpt;
+            assignList.Rule = MakePlusRule(assignList, comma, assignment);
+            assignment.Rule = id + "=" + expression;
+
 
             //Expression
             exprList.Rule = MakePlusRule(exprList, comma, expression);

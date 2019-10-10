@@ -267,7 +267,7 @@ namespace TestingFramework
                         PrintError("NOT PASSED");
                     }
 
-                    ColoredOutput("Output: " + testOutput + "\nSTATUS: " + ans.Answer.State.ToString());
+                    ColoredOutput("Output: \n" + testOutput + "\nSTATUS: " + ans.Answer.State.ToString());
 
                     if (!commandPassed)
                     {

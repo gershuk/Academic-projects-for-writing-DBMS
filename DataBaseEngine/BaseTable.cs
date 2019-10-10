@@ -219,7 +219,7 @@ namespace DataBaseTable
             using (var sw = new StringWriter())
             {
                 var table = this;
-               
+                sw.Write("\n");
                 foreach (var key in table.TableMetaInf.ColumnPool)
                 {
                     var column = key.Value;
@@ -230,7 +230,7 @@ namespace DataBaseTable
                 {
                     foreach (var field in row)
                     {
-                        sw.Write("{0} ", field.ToString());
+                        sw.Write("{0} ", field.Value.ToString());
                     }
                     sw.Write("\n");
                 }

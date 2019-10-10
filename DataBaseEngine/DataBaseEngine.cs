@@ -275,17 +275,6 @@ namespace DataBaseEngine
             }
             columnNames.AddRange(subColumns);
             columnNames.RemoveAll(item => item.Item2 == "*");
-                if (columnNames[0].Item2 == "*")
-            {
-                columnNames.Clear();
-                foreach (var L in tableNames)
-                {
-                    foreach (var d in TablePool[L].TableMetaInf.ColumnPool)
-                    {
-                        columnNames.Add(new Tuple<string, string>(L,d.Value.Name));
-                    }
-                }
-            }
 
             var tableOut = new Table("tableOut");
             foreach (var d in columnNames)
@@ -296,7 +285,14 @@ namespace DataBaseEngine
             foreach (var L in tableNames)
             {
                 dataStorage.LoadTableData(TablePool[L]);
-                tableData.Rows.AddRange(TablePool[L].TableData.Rows);
+                foreach (var fromRow in TablePool[L].TableData.Rows) {
+                    var newRow = new Dictionary<string, Field>();
+                    foreach (var d in tableOut.TableMetaInf.ColumnPool)
+                    {
+                        newRow.Add(d.Key,fromRow[d.Key]);
+                    }
+                    tableData.Rows.Add(newRow);
+                }
                 TablePool[L].TableData = null;
             }
             tableOut.TableData = tableData;

@@ -89,7 +89,7 @@ namespace TestingFramework
 
         private void CleanAfterTest()
         {
-            File.WriteAllText(DataBaseFilePath, "DATA_BASE_TABLE_METAINF_FILE");
+            File.Delete(DataBaseFilePath);
             core.Dispose();
             core = GetDataBase();
         }
@@ -229,7 +229,15 @@ namespace TestingFramework
 
                     var ans = CommandRunner(queryList[i]);
 
-                    var testOutput = ans.Answer.State == OperationExecutionState.performed ? ans.Answer.Result.ToString() : ans.Answer.OperationException.ToString();
+                    string testOutput;
+                    if (ans.Answer.State == OperationExecutionState.performed)
+                    {
+                        testOutput = ans.Answer.Result != null ? ans.Answer.Result.ToString() : "";
+                    }
+                    else
+                    {
+                        testOutput = ans.Answer.OperationException.ToString();
+                    }
                     testOutput = testOutput.Trim();
 
                     if (ans.Answer.State.ToString() != statusList[i].Trim(trimSyms) || (test.ExpectOutput && outputList[i].Trim(trimSyms) != testOutput))

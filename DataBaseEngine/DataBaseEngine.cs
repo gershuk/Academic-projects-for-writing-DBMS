@@ -171,7 +171,7 @@ namespace DataBaseEngine
                 return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
             }
             TablePool.Remove(tableName);
-            return new OperationResult<Table>(OperationExecutionState.performed, TablePool[tableName]);
+            return new OperationResult<Table>(OperationExecutionState.performed, null);
         }
 
         public OperationResult<TableData> GetTableData(string tableName)

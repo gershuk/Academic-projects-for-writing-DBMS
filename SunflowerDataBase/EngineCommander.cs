@@ -35,8 +35,42 @@ namespace SunflowerDB
 
         public OperationResult<Table> Insert(ParseTreeNode node)
         {
+            var _idNode = FindChildNodeByName(node, "id")[0];
+            var _idTable = BuildNameFromId(_idNode);
+            var _columnNamesNode = FindChildNodeByName(node, "columnNames")[0];
+            var _columnNames = new List<string>();
 
-            return null;
+            if (_columnNamesNode.ChildNodes.Count > 0)
+            {
+                var _idListNode = _columnNamesNode.ChildNodes[0].ChildNodes[0];
+
+                foreach (var _idColumnNode in _idListNode.ChildNodes)
+                {
+                    _columnNames.Add(BuildNameFromId(_idColumnNode));
+                }
+            }
+            else
+            {
+                _columnNames = null;
+            }
+
+            var _insertData = FindChildNodeByName(node, "InsertData")[0];
+            var _expressionListNode = FindChildNodeByName(_insertData, "exprList")[0];
+            var _expressionList = FindChildNodeByName(_expressionListNode, "exprList");
+
+            var _values = new List<List<string>>();
+
+            foreach (var _expressionNode in _expressionList)
+            {
+                var _valueList =new List<string>();
+                foreach (var _value in _expressionNode.ChildNodes)
+                {
+                    _valueList.Add(_value.Token.Text);
+                }
+
+                _values.Add(_valueList);
+            }
+            return Engine.Insert(_idTable, _columnNames,_values);
         }
 
         public OperationResult<Table> Select(ParseTreeNode node)
@@ -97,9 +131,9 @@ namespace SunflowerDB
             //    }
             //}
             var selsIdTuple = new List<Tuple<string, string>>();
-            foreach (var L  in _selsId)
+            foreach (var L in _selsId)
             {
-               var strs = L.Split(".");
+                var strs = L.Split(".");
                 if (strs.Length == 1)
                 {
                     selsIdTuple.Add(new Tuple<string, string>(_fromId[0], strs[0]));
@@ -109,7 +143,7 @@ namespace SunflowerDB
                     selsIdTuple.Add(new Tuple<string, string>(strs[0], strs[1]));
                 }
             }
-            
+
             return Engine.Select(_fromId, selsIdTuple);
         }
 

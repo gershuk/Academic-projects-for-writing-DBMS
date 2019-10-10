@@ -1,0 +1,17 @@
+{
+  "description": "Insert testing",
+  "set3": [
+    {
+      "Input": "CREATE TABLE t (id INT);INSERT INTO t (id) VALUES ((1), (2), (3));",
+      "Output": "",
+      "Status": "performed;performed;",
+      "ExpectOutput": false
+    },
+    {
+      "Input": "CREATE TABLE t (id INT, name VARCHAR(20)); INSERT INTO t (id, name) VALUES ((1, 'asdasd'), (2, 'asdas'))",
+      "Output": "",
+      "Status": "performed;performed;",
+      "ExpectOutput": false
+    }
+  ]
+}

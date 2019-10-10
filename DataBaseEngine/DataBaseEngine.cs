@@ -223,7 +223,7 @@ namespace DataBaseEngine
             }
             var table = TablePool[tableName];
             dataStorage.LoadTableData(table);
-
+            table.TableData ??= new TableData { Rows = new List<Dictionary<string, Field>>()}; 
             foreach (var L1 in rows)
             {
                 var row = new Dictionary<string, Field>();

@@ -43,30 +43,50 @@ namespace DataBaseTable
     public class FieldInt : Field
     {
         public int Value { get; set; }
+        public override string ToString()
+        {
+            return "" + Value;
+        }
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     public class FieldDouble : Field
     {
         public double Value { get; set; }
+        public override string ToString()
+        {
+            return "" + Value;
+        }
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     public class FieldChar : Field
     {
         public string Value { get; set; }
+        public override string ToString()
+        {
+            return "" + Value;
+        }
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     public class FieldVarChar : Field
     {
         public string Value { get; set; }
+        public override string ToString()
+        {
+            return "" + Value;
+        }
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     public class FieldDate : Field
     {
         public int Value { get; set; }
+        public override string ToString()
+        {
+            return "" + Value;
+        }
     }
 
     public class Column
@@ -112,7 +132,7 @@ namespace DataBaseTable
                 case ColumnDataType.NTEXT:
                 case ColumnDataType.TEXT:
                 case ColumnDataType.VARCHAR:
-                        return new OperationResult<Field>(OperationExecutionState.performed, new FieldVarChar { Value = data });
+                    return new OperationResult<Field>(OperationExecutionState.performed, new FieldVarChar { Value = data });
 
             }
             return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldExeption(Name, DataType.ToString(), data));
@@ -192,7 +212,31 @@ namespace DataBaseTable
         }
         public override string ToString()
         {
-            return ShowCreateTable().Result;
+            return TableData == null ? ShowCreateTable().Result : ShowDataTable().Result;
+        }
+        public OperationResult<string> ShowDataTable()
+        {
+            using (var sw = new StringWriter())
+            {
+                var table = this;
+               
+                foreach (var key in table.TableMetaInf.ColumnPool)
+                {
+                    var column = key.Value;
+                    sw.Write("{0} ", column.Name);
+                }
+                sw.Write("/n");
+                foreach (var row in table.TableData.Rows)
+                {
+                    foreach (var field in row)
+                    {
+                        sw.Write("{0} ", field.ToString());
+                    }
+                    sw.Write("/n ");
+                }
+                var str = sw.ToString();
+                return new OperationResult<string>(OperationExecutionState.performed, str);
+            }
         }
         public OperationResult<string> ShowCreateTable()
         {

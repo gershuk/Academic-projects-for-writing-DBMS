@@ -24,13 +24,31 @@ namespace SunflowerDB
                 "CreateTableStmt" => CreateTable(treeNode),
                 "ShowTableStmt" => ShowTable(treeNode),
                 "SelectStmt" => Select(treeNode),
-                "UpdateStmt" => null,
+                "UpdateStmt" => Update(treeNode),
                 "AlterStmt" => null,
                 "InsertStmt" => Insert(treeNode),
             };
 
             Engine.Commit();
             return ans;
+        }
+
+        public OperationResult<Table> Update(ParseTreeNode node)
+        {
+            var _idNode = FindChildNodeByName(node, "id")[0];
+            var _idTable = BuildNameFromId(_idNode);
+
+            var _assignListNode = FindChildNodeByName(node, "assignList")[0];
+            var _assigmentList = FindChildNodeByName(_assignListNode, "assignment");
+
+            var _values = new Dictionary<string, string>(); 
+
+            foreach (var _assigment in _assigmentList)
+            {
+                _values.Add(BuildNameFromId(_assigment.ChildNodes[0]), _assigment.ChildNodes[2].Token.Text);
+            }
+
+            return Engine.Update(_idTable,_values);
         }
 
         public OperationResult<Table> Insert(ParseTreeNode node)

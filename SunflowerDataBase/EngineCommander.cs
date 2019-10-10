@@ -26,11 +26,17 @@ namespace SunflowerDB
                 "SelectStmt" => Select(treeNode),
                 "UpdateStmt" => null,
                 "AlterStmt" => null,
-                "InsertStmt" => null,
+                "InsertStmt" => Insert(treeNode),
             };
 
             Engine.Commit();
             return ans;
+        }
+
+        public OperationResult<Table> Insert(ParseTreeNode node)
+        {
+
+            return null;
         }
 
         public OperationResult<Table> Select(ParseTreeNode node)
@@ -91,7 +97,7 @@ namespace SunflowerDB
             //    }
             //}
 
-            return null;
+            return Engine.Select(_fromId,_selsId);
         }
 
         public OperationResult<Table> CreateTable(ParseTreeNode node)

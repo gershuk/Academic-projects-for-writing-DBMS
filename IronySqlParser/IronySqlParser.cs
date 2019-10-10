@@ -48,7 +48,7 @@ namespace IronySqlParser
 
             var id = new NonTerminal("id");
             var sqlCommand = new NonTerminal("sqlSequence");
-            var createTableStmt = new NonTerminal("CreateTableStmt");
+            var createTableStmt = new NonTerminal("CreateTableStmt",typeof(SqlNode));
             var showTableStmt = new NonTerminal("ShowTableStmt");
             var alterStmt = new NonTerminal("AlterStmt");
             var dropTableStmt = new NonTerminal("DropTableStmt");
@@ -178,7 +178,7 @@ namespace IronySqlParser
             orderDirOpt.Rule = Empty | "ASC" | "DESC";
 
             //Insert stmt
-            insertStmt.Rule = INSERT + intoOpt + id + idlistPar + insertData;
+            insertStmt.Rule = INSERT + intoOpt + id + (idlistPar | NULL) + insertData;
             insertData.Rule = selectStmt | VALUES + "(" + exprList + ")";
             intoOpt.Rule = Empty | INTO; //Into is optional in MSSQL
 

@@ -155,6 +155,7 @@ namespace DataBaseEngine
                     string fileName = table.TableMetaInf.Name + ".bin";
                     if (!archive.Entries.Any(u => u.FullName == fileName))
                     {
+
                         return new OperationResult<string>
                                    (OperationExecutionState.failed, null, new DataBaseIsCorruptExeption(PathToDataBase));
                     }

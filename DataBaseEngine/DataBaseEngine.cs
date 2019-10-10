@@ -195,7 +195,7 @@ namespace DataBaseEngine
 
         public OperationResult<string> Commit()
         {
-            dataStorage.SaveTablePoolMetaInf(TablePool);
+             dataStorage.SaveTablePoolMetaInf(TablePool);
             foreach (var t in TablePool)
             {
                 dataStorage.SaveTableData(t.Value);
@@ -262,16 +262,18 @@ namespace DataBaseEngine
                     return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(L));
                 }
             }
+            var subColumns = new List<Tuple<string, string>>();
             foreach (var L in columnNames)
             {
                 var tableName = L.Item1 ?? tableNames[0];
                 if (L.Item2 == "*") { 
                     foreach (var column in TablePool[tableName].TableMetaInf.ColumnPool)
                     {
-                        columnNames.Add(new Tuple<string, string>(L.Item1,column.Key));
+                        subColumns.Add(new Tuple<string, string>(L.Item1,column.Key));
                     }
                 }
             }
+            columnNames.AddRange(subColumns);
             columnNames.RemoveAll(item => item.Item2 == "*");
                 if (columnNames[0].Item2 == "*")
             {
@@ -290,11 +292,10 @@ namespace DataBaseEngine
             {
                 tableOut.AddColumn(TablePool[d.Item1].TableMetaInf.ColumnPool[d.Item2]);
             }
-            var tableData = new TableData();
+            var tableData = new TableData { Rows = new List<Dictionary<string, Field>>()};
             foreach (var L in tableNames)
             {
                 dataStorage.LoadTableData(TablePool[L]);
-                tableData.Rows = new List<Dictionary<string, Field>>();
                 tableData.Rows.AddRange(TablePool[L].TableData.Rows);
                 TablePool[L].TableData = null;
             }

@@ -225,14 +225,14 @@ namespace DataBaseTable
                     var column = key.Value;
                     sw.Write("{0} ", column.Name);
                 }
-                sw.Write("/n");
+                sw.Write("\n");
                 foreach (var row in table.TableData.Rows)
                 {
                     foreach (var field in row)
                     {
                         sw.Write("{0} ", field.ToString());
                     }
-                    sw.Write("/n ");
+                    sw.Write("\n");
                 }
                 var str = sw.ToString();
                 return new OperationResult<string>(OperationExecutionState.performed, str);

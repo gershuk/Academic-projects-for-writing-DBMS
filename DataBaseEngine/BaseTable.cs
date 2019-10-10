@@ -82,7 +82,41 @@ namespace DataBaseTable
             Constrains = constrains;
             TypeState = typeState;
         }
+        public OperationResult<Field> CreateField(string data)
+        {
+            switch (DataType)
+            {
+                case ColumnDataType.INT:
+                    try
+                    {
+                        var val = Convert.ToInt32(data);
+                        return new OperationResult<Field>(OperationExecutionState.performed, new FieldInt { Value = val });
+                    }
+                    catch (FormatException e)
+                    {
+                        return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldExeption(Name, DataType.ToString(), data));
+                    }
+                case ColumnDataType.DOUBLE:
+                    try
+                    {
+                        var val = Convert.ToDouble(data);
+                        return new OperationResult<Field>(OperationExecutionState.performed, new FieldDouble { Value = val });
+                    }
+                    catch (FormatException e)
+                    {
+                        return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldExeption(Name, DataType.ToString(), data));
+                    }
+                case ColumnDataType.CHAR:
+                    return new OperationResult<Field>(OperationExecutionState.performed, new FieldChar { Value = data });
+                case ColumnDataType.NCHAR:
+                case ColumnDataType.NTEXT:
+                case ColumnDataType.TEXT:
+                case ColumnDataType.VARCHAR:
+                        return new OperationResult<Field>(OperationExecutionState.performed, new FieldVarChar { Value = data });
 
+            }
+            return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldExeption(Name, DataType.ToString(), data));
+        }
         public string Name { get; set; }
         public ColumnDataType DataType { get; set; }
         public int DataParam { get; set; }
@@ -96,16 +130,15 @@ namespace DataBaseTable
         public TableMetaInf() { }
         public TableMetaInf(string name) => Name = name;
 
-        
-
         public string Name { get; set; }
         public Dictionary<string, Column> ColumnPool { get; set; }
         public int SizeInBytes { get; }
     }
 
+    [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     public class TableData
     {
-        public List<Dictionary<string,Field>> Rows { get; set;}
+        public List<Dictionary<string, Field>> Rows { get; set; }
     }
 
     public class Table

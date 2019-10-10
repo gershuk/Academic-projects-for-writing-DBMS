@@ -216,6 +216,11 @@ namespace DataBaseEngine
             {
                 return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
             }
+            if(columnNames == null)
+            {
+                columnNames = new List<string>();
+                columnNames.AddRange(TablePool[tableName].TableMetaInf.ColumnPool.Keys);
+            }
             var table = TablePool[tableName];
             dataStorage.LoadTableData(table);
 

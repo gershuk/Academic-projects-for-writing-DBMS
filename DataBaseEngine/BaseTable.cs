@@ -190,6 +190,10 @@ namespace DataBaseTable
             }
             return new OperationResult<Table>(OperationExecutionState.performed, this);
         }
+        public override string ToString()
+        {
+            return ShowCreateTable().Result;
+        }
         public OperationResult<string> ShowCreateTable()
         {
             using (var sw = new StringWriter())

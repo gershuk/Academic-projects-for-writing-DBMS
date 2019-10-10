@@ -92,12 +92,25 @@ namespace SunflowerDB
             //        var _binExprNode = _binExpr[0];
             //        foreach (var child in _binExprNode.ChildNodes)
             //        {
-
+            //SELECT t1.*,t2.*, t1.id FROM t1, t2
             //        }
             //    }
             //}
-
-            return Engine.Select(_fromId,_selsId);
+            var selsIdTuple = new List<Tuple<string, string>>();
+            foreach (var L  in _selsId)
+            {
+               var strs = L.Split(".");
+                if (strs.Length == 1)
+                {
+                    selsIdTuple.Add(new Tuple<string, string>(_fromId[0], strs[0]));
+                }
+                else
+                {
+                    selsIdTuple.Add(new Tuple<string, string>(strs[0], strs[1]));
+                }
+            }
+            
+            return Engine.Select(_fromId, selsIdTuple);
         }
 
         public OperationResult<Table> CreateTable(ParseTreeNode node)

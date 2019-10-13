@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 using DataBaseEngine;
 
@@ -11,15 +12,9 @@ namespace DataBaseTable
 {
     public enum ColumnDataType
     {
-        DATETIME,
         INT,
         DOUBLE,
         CHAR,
-        NCHAR,
-        VARCHAR,
-        NVARCHAR,
-        TEXT,
-        NTEXT
     }
 
     public enum NullSpecOpt
@@ -32,17 +27,19 @@ namespace DataBaseTable
     [ProtoInclude(100, typeof(FieldInt))]
     [ProtoInclude(101, typeof(FieldDouble))]
     [ProtoInclude(102, typeof(FieldChar))]
-    [ProtoInclude(103, typeof(FieldVarChar))]
-    [ProtoInclude(104, typeof(FieldDate))]
     public abstract class Field
     {
-
+     public abstract int MaxSize();
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     public class FieldInt : Field
     {
         public int Value { get; set; }
+        public override int MaxSize()
+        {
+            return sizeof(int);
+        }
         public override string ToString()
         {
             return "" + Value;
@@ -53,6 +50,10 @@ namespace DataBaseTable
     public class FieldDouble : Field
     {
         public double Value { get; set; }
+        public override int MaxSize()
+        {
+            return sizeof(double);
+        }
         public override string ToString()
         {
             return "" + Value;
@@ -62,27 +63,19 @@ namespace DataBaseTable
     [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     public class FieldChar : Field
     {
-        public string Value { get; set; }
-        public override string ToString()
+        public string Value { 
+            get {return new string(System.Text.Encoding.UTF8.GetString(_value)); }}
+        private byte[] _value;
+        FieldChar() { }
+       public FieldChar(string val,int size)
         {
-            return "" + Value;
+            _value = System.Text.Encoding.UTF8.GetBytes(val);
+            Array.Resize(ref _value, size);
         }
-    }
-
-    [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
-    public class FieldVarChar : Field
-    {
-        public string Value { get; set; }
-        public override string ToString()
+        public override int MaxSize()
         {
-            return "" + Value;
+            return _value.Length;
         }
-    }
-
-    [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
-    public class FieldDate : Field
-    {
-        public int Value { get; set; }
         public override string ToString()
         {
             return "" + Value;
@@ -127,12 +120,7 @@ namespace DataBaseTable
                         return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldExeption(Name, DataType.ToString(), data));
                     }
                 case ColumnDataType.CHAR:
-                    return new OperationResult<Field>(OperationExecutionState.performed, new FieldChar { Value = data });
-                case ColumnDataType.NCHAR:
-                case ColumnDataType.NTEXT:
-                case ColumnDataType.TEXT:
-                case ColumnDataType.VARCHAR:
-                    return new OperationResult<Field>(OperationExecutionState.performed, new FieldVarChar { Value = data });
+                    return new OperationResult<Field>(OperationExecutionState.performed, new FieldChar (data,DataParam));
 
             }
             return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldExeption(Name, DataType.ToString(), data));

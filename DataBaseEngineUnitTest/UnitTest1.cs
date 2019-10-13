@@ -73,12 +73,12 @@ namespace DataBaseEngineUnitTest
                 Rows = new List<Dictionary<string, Field>> {
                 { new Dictionary<string, Field> {
                     {"id", new FieldInt { Value = 30 }},
-                    {"name", new FieldVarChar { Value = "Ivanov" }},
+                    {"name", new FieldChar("Ivanov",30)},
                 }
                 },
                 { new Dictionary<string, Field> {
                     {"id", new FieldInt { Value = 30 }},
-                    {"name", new FieldVarChar { Value = "Ivanov" }},
+                    {"name", new FieldChar("Ivanov",30)},
                  }
                 }
             }
@@ -93,7 +93,7 @@ namespace DataBaseEngineUnitTest
             foreach (var L in dataBase.TablePool[tableName].TableData.Rows)
             {
                 Assert.AreEqual(((FieldInt)L["id"]).Value , 30);
-                Assert.AreEqual(((FieldVarChar)L["name"]).Value , "Ivanov");
+                Assert.AreEqual(((FieldChar)L["name"]).Value , "Ivanov");
             }
         }
 
@@ -145,8 +145,8 @@ namespace DataBaseEngineUnitTest
                 {"id", new FieldInt { Value = 30 }},
                 {"id2", new FieldInt { Value = 33 }},
                 {"id3", new FieldInt { Value = 444 }},
-                {"name", new FieldVarChar { Value = "Ivanov" }},
-                {"name2", new FieldVarChar { Value = "hhhhh" }},
+                {"name", new FieldChar("Ivanov",30)},
+                {"name2", new FieldChar("hhhhh",25)},
                 {"age", new FieldInt { Value = 244 }},
                 {"double", new FieldDouble { Value = 244.345}}
             };

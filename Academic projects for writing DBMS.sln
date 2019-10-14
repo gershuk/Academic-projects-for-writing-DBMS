@@ -3,10 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29324.140
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IronySqlParser", "IronySqlParser\IronySqlParser.csproj", "{F76788B3-3114-45C0-AB42-8B1A9E62CF71}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataBaseEngine", "DataBaseEngine\DataBaseEngine.csproj", "{55FC74AF-52B0-4AEF-ACBA-C080E76A5FC1}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IronySqlParser.Tests", "IronySqlParser.Tests\IronySqlParser.Tests.csproj", "{748479AF-A95E-45F1-9E01-4913113CC895}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataBaseEngineUnitTest", "DataBaseEngineUnitTest\DataBaseEngineUnitTest.csproj", "{74303328-CA67-46B6-8C6A-E27B348A486E}"
@@ -15,14 +11,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{ED99B55D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataBase", "DataBase", "{E510A1CA-BBE3-43DF-AE59-3A224192AEF8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SunflowerDataBase", "SunflowerDataBase\SunflowerDataBase.csproj", "{DF44233D-B94F-46B8-AFC5-A95384A65E9E}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestingFramework", "TestingFramework\TestingFramework.csproj", "{85876682-F970-4612-A402-2A7B9FAAA4D6}"
-	ProjectSection(ProjectDependencies) = postProject
-		{DF44233D-B94F-46B8-AFC5-A95384A65E9E} = {DF44233D-B94F-46B8-AFC5-A95384A65E9E}
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicExpressionBuilder", "DynamicExpressionBuilder\DynamicExpressionBuilder.csproj", "{AAA501E4-3815-4A4B-BA4F-57BEA3C55869}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SunflowerDataBase", "SunflowerDataBase\SunflowerDataBase.csproj", "{21C8C4F5-5A41-4004-AF35-66C3EDA98CAD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IronySqlParser", "IronySqlParser\IronySqlParser.csproj", "{441EA1BB-8AB8-405B-991B-28B8DFCA33BE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataBaseEngine", "DataBaseEngine\DataBaseEngine.csproj", "{663469A0-7E1D-429A-B243-17502EF9447A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,14 +25,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F76788B3-3114-45C0-AB42-8B1A9E62CF71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F76788B3-3114-45C0-AB42-8B1A9E62CF71}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F76788B3-3114-45C0-AB42-8B1A9E62CF71}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F76788B3-3114-45C0-AB42-8B1A9E62CF71}.Release|Any CPU.Build.0 = Release|Any CPU
-		{55FC74AF-52B0-4AEF-ACBA-C080E76A5FC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{55FC74AF-52B0-4AEF-ACBA-C080E76A5FC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{55FC74AF-52B0-4AEF-ACBA-C080E76A5FC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{55FC74AF-52B0-4AEF-ACBA-C080E76A5FC1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{748479AF-A95E-45F1-9E01-4913113CC895}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{748479AF-A95E-45F1-9E01-4913113CC895}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{748479AF-A95E-45F1-9E01-4913113CC895}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -46,29 +33,33 @@ Global
 		{74303328-CA67-46B6-8C6A-E27B348A486E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74303328-CA67-46B6-8C6A-E27B348A486E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74303328-CA67-46B6-8C6A-E27B348A486E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DF44233D-B94F-46B8-AFC5-A95384A65E9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DF44233D-B94F-46B8-AFC5-A95384A65E9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DF44233D-B94F-46B8-AFC5-A95384A65E9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DF44233D-B94F-46B8-AFC5-A95384A65E9E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{85876682-F970-4612-A402-2A7B9FAAA4D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{85876682-F970-4612-A402-2A7B9FAAA4D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{85876682-F970-4612-A402-2A7B9FAAA4D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{85876682-F970-4612-A402-2A7B9FAAA4D6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AAA501E4-3815-4A4B-BA4F-57BEA3C55869}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AAA501E4-3815-4A4B-BA4F-57BEA3C55869}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AAA501E4-3815-4A4B-BA4F-57BEA3C55869}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AAA501E4-3815-4A4B-BA4F-57BEA3C55869}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21C8C4F5-5A41-4004-AF35-66C3EDA98CAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21C8C4F5-5A41-4004-AF35-66C3EDA98CAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21C8C4F5-5A41-4004-AF35-66C3EDA98CAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21C8C4F5-5A41-4004-AF35-66C3EDA98CAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{441EA1BB-8AB8-405B-991B-28B8DFCA33BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{441EA1BB-8AB8-405B-991B-28B8DFCA33BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{441EA1BB-8AB8-405B-991B-28B8DFCA33BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{441EA1BB-8AB8-405B-991B-28B8DFCA33BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{663469A0-7E1D-429A-B243-17502EF9447A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{663469A0-7E1D-429A-B243-17502EF9447A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{663469A0-7E1D-429A-B243-17502EF9447A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{663469A0-7E1D-429A-B243-17502EF9447A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{F76788B3-3114-45C0-AB42-8B1A9E62CF71} = {E510A1CA-BBE3-43DF-AE59-3A224192AEF8}
-		{55FC74AF-52B0-4AEF-ACBA-C080E76A5FC1} = {E510A1CA-BBE3-43DF-AE59-3A224192AEF8}
 		{748479AF-A95E-45F1-9E01-4913113CC895} = {ED99B55D-5439-4728-9DB2-3AE000041644}
 		{74303328-CA67-46B6-8C6A-E27B348A486E} = {ED99B55D-5439-4728-9DB2-3AE000041644}
-		{DF44233D-B94F-46B8-AFC5-A95384A65E9E} = {E510A1CA-BBE3-43DF-AE59-3A224192AEF8}
 		{85876682-F970-4612-A402-2A7B9FAAA4D6} = {ED99B55D-5439-4728-9DB2-3AE000041644}
+		{21C8C4F5-5A41-4004-AF35-66C3EDA98CAD} = {E510A1CA-BBE3-43DF-AE59-3A224192AEF8}
+		{441EA1BB-8AB8-405B-991B-28B8DFCA33BE} = {E510A1CA-BBE3-43DF-AE59-3A224192AEF8}
+		{663469A0-7E1D-429A-B243-17502EF9447A} = {E510A1CA-BBE3-43DF-AE59-3A224192AEF8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {69AB1310-1EEE-4BBD-8DD1-49E1B5F01F23}

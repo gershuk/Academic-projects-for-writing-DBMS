@@ -45,21 +45,23 @@ namespace SunflowerDB
                     Answer = new OperationResult<Table>(OperationExecutionState.notProcessed, null),
                     AnswerNotify = new ManualResetEvent(false)
                 };
+
                 _sqlSequence = sql ?? throw new ArgumentNullException(nameof(sql));
+
                 Task = new Task<ParseTree>(() => Parser.BuildLexicalTree(_sqlSequence));
             }
         }
 
-        private EngineCommander _engineCommander;
+        private readonly EngineCommander _engineCommander;
 
-        private ConcurrentQueue<SqlSequenceParser> _sqlParsers;
-        private ConcurrentQueue<SqlCommand> _waitingSqlCommands;
-        private ConcurrentQueue<SqlCommand> _workingSqlCommands;
+        private readonly ConcurrentQueue<SqlSequenceParser> _sqlParsers;
+        private readonly ConcurrentQueue<SqlCommand> _waitingSqlCommands;
+        private readonly ConcurrentQueue<SqlCommand> _workingSqlCommands;
 
-        private Semaphore _parsersSemaphore;
+        private readonly Semaphore _parsersSemaphore;
 
-        private Thread _inputQueueControler;
-        private Thread _executeControler;
+        private readonly Thread _inputQueueControler;
+        private readonly Thread _executeControler;
 
         private bool _disposed = false;
         private bool _stopWorking = false;
@@ -131,7 +133,10 @@ namespace SunflowerDB
 
                         answer.State = OperationExecutionState.parserError;
                         answer.Result = null;
-                        answer.OperationException = new ParsingRequestError(parserTree.ParserMessages[0].Message, parserTree.ParserMessages[0].Location.ToString());
+
+                        var parserMessage = parserTree.ParserMessages[0];
+
+                        answer.OperationException = new ParsingRequestError(parserMessage.Message, parserMessage.Location.ToString());
                     }
                     else
                     {

@@ -1,9 +1,12 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using DataBaseEngine;
-using DataBaseTable;
 using System.Collections.Generic;
 using System.IO;
-using ProtoBuf;
+
+using DataBaseEngine;
+
+using DataBaseTable;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace DataBaseEngineUnitTest
 {
     [TestClass]
@@ -88,12 +91,12 @@ namespace DataBaseEngineUnitTest
             Assert.AreEqual(result2.State, OperationExecutionState.performed);
 
             var resultload = dataBase.dataStorage.LoadTableData(dataBase.TablePool[tableName]);
-           Assert.AreEqual(resultload.State, OperationExecutionState.performed);
-           Assert.AreEqual(dataBase.TablePool[tableName].TableData.Rows.Count, 2);
+            Assert.AreEqual(resultload.State, OperationExecutionState.performed);
+            Assert.AreEqual(dataBase.TablePool[tableName].TableData.Rows.Count, 2);
             foreach (var L in dataBase.TablePool[tableName].TableData.Rows)
             {
-                Assert.AreEqual(((FieldInt)L["id"]).Value , 30);
-                Assert.AreEqual(((FieldChar)L["name"]).Value , "Ivanov");
+                Assert.AreEqual(((FieldInt)L["id"]).Value, 30);
+                Assert.AreEqual(((FieldChar)L["name"]).Value, "Ivanov");
             }
         }
 

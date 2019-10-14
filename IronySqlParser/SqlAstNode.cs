@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
+
 using Irony.Ast;
 using Irony.Parsing;
 
@@ -9,6 +8,11 @@ namespace IronySqlParser
 {
     public sealed class Token
     {
+        public int Column { get; private set; }
+        public int Line { get; private set; }
+        public string Text { get; private set; }
+        public object Value { get; private set; }
+
         internal Token(int column, int line, string text, object value)
         {
             Text = text;
@@ -17,17 +21,9 @@ namespace IronySqlParser
             Column = column;
         }
 
-        public int Column { get; private set; }
-        public int Line { get; private set; }
-        public string Text { get; private set; }
-        public object Value { get; private set; }
-
-        public override string ToString()
-        {
-            return Text;
-        }
+        public override string ToString() => Text;
     }
-    
+
     public interface ISqlNode
     {
         string NodeName { get; }
@@ -43,58 +39,35 @@ namespace IronySqlParser
 
     class SqlKeyNode : ISqlChildNode
     {
+        private readonly Token token;
+        private ISqlNode parent;
+
         internal SqlKeyNode(Token token)
         {
             this.token = token;
             Text = token.Text;
         }
-
-        private readonly Token token;
-        private ISqlNode parent;
-
-        string ISqlNode.NodeName
-        {
-            get { return Text; }
-        }
-
-        ISqlNode ISqlNode.Parent
-        {
-            get { return parent; }
-        }
-
-        IEnumerable<ISqlNode> ISqlNode.ChildNodes
-        {
-            get { return new ISqlNode[0]; }
-        }
-
-        IEnumerable<Token> ISqlNode.Tokens
-        {
-            get { return new Token[] { token }; }
-        }
-
-        void ISqlChildNode.SetParent(ISqlNode node)
-        {
-            parent = node;
-        }
-
+     
+        string ISqlNode.NodeName => Text;
+        ISqlNode ISqlNode.Parent => parent;
+        IEnumerable<ISqlNode> ISqlNode.ChildNodes => new ISqlNode[0];
+        IEnumerable<Token> ISqlNode.Tokens => new Token[] { token };
+        void ISqlChildNode.SetParent(ISqlNode node) => parent = node;
         public string Text { get; private set; }
     }
 
     public class SqlNode : ISqlNode, IAstNodeInit
     {
+        protected ISqlNode Parent { get; private set; }
+        protected string NodeName { get; private set; }
+        protected IEnumerable<ISqlNode> ChildNodes { get; private set; }
+        protected IEnumerable<Token> Tokens { get; private set; }
+
         public SqlNode()
         {
             ChildNodes = new ReadOnlyCollection<ISqlNode>(new ISqlNode[0]);
             Tokens = new ReadOnlyCollection<Token>(new Token[0]);
         }
-
-        protected ISqlNode Parent { get; private set; }
-
-        protected string NodeName { get; private set; }
-
-        protected IEnumerable<ISqlNode> ChildNodes { get; private set; }
-
-        protected IEnumerable<Token> Tokens { get; private set; }
 
         void IAstNodeInit.Init(AstContext context, ParseTreeNode parseNode)
         {
@@ -128,7 +101,9 @@ namespace IronySqlParser
                 if (child != null)
                 {
                     if (child is ISqlChildNode)
+                    {
                         (child as ISqlChildNode).SetParent(this);
+                    }
 
                     childNodes.Add(child);
                     tokens.AddRange(child.Tokens);
@@ -141,33 +116,17 @@ namespace IronySqlParser
             OnNodeInit();
         }
 
-        string ISqlNode.NodeName
-        {
-            get { return NodeName; }
-        }
+        string ISqlNode.NodeName => NodeName;
 
-        ISqlNode ISqlNode.Parent
-        {
-            get { return Parent; }
-        }
+        ISqlNode ISqlNode.Parent => Parent;
 
-        IEnumerable<ISqlNode> ISqlNode.ChildNodes
-        {
-            get { return ChildNodes; }
-        }
+        IEnumerable<ISqlNode> ISqlNode.ChildNodes => ChildNodes;
 
-        IEnumerable<Token> ISqlNode.Tokens
-        {
-            get { return Tokens; }
-        }
+        IEnumerable<Token> ISqlNode.Tokens => Tokens;
 
         protected virtual void OnNodeInit()
-        {
-        }
+        { }
 
-        protected virtual ISqlNode OnChildNode(ISqlNode node)
-        {
-            return node;
-        }
+        protected virtual ISqlNode OnChildNode(ISqlNode node) => node;
     }
 }

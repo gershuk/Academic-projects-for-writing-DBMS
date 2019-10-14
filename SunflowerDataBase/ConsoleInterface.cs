@@ -11,9 +11,11 @@ namespace SunflowerDB
         {
             var core = new DataBase(20, new DataBaseEngineMain());
             var exitState = true;
+
             Console.WriteLine("Hello!");
             Console.WriteLine("Please enter your sql request.");
             Console.WriteLine("If you want to quit write 'exit'.");
+
             while (exitState)
             {
                 var input = Console.ReadLine();
@@ -23,7 +25,7 @@ namespace SunflowerDB
                     core.Dispose();
                 }
                 else
-                {
+                { 
                     var ans = core.SendSqlSequence(input);
                     ans.AnswerNotify.WaitOne();
                     Console.WriteLine(ans);

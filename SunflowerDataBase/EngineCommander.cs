@@ -27,6 +27,7 @@ namespace SunflowerDB
                 "UpdateStmt" => Update(treeNode),
                 "AlterStmt" => null,
                 "InsertStmt" => Insert(treeNode),
+                _ => null
             };
 
             Engine.Commit();
@@ -41,14 +42,14 @@ namespace SunflowerDB
             var _assignListNode = FindChildNodeByName(node, "assignList")[0];
             var _assigmentList = FindChildNodeByName(_assignListNode, "assignment");
 
-            var _values = new Dictionary<string, string>(); 
+            var _values = new Dictionary<string, string>();
 
             foreach (var _assigment in _assigmentList)
             {
                 _values.Add(BuildNameFromId(_assigment.ChildNodes[0]), _assigment.ChildNodes[2].Token.Text);
             }
 
-            return Engine.Update(_idTable,_values);
+            return Engine.Update(_idTable, _values);
         }
 
         public OperationResult<Table> Insert(ParseTreeNode node)
@@ -80,7 +81,7 @@ namespace SunflowerDB
 
             foreach (var _expressionNode in _expressionList)
             {
-                var _valueList =new List<string>();
+                var _valueList = new List<string>();
                 foreach (var _value in _expressionNode.ChildNodes)
                 {
                     _valueList.Add(_value.Token.Text);
@@ -88,7 +89,7 @@ namespace SunflowerDB
 
                 _values.Add(_valueList);
             }
-            return Engine.Insert(_idTable, _columnNames,_values);
+            return Engine.Insert(_idTable, _columnNames, _values);
         }
 
         public OperationResult<Table> Select(ParseTreeNode node)
@@ -97,7 +98,7 @@ namespace SunflowerDB
             var _allStateNode = FindChildNodeByName(_selListNode, "*");
             var _columnItemList = FindChildNodeByName(_selListNode, "columnItemList");
 
-            var _selsId = new List<String>();
+            var _selsId = new List<string>();
 
             if (_allStateNode.Count == 0)
             {
@@ -118,7 +119,7 @@ namespace SunflowerDB
             }
 
             var _fromClauseOpt = FindChildNodeByName(node, "fromClauseOpt");
-            var _fromId = new List<String>();
+            var _fromId = new List<string>();
 
             if (_fromClauseOpt.Count > 0)
             {
@@ -131,27 +132,10 @@ namespace SunflowerDB
                 }
             }
 
-            //var _whereClauseOptList = FindChildNodeByName(node, "whereClauseOpt");
-            //string _whereClauseOpt;
-
-            //if (_whereClauseOptList.Count > 0)
-            //{
-            //    var _whereClauseOptNode = _whereClauseOptList[0];
-            //    //костыль ->
-            //    var _binExpr = FindChildNodeByName(_whereClauseOptNode, "binExpr");
-            //    if (_binExpr.Count > 0)
-            //    {
-            //        var _binExprNode = _binExpr[0];
-            //        foreach (var child in _binExprNode.ChildNodes)
-            //        {
-            //SELECT t1.*,t2.*, t1.id FROM t1, t2
-            //        }
-            //    }
-            //}
             var selsIdTuple = new List<Tuple<string, string>>();
             foreach (var L in _selsId)
             {
-                var strs = L.Split(".");
+                var strs = L.Split('.');
                 if (strs.Length == 1)
                 {
                     selsIdTuple.Add(new Tuple<string, string>(_fromId[0], strs[0]));

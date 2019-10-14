@@ -6,6 +6,7 @@ using System.Text;
 using DataBaseEngine;
 
 using DataBaseErrors;
+
 using ProtoBuf;
 
 namespace DataBaseTable
@@ -23,68 +24,65 @@ namespace DataBaseTable
         NotNull,
         Empty
     }
+
     [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     [ProtoInclude(100, typeof(FieldInt))]
     [ProtoInclude(101, typeof(FieldDouble))]
     [ProtoInclude(102, typeof(FieldChar))]
     public abstract class Field
     {
-     public abstract int MaxSize();
+        public abstract int MaxSize();
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     public class FieldInt : Field
     {
         public int Value { get; set; }
-        public override int MaxSize()
-        {
-            return sizeof(int);
-        }
-        public override string ToString()
-        {
-            return "" + Value;
-        }
+
+        public override int MaxSize() => sizeof(int);
+
+        public override string ToString() => Value.ToString();
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     public class FieldDouble : Field
     {
         public double Value { get; set; }
-        public override int MaxSize()
-        {
-            return sizeof(double);
-        }
-        public override string ToString()
-        {
-            return "" + Value;
-        }
+
+        public override int MaxSize() => sizeof(double);
+
+        public override string ToString() => Value.ToString();
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     public class FieldChar : Field
     {
-        public string Value { 
-            get {return new string(System.Text.Encoding.UTF8.GetString(_value)); }}
-        private byte[] _value;
-        FieldChar() { }
-       public FieldChar(string val,int size)
+        private readonly byte[] _value;
+
+        public string Value => Encoding.UTF8.GetString(_value, 0, _value.Length);
+
+        public FieldChar(string val, int size)
         {
             _value = System.Text.Encoding.UTF8.GetBytes(val);
             Array.Resize(ref _value, size);
         }
-        public override int MaxSize()
-        {
-            return _value.Length;
-        }
-        public override string ToString()
-        {
-            return "" + Value;
-        }
+
+        public override int MaxSize() => _value.Length;
+
+        public override string ToString() => Value.ToString();
     }
 
     public class Column
     {
+        public string Name { get; set; }
+        public ColumnDataType DataType { get; set; }
+        public int DataParam { get; set; }
+        public List<string> Constrains { get; set; }
+        public int Size { get; set; }
+        public NullSpecOpt TypeState { get; set; }
+
         public Column() { }
+
         public Column(string name) => Name = name;
 
         public Column(string name, ColumnDataType dataType, int dataParam, List<string> constrains, NullSpecOpt typeState)
@@ -95,6 +93,7 @@ namespace DataBaseTable
             Constrains = constrains;
             TypeState = typeState;
         }
+
         public OperationResult<Field> CreateField(string data)
         {
             switch (DataType)
@@ -105,7 +104,7 @@ namespace DataBaseTable
                         var val = Convert.ToInt32(data);
                         return new OperationResult<Field>(OperationExecutionState.performed, new FieldInt { Value = val });
                     }
-                    catch (FormatException e)
+                    catch
                     {
                         return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldExeption(Name, DataType.ToString(), data));
                     }
@@ -115,32 +114,27 @@ namespace DataBaseTable
                         var val = Convert.ToDouble(data);
                         return new OperationResult<Field>(OperationExecutionState.performed, new FieldDouble { Value = val });
                     }
-                    catch (FormatException e)
+                    catch
                     {
                         return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldExeption(Name, DataType.ToString(), data));
                     }
                 case ColumnDataType.CHAR:
-                    return new OperationResult<Field>(OperationExecutionState.performed, new FieldChar (data,DataParam));
+                    return new OperationResult<Field>(OperationExecutionState.performed, new FieldChar(data, DataParam));
 
             }
             return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldExeption(Name, DataType.ToString(), data));
         }
-        public string Name { get; set; }
-        public ColumnDataType DataType { get; set; }
-        public int DataParam { get; set; }
-        public List<string> Constrains { get; set; }
-        public int Size { get; set; }
-        public NullSpecOpt TypeState { get; set; }
     }
 
     public class TableMetaInf
     {
-        public TableMetaInf() { }
-        public TableMetaInf(string name) => Name = name;
-
         public string Name { get; set; }
         public Dictionary<string, Column> ColumnPool { get; set; }
         public int SizeInBytes { get; }
+
+        public TableMetaInf() { }
+
+        public TableMetaInf(string name) => Name = name;
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
@@ -155,8 +149,7 @@ namespace DataBaseTable
         public TableMetaInf TableMetaInf { get; set; }
 
         public Table()
-        {
-        }
+        { }
 
         public Table(string name) => TableMetaInf = new TableMetaInf(name);
 
@@ -170,17 +163,16 @@ namespace DataBaseTable
 
         public OperationResult<Table> AddColumn(Column column)
         {
-
             TableMetaInf.ColumnPool ??= new Dictionary<string, Column>();
             if (!TableMetaInf.ColumnPool.ContainsKey(column.Name))
             {
-
                 TableMetaInf.ColumnPool.Add(column.Name, column);
             }
             else
             {
                 return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnAlreadyExistExeption(column.Name, TableMetaInf.Name));
             }
+
             return new OperationResult<Table>(OperationExecutionState.performed, this);
         }
 
@@ -189,7 +181,6 @@ namespace DataBaseTable
             TableMetaInf.ColumnPool ??= new Dictionary<string, Column>();
             if (TableMetaInf.ColumnPool.ContainsKey(ColumName))
             {
-
                 TableMetaInf.ColumnPool.Remove(ColumName);
             }
             else
@@ -198,56 +189,59 @@ namespace DataBaseTable
             }
             return new OperationResult<Table>(OperationExecutionState.performed, this);
         }
-        public override string ToString()
-        {
-            return TableData == null ? ShowCreateTable().Result : ShowDataTable().Result;
-        }
+
+        public override string ToString() => TableData == null ? ShowCreateTable().Result : ShowDataTable().Result;
+
         public OperationResult<string> ShowDataTable()
         {
-            using (var sw = new StringWriter())
+            using var sw = new StringWriter();
+
+            sw.Write("\n");
+
+            foreach (var key in TableMetaInf.ColumnPool)
             {
-                var table = this;
-                sw.Write("\n");
-                foreach (var key in table.TableMetaInf.ColumnPool)
-                {
-                    var column = key.Value;
-                    sw.Write("{0} ", column.Name);
-                }
-                sw.Write("\n");
-                foreach (var row in table.TableData.Rows)
-                {
-                    foreach (var field in row)
-                    {
-                        sw.Write("{0} ", field.Value.ToString());
-                    }
-                    sw.Write("\n");
-                }
-                var str = sw.ToString();
-                return new OperationResult<string>(OperationExecutionState.performed, str);
+                var column = key.Value;
+                sw.Write("{0} ", column.Name);
             }
+
+            sw.Write("\n");
+
+            foreach (var row in TableData.Rows)
+            {
+                foreach (var field in row)
+                {
+                    sw.Write("{0} ", field.Value.ToString());
+                }
+                sw.Write("\n");
+            }
+
+            return new OperationResult<string>(OperationExecutionState.performed, sw.ToString());
         }
+
         public OperationResult<string> ShowCreateTable()
         {
-            using (var sw = new StringWriter())
-            {
-                var table = this;
-                sw.Write("CREATE TABLE {0} (", table.TableMetaInf.Name);
-                foreach (var key in table.TableMetaInf.ColumnPool)
-                {
-                    var column = key.Value;
-                    sw.Write("{0} {1} ({2})", column.Name, column.DataType.ToString(), column.DataParam);
-                    foreach (var key2 in column.Constrains)
-                    {
-                        sw.Write(" {0}", key2);
-                    }
-                    sw.Write(",");
-                }
-                var str = sw.ToString();
-                str = str.TrimEnd(new char[] { ',' });
-                str += ");";
+            using var sw = new StringWriter();
 
-                return new OperationResult<string>(OperationExecutionState.performed, str);
+            sw.Write("CREATE TABLE {0} (", TableMetaInf.Name);
+
+            foreach (var key in TableMetaInf.ColumnPool)
+            {
+                var column = key.Value;
+                sw.Write($"{column.Name} {column.DataType} ({column.DataParam})");
+
+                foreach (var key2 in column.Constrains)
+                {
+                    sw.Write($" {key2}");
+                }
+
+                sw.Write(",");
             }
+
+            var str = sw.ToString();
+            str = str.TrimEnd(new char[] { ',' });
+            str += ");";
+
+            return new OperationResult<string>(OperationExecutionState.performed, str);
         }
     }
 }

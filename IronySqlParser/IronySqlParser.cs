@@ -220,16 +220,17 @@ namespace IronySqlParser
             MarkPunctuation(",", "(", ")");
             MarkPunctuation(asOpt, semiOpt);
 
-            base.MarkTransient(sqlCommand, term, asOpt, aliasOpt, stmtLine, expression, unOp, tuple);
+            MarkTransient(sqlCommand, term, asOpt, aliasOpt, stmtLine, expression, unOp, tuple);
+            //LanguageFlags = LanguageFlags.CreateAst;
             binOp.SetFlag(TermFlags.InheritPrecedence);
         }
     }
 
     public class SqlSequenceParser
     {
-        private SqlGrammar _sqlGrammar;
-        private LanguageData language;
-        private Parser parser;
+        private readonly SqlGrammar _sqlGrammar;
+        private readonly LanguageData language;
+        private readonly Parser parser;
 
         public SqlSequenceParser()
         {
@@ -247,7 +248,7 @@ namespace IronySqlParser
 
         public ParseTree BuildLexicalTree(string sequence) => parser.Parse(sequence);
 
-        public void ShowLexicalTree(ParseTreeNode node, int level)
+        public void ShowLexicalTree(ParseTreeNode node, int level=0)
         {
             if (node != null) {
                 for (var i = 0; i < level; i++)

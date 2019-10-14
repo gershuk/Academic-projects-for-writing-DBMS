@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 
 namespace DataBaseErrors
@@ -19,7 +17,7 @@ namespace DataBaseErrors
     }
     class FileMarkNotExistExeption : Exception
     {
-        public FileMarkNotExistExeption(string path,string fileMark)
+        public FileMarkNotExistExeption(string path, string fileMark)
             : base($"Error, File named {path} doesn't contain 'file mark' '{fileMark}'")
         { }
     }

@@ -2,13 +2,13 @@
   "description": "Insert testing",
   "set3": [
     {
-      "Input": "CREATE TABLE t (id INT, name VARCHAR(20), surname VARCHAR(20)); INSERT INTO t (id, name, surname) VALUES ((1, 'asdasd', 'asd'), (2, 'asdas', 'asdsdsds')); SELECT * FROM t;",
+      "Input": "CREATE TABLE t (id INT, name CHAR(20), surname CHAR(20)); INSERT INTO t (id, name, surname) VALUES ((1, 'asdasd', 'asd'), (2, 'asdas', 'asdsdsds')); SELECT * FROM t;",
       "Output": "",
       "Status": "performed;performed;performed;",
       "ExpectOutput": false
     },
     {
-      "Input": "CREATE TABLE t (id INT, name VARCHAR(20), surname VARCHAR(20)); INSERT INTO t (id, name, surname) VALUES ((1, 'asdasd', 'asd'), (2, 'asdas', 'asdsdsds'));",
+      "Input": "CREATE TABLE t (id INT, name CHAR(20), surname CHAR(20)); INSERT INTO t (id, name, surname) VALUES ((1, 'asdasd', 'asd'), (2, 'asdas', 'asdsdsds'));",
       "Output": "",
       "Status": "performed;performed;performed;",
       "ExpectOutput": false
@@ -26,7 +26,7 @@
       "ExpectOutput": false
     },
     {
-      "Input": "CREATE TABLE t (id INT, name VARCHAR(20), surname VARCHAR(20)); INSERT INTO t (id, name, surname) VALUES ((1, 'asdasd', 'asd'), (2, 'asdas', 'asdsdsds')); SELECT name FROM t;",
+      "Input": "CREATE TABLE t (id INT, name CHAR(20), surname CHAR(20)); INSERT INTO t (id, name, surname) VALUES ((1, 'asdasd', 'asd'), (2, 'asdas', 'asdsdsds')); SELECT name FROM t;",
       "Output": "",
       "Status": "performed;performed;performed;",
       "ExpectOutput": false

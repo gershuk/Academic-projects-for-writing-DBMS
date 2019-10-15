@@ -7,6 +7,8 @@ using DataBaseTable;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using ProtoBuf;
+
 namespace DataBaseEngineUnitTest
 {
     [TestClass]
@@ -90,7 +92,7 @@ namespace DataBaseEngineUnitTest
             var result2 = dataBase.Commit();
             Assert.AreEqual(result2.State, OperationExecutionState.performed);
 
-            var resultload = dataBase.dataStorage.LoadTableData(dataBase.TablePool[tableName]);
+            var resultload = dataBase.DataStorage.LoadTableData(dataBase.TablePool[tableName]);
             Assert.AreEqual(resultload.State, OperationExecutionState.performed);
             Assert.AreEqual(dataBase.TablePool[tableName].TableData.Rows.Count, 2);
             foreach (var L in dataBase.TablePool[tableName].TableData.Rows)

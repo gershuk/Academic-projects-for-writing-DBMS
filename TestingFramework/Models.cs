@@ -1,31 +1,36 @@
-﻿using Newtonsoft.Json;
+﻿using DataBaseEngine;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace TestingFramework
 {
     public class Test
     {
-        public string Input { get; set; }
-        public string Output { get; set; }
-        public string Status { get; set; }
+        public List<string> Input { get; }
+        public List<string> Output { get; }
+        public List<string> Status { get; }
         public bool ExpectOutput { get; set; }
+
+        public Test()
+        {
+            Input = new List<string>();
+            Output = new List<string>();
+            Status = new List<string>();
+        }
     }
 
 
     class TestResult
     {
         public Test UsedTest { get; set; }
-        public string ReturnedOutput { get; set; }
-        public string ReturnedStatus { get; set; }
+        public List<string> ReturnedOutput { get; }
+        public List<string> ReturnedStatus { get; }
         public bool TestPassed { get; set; }
 
-        public TestResult() { }
-
-        public TestResult(Test t, string output, string status, bool passed)
+        public TestResult() 
         {
-            UsedTest = t;
-            ReturnedOutput = output;
-            ReturnedStatus = status;
-            TestPassed = passed;
+            ReturnedOutput = new List<string>();
+            ReturnedStatus = new List<string>();
         }
 
         public string ToJson() => JsonConvert.SerializeObject(this);

@@ -34,6 +34,9 @@
     <Reference Include="Irony, Version=1.1.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
       <HintPath>..\packages\Irony.1.1.0\lib\net40\Irony.dll</HintPath>
     </Reference>
+    <Reference Include="Irony.Interpreter, Version=1.1.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
+      <HintPath>..\packages\Irony.Interpreter.1.1.0\lib\net40\Irony.Interpreter.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -44,9 +47,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AstNodes\ConstraintDefNode.cs" />
+    <Compile Include="AstNodes\ConstraintListOptNodes.cs" />
+    <Compile Include="AstNodes\CreateTableNode.cs" />
+    <Compile Include="AstNodes\DropTableNode.cs" />
+    <Compile Include="AstNodes\FieldDefListNode.cs" />
+    <Compile Include="AstNodes\FieldDefNode.cs" />
+    <Compile Include="AstNodes\IdNode.cs" />
+    <Compile Include="AstNodes\NullSpectOptNode.cs" />
+    <Compile Include="AstNodes\NumberNode.cs" />
+    <Compile Include="AstNodes\ShowTableNode.cs" />
+    <Compile Include="AstNodes\SimpleIdNode.cs" />
+    <Compile Include="AstNodes\StringLiteralNode.cs" />
+    <Compile Include="AstNodes\TypeNameNode.cs" />
+    <Compile Include="AstNodes\TypeParamsOptNode.cs" />
     <Compile Include="IronySqlParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SqlAstNode.cs" />
+    <Compile Include="AstNodes\SqlNode.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

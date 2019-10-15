@@ -1,0 +1,58 @@
+﻿[g1]
+[testing CREATE and SHOW]
+
+
+[Test]
+CREATE TABLE t (id INT)
+SHOW TABLE t
+DROP TABLE t
+[TestStatus]
+performed
+performed
+performed
+[TestOutput]
+CREATE TABLE t (id INT (0)); 
+CREATE TABLE t (id INT (0)); 
+"
+
+
+[Test]
+CREATE TABLE t (id INT NOT NULL)
+SHOW TABLE t
+DROP TABLE t
+[TestStatus]
+performed
+performed
+performed
+[TestOutput]
+CREATE TABLE t (id INT (0) NOT NULL);
+CREATE TABLE t (id INT (0) NOT NULL);
+"
+
+
+[Test]
+CREATE TABLE t (id INT NOT NULL)
+SHOW TABLE t
+DROP TABLE t
+SHOW TABLE t
+[TestStatus]
+performed
+performed
+performed
+failed
+[TestOutput]
+CREATE TABLE t (id INT (0) NOT NULL);
+CREATE TABLE t (id INT (0) NOT NULL);
+"
+DataBaseErrors.TableNotExistExeption: Error, Table named t doesn't exist
+
+
+[Test]
+SHOW TABLE t
+DROP TABLE t
+[TestStatus]
+failed
+failed
+[TestOutput]
+DataBaseErrors.TableNotExistExeption: Error, Table named t doesn't exist
+DataBaseErrors.TableNotExistExeption: Error, Table named t doesn't exist

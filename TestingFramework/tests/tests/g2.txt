@@ -1,0 +1,54 @@
+﻿[g2]
+[Insert select update testing]
+
+
+[Test]
+CREATE TABLE t (id INT, name CHAR(20), surname CHAR(20))
+INSERT INTO t (id, name, surname) VALUES ((1, 'asdasd', 'asd'), (2, 'asdas', 'asdsdsds'))
+SELECT * FROM t
+[TestStatus]
+performed
+performed
+performed
+
+
+[Test]
+CREATE TABLE t (id INT, name CHAR(20), surname CHAR(20))
+INSERT INTO t (id, name, surname) VALUES ((1, 'asdasd', 'asd'), (2, 'asdas', 'asdsdsds'))
+[TestStatus]
+performed
+performed
+
+
+[Test]
+CREATE TABLE t (id INT)
+INSERT INTO t (id) VALUES ((1), (2))
+SELECT * FROM t
+[TestStatus]
+performed
+performed
+performed
+
+
+[Test]
+CREATE TABLE t (id INT)
+INSERT INTO t (id) VALUES ((1), (2))
+SELECT * FROM t
+UPDATE t SET id = 3
+SELECT * FROM t
+[TestStatus]
+performed
+performed
+performed
+performed
+performed
+
+
+[Test]
+CREATE TABLE t (id INT, name CHAR(20), surname CHAR(20))
+INSERT INTO t (id, name, surname) VALUES ((1, 'asdasd', 'asd'), (2, 'asdas', 'asdsdsds'))
+SELECT name FROM t
+[TestStatus]
+performed
+performed
+performed

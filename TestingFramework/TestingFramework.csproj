@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="tests\" />
+    <Folder Include="tests\results\" />
   </ItemGroup>
 
   <PropertyGroup>

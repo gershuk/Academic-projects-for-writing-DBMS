@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 
 using DataBaseEngine;
@@ -22,6 +21,8 @@ namespace TestingFramework
 
         private enum PrintLevel { silent, normal, all }
 
+        private enum TestInputSection { commands, status, output }
+
         private PrintLevel selectedLevel;
         private PrintLevel currentLevel;
         private string groupName;
@@ -33,6 +34,11 @@ namespace TestingFramework
 
         public Engine()
         {
+            if (!Directory.Exists(ResultsPath))
+            {
+                Directory.CreateDirectory(ResultsPath);
+            }
+
             selectedLevel = PrintLevel.normal;
             currentLevel = PrintLevel.normal;
             testsList = new List<Test>();
@@ -43,8 +49,6 @@ namespace TestingFramework
         private static DataBase GetDataBase() => new DataBase(1, new DataBaseEngineMain(DataBaseConfigPath));
 
         public void Dispose() => core.Dispose();
-
-
 
         private void ColoredOutput(string msg = "", ConsoleColor backColor = ConsoleColor.Black, ConsoleColor forColor = ConsoleColor.White, bool newLine = true)
         {
@@ -62,7 +66,7 @@ namespace TestingFramework
         private void PrintHeader()
         {
             ColoredOutput(Delimeter, forColor: ConsoleColor.Cyan);
-            ColoredOutput("Running test set: " + groupName, forColor: ConsoleColor.Yellow);
+            ColoredOutput("Running test group: " + groupName, forColor: ConsoleColor.Yellow);
             ColoredOutput("Description: " + groupDescription, forColor: ConsoleColor.Yellow);
             ColoredOutput(Delimeter, forColor: ConsoleColor.Cyan);
         }
@@ -77,8 +81,6 @@ namespace TestingFramework
             ColoredOutput(" | " + Math.Round((double)100 * countSuccess / count) + "% | " + (ms == -1 ? "" : "Time " + ms + " ms"));
             ColoredOutput(Delimeter, forColor: ConsoleColor.Cyan);
         }
-
-
 
         private SqlCommandResult CommandRunner(string query)
         {
@@ -100,11 +102,10 @@ namespace TestingFramework
             resultsList.Clear();
         }
 
-
         private void ShowTests(bool onlyErrors)
         {
             var path = ResultsPath + "/" + groupName + ".json";
-            
+
             if (!File.Exists(path))
             {
                 Console.WriteLine("Error: tests result with name " + groupName + ".json does not exists");
@@ -135,20 +136,41 @@ namespace TestingFramework
 
                 ColoredOutput("Test info", forColor: ConsoleColor.White, backColor: ConsoleColor.DarkBlue, newLine: false);
                 ColoredOutput(res.TestPassed ? "PASSED" : "NOT PASSED", res.TestPassed ? ConsoleColor.Green : ConsoleColor.Red);
-                Console.WriteLine("\tInput: " + res.UsedTest.Input);
-                Console.WriteLine("\tStatus: " + res.UsedTest.Status);
-                Console.WriteLine("\tExpect output: " + res.UsedTest.ExpectOutput);
-                if (res.UsedTest.ExpectOutput)
+                Console.WriteLine("\tInput: ");
+                foreach (var s in res.UsedTest.Input)
                 {
-                    Console.WriteLine("\tExpected output: " + res.UsedTest.Output);
+                    Console.WriteLine("\t\t" + s);
                 }
-                
-                if (res.UsedTest.ExpectOutput)
+                Console.WriteLine("\tExpectedStatus: ");
+                foreach (var s in res.UsedTest.Status)
                 {
-                    Console.WriteLine("\tReturned output: " + res.ReturnedOutput);
+                    Console.WriteLine("\t\t" + s);
                 }
 
-                Console.WriteLine("\tReturned status: " + res.ReturnedStatus);
+                if (res.UsedTest.ExpectOutput)
+                {
+                    Console.WriteLine("\tExpected output: ");
+                    foreach (var s in res.UsedTest.Output)
+                    {
+                        Console.WriteLine("\t\t" + (string.IsNullOrEmpty(s) ? "NONE" : s));
+                    }
+                }
+
+                if (res.UsedTest.ExpectOutput)
+                {
+                    Console.WriteLine("\tReturned output: ");
+                    foreach (var s in res.ReturnedOutput)
+                    {
+                        Console.WriteLine("\t\t" + (string.IsNullOrEmpty(s) ? "NONE" : s));
+                    }
+
+                }
+
+                Console.WriteLine("\tReturned status: ");
+                foreach (var s in res.ReturnedStatus)
+                {
+                    Console.WriteLine("\t\t" + s);
+                }
                 Console.WriteLine();
 
                 countSuccess += res.TestPassed ? 1 : 0;
@@ -173,11 +195,24 @@ namespace TestingFramework
             File.WriteAllText(ResultsPath + "/" + groupName + ".json", obj.ToString());
         }
 
+        void AddTestToList(Test test, int testCount)
+        {
+            if (test.Input.Count != test.Status.Count || test.Output.Count > 0 && test.Output.Count != test.Input.Count)
+            {
+                Console.WriteLine("Error in getting data from test" + testCount);
+            }
+            else
+            {
+                testsList.Add(test);
+                test = new Test();
+            }
+        }
+
         bool LoadTests()
         {
             testsList.Clear();
 
-            var path = TestsPath + "/" + groupName + ".json";
+            var path = TestsPath + "/" + groupName + ".txt";
 
             if (!File.Exists(path))
             {
@@ -185,13 +220,57 @@ namespace TestingFramework
                 return false;
             }
 
-            var obj = JObject.Parse(File.ReadAllText(path));
-            groupDescription = (string)obj["description"];
-            var array = (JArray)obj[groupName];
-            foreach (var test in array)
+            var test = new Test();
+            var section = TestInputSection.commands;
+
+            var groupData = File.ReadAllLines(path);
+            groupName = groupData[0].Trim('[', ']');
+            groupDescription = groupData[1].Trim('[', ']');
+            var testCount = 0;
+            for (var i = 2; i < groupData.Length; i++)
             {
-                testsList.Add(JsonConvert.DeserializeObject<Test>(test.ToString()));
+                var s = groupData[i].Trim('\n', '\r', ' ');
+
+                if (s == "[Test]" && test.Input.Count > 0)
+                {
+                    AddTestToList(test, testCount);
+                    test = new Test();
+                }
+
+                switch (s)
+                {
+                    case "[Test]":
+                        testCount++;
+                        section = TestInputSection.commands;
+                        continue;
+                    case "[TestStatus]":
+                        section = TestInputSection.status;
+                        continue;
+                    case "[TestOutput]":
+                        section = TestInputSection.output;
+                        test.ExpectOutput = true;
+                        continue;
+                }
+
+                if (!string.IsNullOrEmpty(s))
+                {
+                    s = s == "\"" ? "" : s;
+                    switch (section)
+                    {
+                        case TestInputSection.commands:
+                            test.Input.Add(s);
+                            break;
+                        case TestInputSection.status:
+                            test.Status.Add(s);
+                            break;
+                        case TestInputSection.output:
+                            test.Output.Add(s);
+                            break;
+                    }
+                }
             }
+
+            AddTestToList(test, testCount);
 
             return true;
         }
@@ -212,42 +291,34 @@ namespace TestingFramework
             var watch = System.Diagnostics.Stopwatch.StartNew();
             foreach (var test in testsList)
             {
+                var testResult = new TestResult
+                {
+                    UsedTest = test,
+                    TestPassed = true
+                };
+
                 currentLevel = PrintLevel.all;
                 ColoredOutput("Running test #" + ++count, forColor: ConsoleColor.Cyan);
 
-                var queryList = test.Input.Trim(';').Split(";");
-                var outputList = test.Output.Trim(';').Split(";");
-                var statusList = test.Status.Trim(';').Split(";");
-
-                var outputResult = "";
-                var statusResult = "";
-                var testPassed = true;
-
-                for (var i = 0; i < queryList.Length; i++)
+                for (var i = 0; i < test.Input.Count; i++)
                 {
                     var commandPassed = true;
 
-                    var ans = CommandRunner(queryList[i]);
+                    var ans = CommandRunner(test.Input[i]);
 
-                    string testOutput;
-                    if (ans.Answer.State == OperationExecutionState.performed)
-                    {
-                        testOutput = ans.Answer.Result != null ? ans.Answer.Result.ToString() : "";
-                    }
-                    else
-                    {
-                        testOutput = ans.Answer.OperationException.ToString();
-                    }
+                    var testOutput = ans.Answer.State == OperationExecutionState.performed
+                        ? ans.Answer.Result != null ? ans.Answer.Result.ToString() : ""
+                        : ans.Answer.OperationException.ToString();
                     testOutput = testOutput.Trim();
 
-                    if (ans.Answer.State.ToString() != statusList[i].Trim(trimSyms) || (test.ExpectOutput && outputList[i].Trim(trimSyms) != testOutput))
+                    if (ans.Answer.State.ToString() != test.Status[i] || (test.ExpectOutput && test.Output[i] != testOutput))
                     {
-                        testPassed = false;
+                        testResult.TestPassed = false;
                         commandPassed = false;
                     }
 
-                    outputResult += ans.Answer.Result + ";";
-                    statusResult += ans.Answer.State + ";";
+                    testResult.ReturnedOutput.Add(testOutput);
+                    testResult.ReturnedStatus.Add(ans.Answer.State.ToString());
 
                     currentLevel = commandPassed ? PrintLevel.all : PrintLevel.normal;
 
@@ -256,7 +327,7 @@ namespace TestingFramework
                         PrintError("\tFAIL IN TEST #" + count);
                     }
 
-                    ColoredOutput("Command: " + queryList[i] + " ", newLine: false, forColor: ConsoleColor.DarkBlue);
+                    ColoredOutput("Command: " + test.Input[i] + " ", newLine: false, forColor: ConsoleColor.DarkBlue);
 
                     if (commandPassed)
                     {
@@ -267,22 +338,22 @@ namespace TestingFramework
                         PrintError("NOT PASSED");
                     }
 
-                    ColoredOutput("Output: \n" + testOutput + "\nSTATUS: " + ans.Answer.State.ToString());
+                    ColoredOutput("Output: " + (string.IsNullOrEmpty(testOutput) ? "NONE" : testOutput) + "\nSTATUS: " + ans.Answer.State.ToString());
 
                     if (!commandPassed)
                     {
-                        ColoredOutput("EXPECTED STATUS: " + statusList[i].Trim(), forColor: ConsoleColor.Red);
+                        ColoredOutput("EXPECTED STATUS: " + test.Status[i], forColor: ConsoleColor.Red);
                         if (test.ExpectOutput)
                         {
-                            ColoredOutput("EXPECTED OUTPUT: " + outputList[i].Trim(), forColor: ConsoleColor.Red);
+                            ColoredOutput("EXPECTED OUTPUT: " + (string.IsNullOrEmpty(test.Output[i]) ? "NONE" : test.Output[i]), forColor: ConsoleColor.Red);
                         }
                     }
                 }
 
-                countSuccess += testPassed ? 1 : 0;
-                countFailed += !testPassed ? 1 : 0;
+                countSuccess += testResult.TestPassed ? 1 : 0;
+                countFailed += !testResult.TestPassed ? 1 : 0;
 
-                resultsList.Add(new TestResult(test, outputResult, statusResult, testPassed));
+                resultsList.Add(testResult);
 
                 CleanAfterTest();
             }
@@ -390,6 +461,13 @@ namespace TestingFramework
                 {
                     switch (command[0])
                     {
+                        case "list":
+                            var filePaths = Directory.GetFiles(TestsPath, "*.txt");
+                            foreach (var s in filePaths)
+                            {
+                                Console.WriteLine(s.Replace(TestsPath, ""));
+                            }
+                            break;
                         case "shell":
                             Shell();
                             break;

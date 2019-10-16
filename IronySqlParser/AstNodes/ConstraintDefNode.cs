@@ -13,10 +13,7 @@
                 switch (child)
                 {
                     case StringLiteralNode literalNode:
-                        foreach (var token in literalNode.Tokens)
-                        {
-                            ConstraintState += token.Text + " ";
-                        }
+                        ConstraintState += literalNode.StringLiteral + " ";
                         break;
                     case SqlKeyNode keyNode:
                         ConstraintState += keyNode.Text + " ";

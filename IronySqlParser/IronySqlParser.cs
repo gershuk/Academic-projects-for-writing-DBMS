@@ -68,31 +68,31 @@ namespace IronySqlParser
 
             var alterStmt = new NonTerminal("AlterStmt", typeof(SqlNode));
             var alterCmd = new NonTerminal("alterCmd", typeof(SqlNode));
-            var expression = new NonTerminal("expression", typeof(SqlNode));
+            var expression = new NonTerminal("expression", typeof(ExpressionNode));
             var asOpt = new NonTerminal("asOpt", typeof(SqlNode));
             var aliasOpt = new NonTerminal("aliasOpt", typeof(SqlNode));
             var tuple = new NonTerminal("tuple", typeof(SqlNode));
-            var term = new NonTerminal("term", typeof(SqlNode));
-            var unOp = new NonTerminal("unOp", typeof(SqlNode));
-            var binOp = new NonTerminal("binOp", typeof(SqlNode));
+            var term = new NonTerminal("term", typeof(TermNode));
+            var unOp = new NonTerminal("unOp", typeof(UnOpNode));
+            var binOp = new NonTerminal("binOp", typeof(BinOpNode));
             var stmtLine = new NonTerminal("stmtLine", typeof(SqlNode));
             var semiOpt = new NonTerminal("semiOpt", typeof(SqlNode));
             var stmtList = new NonTerminal("stmtList", typeof(SqlNode));
 
-            var selectStmt = new NonTerminal("SelectStmt", typeof(SqlNode));
+            var selectStmt = new NonTerminal("SelectStmt", typeof(SelectNode));
             var exprList = new NonTerminal("exprList", typeof(SqlNode));
             var selRestrOpt = new NonTerminal("selRestrOpt", typeof(SqlNode));
-            var selList = new NonTerminal("selList", typeof(SqlNode));
+            var selList = new NonTerminal("selList", typeof(SelListNode));
             var intoClauseOpt = new NonTerminal("intoClauseOpt", typeof(SqlNode));
-            var fromClauseOpt = new NonTerminal("fromClauseOpt", typeof(SqlNode));
+            var fromClauseOpt = new NonTerminal("fromClauseOpt", typeof(FromClauseNode));
             var groupClauseOpt = new NonTerminal("groupClauseOpt", typeof(SqlNode));
             var havingClauseOpt = new NonTerminal("havingClauseOpt", typeof(SqlNode));
             var orderClauseOpt = new NonTerminal("orderClauseOpt", typeof(SqlNode));
-            var whereClauseOpt = new NonTerminal("whereClauseOpt", typeof(SqlNode));
-            var columnItemList = new NonTerminal("columnItemList", typeof(SqlNode));
-            var columnItem = new NonTerminal("columnItem", typeof(SqlNode));
-            var columnSource = new NonTerminal("columnSource", typeof(SqlNode));
-            var idList = new NonTerminal("idList", typeof(SqlNode));
+            var whereClauseOpt = new NonTerminal("whereClauseOpt", typeof(WhereClauseNode));
+            var columnItemList = new NonTerminal("columnItemList", typeof(ColumnItemListNode));
+            var columnItem = new NonTerminal("columnItem", typeof(ColumnItemNode));
+            var columnSource = new NonTerminal("columnSource", typeof(ColumnSourceNode));
+            var idList = new NonTerminal("idList", typeof(IdListNode));
             var idlistPar = new NonTerminal("idlistPar", typeof(SqlNode));
             var aggregate = new NonTerminal("aggregate", typeof(SqlNode));
             var aggregateArg = new NonTerminal("aggregateArg", typeof(SqlNode));
@@ -103,8 +103,8 @@ namespace IronySqlParser
             var orderMember = new NonTerminal("orderMember", typeof(SqlNode));
             var orderDirOpt = new NonTerminal("orderDirOpt", typeof(SqlNode));
 
-            var unExpr = new NonTerminal("unExpr", typeof(SqlNode));
-            var binExpr = new NonTerminal("binExpr", typeof(SqlNode));
+            var unExpr = new NonTerminal("unExpr", typeof(UnExprNode));
+            var binExpr = new NonTerminal("binExpr", typeof(BinExprNode));
             var funCall = new NonTerminal("funCall", typeof(SqlNode));
             var parSelectStmt = new NonTerminal("parSelectStmt", typeof(SqlNode));
             var betweenExpr = new NonTerminal("betweenExpr", typeof(SqlNode));
@@ -121,6 +121,8 @@ namespace IronySqlParser
 
             var sqlSequence = new NonTerminal("sqlSequence", typeof(SqlNode));
             var columnNames = new NonTerminal("columnNames", typeof(SqlNode));
+
+            var expressionBrackets =new NonTerminal("expressionBrackets", typeof(SqlNode));
 
             sqlCommand.Rule = createTableStmt | alterStmt
                       | dropTableStmt | showTableStmt | selectStmt | updateStmt | insertStmt;
@@ -199,14 +201,15 @@ namespace IronySqlParser
 
 
             //Expression
-            exprList.Rule = MakePlusRule(exprList, comma, expression);
+            exprList.Rule = MakePlusRule(exprList, comma, expressionBrackets);
+            expressionBrackets.Rule = "(" + expression + ")" | expression;
             expression.Rule = term | unExpr | binExpr;// Add betweenExpr
-            term.Rule = id | stringLiteral | number | funCall | tuple | parSelectStmt;// | inStmt;
+            term.Rule = id | stringLiteral | number; //| funCall | tuple | parSelectStmt;// | inStmt;
             tuple.Rule = "(" + exprList + ")";
             parSelectStmt.Rule = "(" + selectStmt + ")";
-            unExpr.Rule = unOp + term;
+            unExpr.Rule = unOp + expressionBrackets;
             unOp.Rule = NOT | "+" | "-" | "~";
-            binExpr.Rule = expression + binOp + expression;
+            binExpr.Rule = expressionBrackets + binOp + expressionBrackets;
             binOp.Rule = ToTerm("+") | "-" | "*" | "/" | "%" | "&" | "|" | "^"
                        | "=" | ">" | "<" | ">=" | "<=" | "<>" | "!=" | "!<" | "!>"
                        | "AND" | "OR" | "LIKE" | NOT + "LIKE" | "IN" | NOT + "IN";
@@ -217,18 +220,18 @@ namespace IronySqlParser
             inStmt.Rule = expression + "IN" + "(" + exprList + ")";
 
             //Operators
-            RegisterOperators(10, "*", "/", "%");
-            RegisterOperators(9, "+", "-");
-            RegisterOperators(8, "=", ">", "<", ">=", "<=", "<>", "!=", "!<", "!>", "LIKE", "IN");
+            RegisterOperators(4, "*", "/", "%");
+            RegisterOperators(5, "+", "-");
+            RegisterOperators(6, "=", ">", "<", ">=", "<=", "<>", "!=", "!<", "!>", "LIKE", "IN");
             RegisterOperators(7, "^", "&", "|");
-            RegisterOperators(6, NOT);
-            RegisterOperators(5, "AND");
-            RegisterOperators(4, "OR");
+            RegisterOperators(8, NOT);
+            RegisterOperators(9, "AND");
+            RegisterOperators(10, "OR");
 
             MarkPunctuation(",", "(", ")");
             MarkPunctuation(asOpt, semiOpt);
 
-            MarkTransient(sqlCommand, term, asOpt, aliasOpt, stmtLine, expression, unOp, tuple);
+            MarkTransient(sqlCommand, term, asOpt, aliasOpt, stmtLine, tuple, expressionBrackets);
             //LanguageFlags = LanguageFlags.CreateAst;
             binOp.SetFlag(TermFlags.InheritPrecedence);
         }

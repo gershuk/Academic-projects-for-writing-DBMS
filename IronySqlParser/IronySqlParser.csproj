@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Irony, Version=1.1.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
@@ -47,20 +49,35 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AstNodes\BinExprNode.cs" />
+    <Compile Include="AstNodes\BinOpNode.cs" />
+    <Compile Include="AstNodes\ColumnItemListNode.cs" />
+    <Compile Include="AstNodes\ColumnItemNode.cs" />
+    <Compile Include="AstNodes\ColumnSourceNode.cs" />
     <Compile Include="AstNodes\ConstraintDefNode.cs" />
     <Compile Include="AstNodes\ConstraintListOptNodes.cs" />
     <Compile Include="AstNodes\CreateTableNode.cs" />
     <Compile Include="AstNodes\DropTableNode.cs" />
+    <Compile Include="AstNodes\ExpressionNode.cs" />
     <Compile Include="AstNodes\FieldDefListNode.cs" />
     <Compile Include="AstNodes\FieldDefNode.cs" />
+    <Compile Include="AstNodes\FromClauseNode.cs" />
+    <Compile Include="AstNodes\IdListNode.cs" />
     <Compile Include="AstNodes\IdNode.cs" />
     <Compile Include="AstNodes\NullSpectOptNode.cs" />
     <Compile Include="AstNodes\NumberNode.cs" />
+    <Compile Include="AstNodes\OperatorNode.cs" />
+    <Compile Include="AstNodes\SelectNode.cs" />
+    <Compile Include="AstNodes\SelListNode.cs" />
     <Compile Include="AstNodes\ShowTableNode.cs" />
     <Compile Include="AstNodes\SimpleIdNode.cs" />
     <Compile Include="AstNodes\StringLiteralNode.cs" />
+    <Compile Include="AstNodes\TermNode.cs" />
     <Compile Include="AstNodes\TypeNameNode.cs" />
     <Compile Include="AstNodes\TypeParamsOptNode.cs" />
+    <Compile Include="AstNodes\UnExprNode.cs" />
+    <Compile Include="AstNodes\UnOpNode.cs" />
+    <Compile Include="AstNodes\WhereClauseNode.cs" />
     <Compile Include="IronySqlParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="AstNodes\SqlNode.cs" />

@@ -4,9 +4,6 @@
     {
         public string TableName { get; set; }
 
-        public override void CollectInfoFromChild()
-        {
-            TableName = FindChildNodesByType<IdNode>()[0].Id;
-        }
+        public override void CollectInfoFromChild() => TableName = FindChildNodesByType<IdNode>()[0].Id;
     }
 }

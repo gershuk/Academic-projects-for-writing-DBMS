@@ -18,14 +18,7 @@ namespace IronySqlParser.AstNodes
 
             param = param.TrimEnd(',');
 
-            if (param == "")
-            {
-                TypeParamOpt = null;
-            }
-            else
-            {
-                TypeParamOpt = Convert.ToDouble(param);
-            }
+            TypeParamOpt = param == "" ? null : (double?)Convert.ToDouble(param);
         }
     }
 }

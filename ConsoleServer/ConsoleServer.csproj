@@ -4,15 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{21C8C4F5-5A41-4004-AF35-66C3EDA98CAD}</ProjectGuid>
+    <ProjectGuid>{20D764EC-B0EB-4211-8432-BA0523039088}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>SunflowerDataBase</RootNamespace>
-    <AssemblyName>SunflowerDataBase</AssemblyName>
+    <RootNamespace>ConsoleServer</RootNamespace>
+    <AssemblyName>ConsoleServer</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -23,7 +22,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -33,12 +31,8 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Irony, Version=1.1.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
-      <HintPath>..\packages\Irony.1.1.0\lib\net40\Irony.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -49,24 +43,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConsoleInterface.cs" />
-    <Compile Include="EngineCommander.cs" />
+    <Compile Include="ConsoleServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RequestProcessingErrorsr.cs" />
-    <Compile Include="SunflowerDataBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DataBaseEngine\DataBaseEngine.csproj">
-      <Project>{55fc74af-52b0-4aef-acba-c080e76a5fc1}</Project>
+      <Project>{663469a0-7e1d-429a-b243-17502ef9447a}</Project>
       <Name>DataBaseEngine</Name>
     </ProjectReference>
-    <ProjectReference Include="..\IronySqlParser\IronySqlParser.csproj">
-      <Project>{f76788b3-3114-45c0-ab42-8b1a9e62cf71}</Project>
-      <Name>IronySqlParser</Name>
+    <ProjectReference Include="..\SunflowerDataBase\SunflowerDataBase.csproj">
+      <Project>{21c8c4f5-5a41-4004-af35-66c3eda98cad}</Project>
+      <Name>SunflowerDataBase</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

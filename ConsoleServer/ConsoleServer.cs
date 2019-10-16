@@ -3,11 +3,12 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+
 using DataBaseEngine;
+using SunflowerDB;
 
-namespace SunflowerDB
+namespace ConsoleServer
 {
-
     public class ClientObject
     {
         public TcpClient client;
@@ -103,5 +104,3 @@ namespace SunflowerDB
         }
     }
 }
-
-

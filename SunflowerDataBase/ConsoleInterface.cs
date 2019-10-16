@@ -25,7 +25,7 @@ namespace SunflowerDB
                     core.Dispose();
                 }
                 else
-                { 
+                {
                     var ans = core.SendSqlSequence(input);
                     ans.AnswerNotify.WaitOne();
                     Console.WriteLine(ans);

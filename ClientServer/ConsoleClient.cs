@@ -2,7 +2,7 @@
 using System.Net.Sockets;
 using System.Text;
 
-namespace ClientServer
+namespace Client
 {
     class Program
     {
@@ -55,7 +55,10 @@ namespace ClientServer
             }
             finally
             {
-                client.Close();
+                if (client != null)
+                {
+                    client.Close();
+                }
             }
         }
     }

@@ -220,13 +220,13 @@ namespace IronySqlParser
             inStmt.Rule = expression + "IN" + "(" + exprList + ")";
 
             //Operators
-            RegisterOperators(4, "*", "/", "%");
-            RegisterOperators(5, "+", "-");
-            RegisterOperators(6, "=", ">", "<", ">=", "<=", "<>", "!=", "!<", "!>", "LIKE", "IN");
+            RegisterOperators(10, "*", "/", "%");
+            RegisterOperators(9, "+", "-");
+            RegisterOperators(8, "=", ">", "<", ">=", "<=", "<>", "!=", "!<", "!>", "LIKE", "IN");
             RegisterOperators(7, "^", "&", "|");
-            RegisterOperators(8, NOT);
-            RegisterOperators(9, "AND");
-            RegisterOperators(10, "OR");
+            RegisterOperators(6, NOT);
+            RegisterOperators(5, "AND");
+            RegisterOperators(4, "OR");
 
             MarkPunctuation(",", "(", ")");
             MarkPunctuation(asOpt, semiOpt);

@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace IronySqlParser.AstNodes
+﻿namespace IronySqlParser.AstNodes
 {
-    class WhereClauseNode:SqlNode
+    class WhereClauseNode : SqlNode
     {
         public ExpressionNode Expression { get; set; }
 

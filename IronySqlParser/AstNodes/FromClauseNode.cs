@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace IronySqlParser.AstNodes
 {
@@ -10,9 +6,6 @@ namespace IronySqlParser.AstNodes
     {
         public List<string> IdList { get; set; }
 
-        public override void CollectInfoFromChild()
-        {
-            IdList = FindChildNodesByType<IdListNode>()[0].IdList;
-        }
+        public override void CollectInfoFromChild() => IdList = FindChildNodesByType<IdListNode>()[0].IdList;
     }
 }

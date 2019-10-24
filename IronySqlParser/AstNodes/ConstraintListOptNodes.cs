@@ -10,6 +10,7 @@ namespace IronySqlParser.AstNodes
         {
             ConstraintList = new List<string>();
             var constraintDefNodes = FindChildNodesByType<ConstraintDefNode>();
+
             foreach (var constraintDefNode in constraintDefNodes)
             {
                 ConstraintList.Add(constraintDefNode.ConstraintState);

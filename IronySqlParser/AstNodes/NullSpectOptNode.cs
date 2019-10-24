@@ -1,6 +1,5 @@
 ﻿namespace IronySqlParser.AstNodes
 {
-
     public enum NullSpecOpt
     {
         Null,

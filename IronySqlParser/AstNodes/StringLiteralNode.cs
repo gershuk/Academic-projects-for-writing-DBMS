@@ -8,8 +8,8 @@
         {
             foreach (var token in Tokens)
             {
-                StringLiteral =(string) token.Value;
-            }     
+                StringLiteral = (string)token.Value;
+            }
         }
     }
 }

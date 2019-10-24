@@ -1,18 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace IronySqlParser.AstNodes
+﻿namespace IronySqlParser.AstNodes
 {
-    class ColumnItemNode:SqlNode
+    class ColumnItemNode : SqlNode
     {
         public string Id { get; set; }
 
-        public override void CollectInfoFromChild()
-        {
-            Id = FindChildNodesByType<ColumnSourceNode>()[0].Id;
-        }
+        public override void CollectInfoFromChild() => Id = FindChildNodesByType<ColumnSourceNode>()[0].Id;
     }
 }

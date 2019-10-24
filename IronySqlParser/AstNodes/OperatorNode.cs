@@ -11,9 +11,8 @@ namespace IronySqlParser.AstNodes
     abstract public class OperatorNode : SqlNode
     {
         public Dictionary<string, Variable> Variables { get; set; }
-        public Variable LeftValue { get; set; }
-        public Variable RightValue { get; set; }
-
+        public Variable Value { get; set; }
+       
         public abstract dynamic Calc();
     }
 

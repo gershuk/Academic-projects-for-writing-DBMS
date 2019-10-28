@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
 using DataBaseEngine;
 
 using DataBaseErrors;
-
-using ProtoBuf;
+using ZeroFormatter;
 
 namespace DataBaseTable
 {
@@ -24,62 +24,98 @@ namespace DataBaseTable
         NotNull,
         Empty
     }
-
-    [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
-    [ProtoInclude(100, typeof(FieldInt))]
-    [ProtoInclude(101, typeof(FieldDouble))]
-    [ProtoInclude(102, typeof(FieldChar))]
+    
+    [Union(typeof(FieldInt), typeof(FieldDouble),typeof(FieldChar))]
     public abstract class Field
     {
-        public abstract int MaxSize();
+        [UnionKey]
+        public abstract ColumnDataType Type { get; }
+        public Field() { }
     }
 
-    [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
+    [ZeroFormattable]
     public class FieldInt : Field
     {
-        public int Value { get; set; }
-
-        public override int MaxSize() => sizeof(int);
-
-        public override string ToString() => Value.ToString();
-    }
-
-    [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
-    public class FieldDouble : Field
-    {
-        public double Value { get; set; }
-
-        public override int MaxSize() => sizeof(double);
-
-        public override string ToString() => Value.ToString();
-    }
-
-    [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
-    public class FieldChar : Field
-    {
-        private readonly byte[] _value;
-
-        public string Value => Encoding.UTF8.GetString(_value, 0, _value.Length);
-
-        public FieldChar(string val, int size)
+        public override ColumnDataType Type
         {
-            _value = System.Text.Encoding.UTF8.GetBytes(val);
-            Array.Resize(ref _value, size);
+            get
+            {
+                return ColumnDataType.INT;
+            }
         }
 
-        public override int MaxSize() => _value.Length;
+        [Index(0)]
+        public virtual int Value { get; set; }
+
+        public FieldInt()
+        {
+        }
 
         public override string ToString() => Value.ToString();
     }
 
+    [ZeroFormattable]
+    public class FieldDouble : Field
+    {
+        public override ColumnDataType Type
+        {
+            get
+            {
+                return ColumnDataType.DOUBLE;
+            }
+        }
+        [Index(0)]
+        public virtual double Value { get; set; }
+        public FieldDouble()
+        {
+
+        }
+
+        public override string ToString() => Value.ToString();
+    }
+
+    [ZeroFormattable]
+    public class FieldChar : Field
+    {
+        public override ColumnDataType Type
+        {
+            get
+            {
+                return ColumnDataType.CHAR;
+            }
+        }
+        [Index(0)]
+        public virtual byte[] ValueBytes { get; set; }
+        [IgnoreFormat]
+        public string Value => Encoding.UTF8.GetString(ValueBytes, 0, ValueBytes.Length);
+
+        public FieldChar()
+        {
+        }
+        public FieldChar(string val, int size)
+        {
+            ValueBytes = new byte[size];
+            var buf = System.Text.Encoding.UTF8.GetBytes(val);
+            for (var i = 0; i < buf.Length && i < size; i++)
+            {
+                ValueBytes[i] = buf[i];
+            }
+            for (var i = buf.Length; i < size; i++)
+            {
+                ValueBytes[i] = System.Text.Encoding.ASCII.GetBytes(" ")[0];
+            }
+        }
+        public override string ToString() => Value.ToString();
+    }
+    [ZeroFormattable]
     public class Column
     {
-        public string Name { get; set; }
-        public ColumnDataType DataType { get; set; }
-        public int DataParam { get; set; }
-        public List<string> Constrains { get; set; }
-        public int Size { get; set; }
-        public NullSpecOpt TypeState { get; set; }
+        [Index(0)] public virtual string Name { get; set; }
+        [Index(1)] public virtual ColumnDataType DataType { get; set; }
+        [Index(2)] public virtual int DataParam { get; set; }
+        [Index(3)] public virtual List<string> Constrains { get; set; }
+        [Index(4)] public virtual int Size { get; set; }
+        [Index(5)] public virtual NullSpecOpt TypeState { get; set; }
 
         public Column() { }
 
@@ -111,7 +147,7 @@ namespace DataBaseTable
                 case ColumnDataType.DOUBLE:
                     try
                     {
-                        var val = Convert.ToDouble(data);
+                        var val = Convert.ToDouble(data, new NumberFormatInfo { NumberDecimalSeparator = "." });
                         return new OperationResult<Field>(OperationExecutionState.performed, new FieldDouble { Value = val });
                     }
                     catch
@@ -125,27 +161,21 @@ namespace DataBaseTable
             return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldExeption(Name, DataType.ToString(), data));
         }
     }
-
+    [ZeroFormattable]
     public class TableMetaInf
     {
-        public string Name { get; set; }
-        public Dictionary<string, Column> ColumnPool { get; set; }
-        public int SizeInBytes { get; }
+        [Index(0)] public virtual string Name { get; set; }
+        [Index(1)] public virtual Dictionary<string, Column> ColumnPool { get; set; }
+        [Index(2)] public virtual int SizeInBytes { get; protected set; }
 
         public TableMetaInf() { }
 
         public TableMetaInf(string name) => Name = name;
     }
 
-    [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
-    public class TableData
-    {
-        public List<Dictionary<string, Field>> Rows { get; set; }
-    }
-
     public class Table
     {
-        public TableData TableData { get; set; }
+        public IEnumerable<Field[]> TableData { get; set; }
         public TableMetaInf TableMetaInf { get; set; }
 
         public Table()
@@ -155,7 +185,7 @@ namespace DataBaseTable
 
         public Table(TableMetaInf tableMetaInf) => TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
 
-        public Table(TableData tableData, TableMetaInf tableMetaInf)
+        public Table(IEnumerable<Field[]> tableData, TableMetaInf tableMetaInf)
         {
             TableData = tableData ?? throw new ArgumentNullException(nameof(tableData));
             TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
@@ -178,6 +208,7 @@ namespace DataBaseTable
 
         public OperationResult<Table> DeleteColumn(string ColumName)
         {
+
             TableMetaInf.ColumnPool ??= new Dictionary<string, Column>();
             if (TableMetaInf.ColumnPool.ContainsKey(ColumName))
             {
@@ -206,18 +237,44 @@ namespace DataBaseTable
 
             sw.Write("\n");
 
-            foreach (var row in TableData.Rows)
+            foreach (var row in TableData)
             {
                 foreach (var field in row)
                 {
-                    sw.Write("{0} ", field.Value.ToString());
+                    sw.Write("{0} ", field.ToString());
                 }
                 sw.Write("\n");
             }
 
             return new OperationResult<string>(OperationExecutionState.performed, sw.ToString());
         }
-
+        public OperationResult<Field[]> CreateRowFormStr(string[] strs)
+        {
+            var row = new Field[TableMetaInf.ColumnPool.Count];
+            int i = 0;
+            foreach (var col in TableMetaInf.ColumnPool)
+            {
+                var result = col.Value.CreateField(strs[i]);
+                if (result.State != OperationExecutionState.performed)
+                {
+                    return new OperationResult<Field[]>(OperationExecutionState.failed, null,result.OperationException);
+                }
+                row[i] = result.Result;
+                i++;
+            }
+            return new OperationResult<Field[]>(OperationExecutionState.performed, row);
+        }
+        public OperationResult<Field[]> CreateDefaultRow()
+        {
+            var row = new Field[TableMetaInf.ColumnPool.Count];
+            int i = 0;
+            foreach (var col in TableMetaInf.ColumnPool)
+            {
+                row[i] = col.Value.CreateField("0").Result;
+                i++;
+            }
+            return new OperationResult<Field[]>(OperationExecutionState.performed, row);
+        }
         public OperationResult<string> ShowCreateTable()
         {
             using var sw = new StringWriter();

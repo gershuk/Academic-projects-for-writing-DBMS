@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace IronySqlParser.AstNodes
+﻿namespace IronySqlParser.AstNodes
 {
     public enum NumberType
     {
@@ -16,7 +14,7 @@ namespace IronySqlParser.AstNodes
 
         public override void CollectInfoFromChild()
         {
-            Token numberToken=default;
+            Token numberToken = default;
 
             foreach (var token in Tokens)
             {

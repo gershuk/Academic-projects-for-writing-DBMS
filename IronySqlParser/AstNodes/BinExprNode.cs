@@ -54,7 +54,7 @@ namespace IronySqlParser.AstNodes
             _leftOperand = (ExpressionNode)childNodes[0];
             _rightOperand = (ExpressionNode)childNodes[2];
 
-            Variables = new Dictionary<string, Variable>();
+            Variables = new Dictionary<List<string>, Variable>();
 
             foreach (var variable in _leftOperand.Variables)
             {

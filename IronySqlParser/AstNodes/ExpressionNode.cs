@@ -1,19 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace IronySqlParser.AstNodes
 {
     class ExpressionNode : OperatorNode
     {
         private OperatorNode _childOperator;
+
         public override dynamic Calc() => _childOperator == null ? Value.Data : _childOperator.Calc();
 
         public override void CollectInfoFromChild()
         {
-            Variables = new Dictionary<string, Variable>();
+            Variables = new Dictionary<List<string>, Variable>();
 
             var numberNode = FindChildNodesByType<NumberNode>();
             var stringLiteralNode = FindChildNodesByType<StringLiteralNode>();

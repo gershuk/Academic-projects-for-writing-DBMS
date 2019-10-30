@@ -1,4 +1,6 @@
-﻿namespace IronySqlParser.AstNodes
+﻿using System.Collections.Generic;
+
+namespace IronySqlParser.AstNodes
 {
     public enum TermType
     {
@@ -12,7 +14,7 @@
     {
         public TermType TermType { get; set; }
 
-        public string Id { get; set; }
+        public List<string> Id { get; set; }
         public string StringLiteral { get; set; }
         public double NumberDouble { get; set; }
         public int NumberInt { get; set; }

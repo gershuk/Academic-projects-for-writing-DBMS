@@ -19,40 +19,11 @@ namespace IronySqlParser.AstNodes
 
         public override void CollectInfoFromChild()
         {
-            Variables = new Dictionary<string, Variable>();
+            Variables = new Dictionary<List<string>, Variable>();
 
             _unOp = FindChildNodesByType<UnOpNode>()[0].UnOp;
-            var numberNode = FindChildNodesByType<NumberNode>();
-            var stringLiteralNode = FindChildNodesByType<StringLiteralNode>();
-            var idNod = FindChildNodesByType<IdNode>();
+
             var operatorNode = FindChildNodesByType<OperatorNode>();
-
-            if (numberNode.Count > 0)
-            {
-                switch (numberNode[0].NumberType)
-                {
-                    case NumberType.Double:
-                        Value = new Variable { Data = numberNode[0].NumberDouble };
-                        break;
-                    case NumberType.Int:
-                        Value = new Variable { Data = numberNode[0].NumberInt };
-                        break;
-                };
-
-            }
-
-
-            if (stringLiteralNode.Count > 0)
-            {
-                Value = new Variable { Data = stringLiteralNode[0].StringLiteral };
-            }
-
-            if (idNod.Count > 0)
-            {
-                var variable = new Variable { Name = idNod[0].Id };
-                Variables.Add(idNod[0].Id, variable);
-                Value = variable;
-            }
 
             if (operatorNode.Count > 0)
             {

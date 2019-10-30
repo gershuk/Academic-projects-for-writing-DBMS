@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 using IronySqlParser.AstNodes;
 
@@ -6,7 +7,7 @@ namespace IronySqlParser
 {
     class IdNode : SimpleIdNode
     {
-        public string Id { get; set; }
+        public List<string> Id { get; set; }
 
         public override void CollectInfoFromChild()
         {
@@ -14,10 +15,8 @@ namespace IronySqlParser
 
             foreach (var simpleId in simpleIdList)
             {
-                Id += simpleId.Tokens.First<Token>().Text + " ";
+                Id.Add(simpleId.Tokens.First<Token>().Text);
             }
-
-            Id = Id.TrimEnd(' ');
         }
     }
 }

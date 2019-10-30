@@ -8,7 +8,7 @@ namespace Client
     {
         const int port = 8888;
         const string address = "127.0.0.1";
-        
+
         static void Main(string[] args)
         {
             TcpClient client = null;
@@ -21,7 +21,7 @@ namespace Client
                 {
                     Console.Write(">> ");
                     var query = Console.ReadLine().Trim();
-                    
+
                     if (query == "exit")
                     {
                         break;

@@ -4,13 +4,13 @@ namespace IronySqlParser.AstNodes
 {
     class ColumnItemListNode : SqlNode
     {
-        public List<string> IdList { get; set; }
+        public List<List<string>> IdList { get; set; }
 
         public override void CollectInfoFromChild()
         {
             var columnItemNodes = FindChildNodesByType<ColumnItemNode>();
 
-            IdList = new List<string>();
+            IdList = new List<List<string>>();
 
             foreach (var columnItemNode in columnItemNodes)
             {

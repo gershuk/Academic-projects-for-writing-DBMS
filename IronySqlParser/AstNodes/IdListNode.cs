@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace IronySqlParser.AstNodes
 {
-    class IdListNode:SqlNode
+    class IdListNode : SqlNode
     {
-        public List<string> IdList { get; set; }
+        public List<List<string>> IdList { get; set; }
 
         public override void CollectInfoFromChild()
         {
             var idListNode = FindChildNodesByType<IdNode>();
 
-            IdList = new List<string>();
+            IdList = new List<List<string>>();
 
             foreach (var id in idListNode)
             {

@@ -137,11 +137,14 @@ namespace TestingFramework
                 ColoredOutput("Test info", forColor: ConsoleColor.White, backColor: ConsoleColor.DarkBlue, newLine: false);
                 ColoredOutput(res.TestPassed ? "PASSED" : "NOT PASSED", res.TestPassed ? ConsoleColor.Green : ConsoleColor.Red);
                 Console.WriteLine("\tInput: ");
+
                 foreach (var s in res.UsedTest.Input)
                 {
                     Console.WriteLine("\t\t" + s);
                 }
+
                 Console.WriteLine("\tExpectedStatus: ");
+
                 foreach (var s in res.UsedTest.Status)
                 {
                     Console.WriteLine("\t\t" + s);
@@ -150,6 +153,7 @@ namespace TestingFramework
                 if (res.UsedTest.ExpectOutput)
                 {
                     Console.WriteLine("\tExpected output: ");
+
                     foreach (var s in res.UsedTest.Output)
                     {
                         Console.WriteLine("\t\t" + (string.IsNullOrEmpty(s) ? "NONE" : s));
@@ -159,6 +163,7 @@ namespace TestingFramework
                 if (res.UsedTest.ExpectOutput)
                 {
                     Console.WriteLine("\tReturned output: ");
+
                     foreach (var s in res.ReturnedOutput)
                     {
                         Console.WriteLine("\t\t" + (string.IsNullOrEmpty(s) ? "NONE" : s));
@@ -167,15 +172,18 @@ namespace TestingFramework
                 }
 
                 Console.WriteLine("\tReturned status: ");
+
                 foreach (var s in res.ReturnedStatus)
                 {
                     Console.WriteLine("\t\t" + s);
                 }
+
                 Console.WriteLine();
 
                 countSuccess += res.TestPassed ? 1 : 0;
                 countFailed += !res.TestPassed ? 1 : 0;
             }
+
             PrintResult(count, countSuccess, countFailed, -1);
         }
 
@@ -186,11 +194,13 @@ namespace TestingFramework
             {
                 tests.Add(res.ToJson());
             }
+
             var obj = new JObject
             {
                 ["groupName"] = groupName,
                 ["groupDescription"] = groupDescription
             };
+
             obj.Add("tests", tests);
             File.WriteAllText(ResultsPath + "/" + groupName + ".json", obj.ToString());
         }
@@ -254,7 +264,7 @@ namespace TestingFramework
 
                 if (!string.IsNullOrEmpty(s))
                 {
-                    s = s == "\"" ? "" : s;
+                    s = s == "\"" ? "" : s;//гавно переделыйвай
                     switch (section)
                     {
                         case TestInputSection.commands:

@@ -51,6 +51,7 @@ namespace IronySqlParser
             var UPDATE = ToTerm("UPDATE");
             var INSERT = ToTerm("INSERT");
             var VALUES = ToTerm("VALUES");
+            var STAR = ToTerm("*");
 
             var id = new NonTerminal("id", typeof(IdNode));
             var sqlCommand = new NonTerminal("sqlSequence", typeof(SqlNode));
@@ -80,7 +81,7 @@ namespace IronySqlParser
             var stmtList = new NonTerminal("stmtList", typeof(SqlNode));
 
             var selectStmt = new NonTerminal("SelectStmt", typeof(SelectNode));
-            var exprList = new NonTerminal("exprList", typeof(SqlNode));
+            var expressionList = new NonTerminal("exprList", typeof(ExpressionListNode));
             var selRestrOpt = new NonTerminal("selRestrOpt", typeof(SqlNode));
             var selList = new NonTerminal("selList", typeof(SelListNode));
             var intoClauseOpt = new NonTerminal("intoClauseOpt", typeof(SqlNode));
@@ -112,17 +113,19 @@ namespace IronySqlParser
             var funArgs = new NonTerminal("funArgs", typeof(SqlNode));
             var inStmt = new NonTerminal("inStmt", typeof(SqlNode));
 
-            var updateStmt = new NonTerminal("UpdateStmt", typeof(SqlNode));
-            var insertStmt = new NonTerminal("InsertStmt", typeof(SqlNode));
+            var updateStmt = new NonTerminal("UpdateStmt", typeof(UpdateNode));
+            var insertStmt = new NonTerminal("InsertStmt", typeof(InsertNode));
             var intoOpt = new NonTerminal("intoOpt", typeof(SqlNode));
-            var insertData = new NonTerminal("InsertData", typeof(SqlNode));
-            var assignList = new NonTerminal("assignList", typeof(SqlNode));
-            var assignment = new NonTerminal("assignment", typeof(SqlNode));
+            var insertDataList = new NonTerminal("insertDataList", typeof(InsertDataListNode));
+            var insertObject = new NonTerminal("insertObject", typeof(InsertObjectNode));
+            var insertData = new NonTerminal("InsertData", typeof(InsertDataNode));
+            var assignList = new NonTerminal("assignList", typeof(AssignmentListNode));
+            var assignment = new NonTerminal("assignment", typeof(AssignmentNode));
 
             var sqlSequence = new NonTerminal("sqlSequence", typeof(SqlNode));
-            var columnNames = new NonTerminal("columnNames", typeof(SqlNode));
+            var columnNames = new NonTerminal("columnNames", typeof(ColumnNamesNode));
 
-            var expressionBrackets =new NonTerminal("expressionBrackets", typeof(SqlNode));
+            var expressionBrackets = new NonTerminal("expressionBrackets", typeof(SqlNode));
 
             sqlCommand.Rule = createTableStmt | alterStmt
                       | dropTableStmt | showTableStmt | selectStmt | updateStmt | insertStmt;
@@ -167,14 +170,14 @@ namespace IronySqlParser
             selectStmt.Rule = SELECT + selRestrOpt + selList + intoClauseOpt + fromClauseOpt + whereClauseOpt +
                               groupClauseOpt + havingClauseOpt + orderClauseOpt;
             selRestrOpt.Rule = Empty | "ALL" | "DISTINCT";
-            selList.Rule = columnItemList | "*";
+            selList.Rule = columnItemList | STAR;
             columnItemList.Rule = MakePlusRule(columnItemList, comma, columnItem);
             columnItem.Rule = columnSource + aliasOpt;
             aliasOpt.Rule = Empty | asOpt + id;
             asOpt.Rule = Empty | AS;
             columnSource.Rule = aggregate | id;
             aggregate.Rule = aggregateName + "(" + aggregateArg + ")";
-            aggregateArg.Rule = expression | "*";
+            aggregateArg.Rule = expression | STAR;
             aggregateName.Rule = COUNT | "Avg" | "Min" | "Max" | "StDev" | "StDevP" | "Sum" | "Var" | "VarP";
             intoClauseOpt.Rule = Empty | INTO + id;
             fromClauseOpt.Rule = Empty | FROM + idList + joinChainOpt;
@@ -190,8 +193,10 @@ namespace IronySqlParser
 
             //Insert stmt
             insertStmt.Rule = INSERT + intoOpt + id + columnNames + insertData;
+            insertDataList.Rule = MakePlusRule(insertDataList, comma, insertObject);
+            insertObject.Rule = "(" + expressionList + ")";
             columnNames.Rule = idlistPar | Empty;
-            insertData.Rule = selectStmt | VALUES + "(" + exprList + ")";
+            insertData.Rule = selectStmt | VALUES + insertDataList;
             intoOpt.Rule = Empty | INTO; //Into is optional in MSSQL
 
             //Update stmt
@@ -201,11 +206,11 @@ namespace IronySqlParser
 
 
             //Expression
-            exprList.Rule = MakePlusRule(exprList, comma, expressionBrackets);
+            expressionList.Rule = MakePlusRule(expressionList, comma, expressionBrackets);
             expressionBrackets.Rule = "(" + expression + ")" | expression;
             expression.Rule = term | unExpr | binExpr;// Add betweenExpr
             term.Rule = id | stringLiteral | number; //| funCall | tuple | parSelectStmt;// | inStmt;
-            tuple.Rule = "(" + exprList + ")";
+            tuple.Rule = "(" + expressionList + ")";
             parSelectStmt.Rule = "(" + selectStmt + ")";
             unExpr.Rule = unOp + expressionBrackets;
             unOp.Rule = NOT | "+" | "-" | "~";
@@ -216,8 +221,8 @@ namespace IronySqlParser
             betweenExpr.Rule = expression + notOpt + "BETWEEN" + expression + "AND" + expression;
             notOpt.Rule = Empty | NOT;
             funCall.Rule = id + "(" + funArgs + ")";
-            funArgs.Rule = selectStmt | exprList;
-            inStmt.Rule = expression + "IN" + "(" + exprList + ")";
+            funArgs.Rule = selectStmt | expressionList;
+            inStmt.Rule = expression + "IN" + "(" + expressionList + ")";
 
             //Operators
             RegisterOperators(10, "*", "/", "%");
@@ -231,7 +236,7 @@ namespace IronySqlParser
             MarkPunctuation(",", "(", ")");
             MarkPunctuation(asOpt, semiOpt);
 
-            MarkTransient(sqlCommand, term, asOpt, aliasOpt, stmtLine, tuple, expressionBrackets);
+            MarkTransient(sqlCommand, term, asOpt, aliasOpt, stmtLine, tuple, expressionBrackets, idlistPar);
             //LanguageFlags = LanguageFlags.CreateAst;
             binOp.SetFlag(TermFlags.InheritPrecedence);
         }

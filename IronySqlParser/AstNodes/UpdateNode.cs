@@ -2,19 +2,17 @@
 
 namespace IronySqlParser.AstNodes
 {
-    class SelectNode : SqlNode
+    class UpdateNode : SqlNode
     {
-
-        public List<List<string>> ColumnIdList { get; set; }
-        public List<List<string>> TableIdList { get; set; }
+        public List<string> TableName { get; set; }
+        public List<AssignmentNode> Assignments { get; set; }
         public ExpressionNode WhereExpression { get; set; }
 
         public override void CollectInfoFromChild()
         {
-            ColumnIdList = FindChildNodesByType<SelListNode>()[0].IdList;
-            TableIdList = FindChildNodesByType<FromClauseNode>()[0].IdList;
+            TableName = FindChildNodesByType<IdNode>()[0].Id;
+            Assignments = FindChildNodesByType<AssignmentListNode>()[0].Assignments;
             WhereExpression = FindChildNodesByType<WhereClauseNode>()[0].Expression;
         }
     }
 }
-

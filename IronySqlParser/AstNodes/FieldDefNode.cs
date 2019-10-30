@@ -4,7 +4,7 @@ namespace IronySqlParser.AstNodes
 {
     class FieldDefNode : SqlNode
     {
-        public string Id { get; set; }
+        public List<string> Id { get; set; }
         public DataBaseType FieldType { get; set; }
         public double? TypeParamOpt { get; set; }
         public List<string> ConstaraintList { get; set; }

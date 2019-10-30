@@ -49,21 +49,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AstNodes\AssignListNode.cs" />
+    <Compile Include="AstNodes\AssignmentNode.cs" />
     <Compile Include="AstNodes\BinExprNode.cs" />
     <Compile Include="AstNodes\BinOpNode.cs" />
     <Compile Include="AstNodes\ColumnItemListNode.cs" />
     <Compile Include="AstNodes\ColumnItemNode.cs" />
+    <Compile Include="AstNodes\ColumnNamesNode.cs" />
     <Compile Include="AstNodes\ColumnSourceNode.cs" />
     <Compile Include="AstNodes\ConstraintDefNode.cs" />
     <Compile Include="AstNodes\ConstraintListOptNodes.cs" />
     <Compile Include="AstNodes\CreateTableNode.cs" />
     <Compile Include="AstNodes\DropTableNode.cs" />
+    <Compile Include="AstNodes\ExpressionListNode.cs" />
     <Compile Include="AstNodes\ExpressionNode.cs" />
     <Compile Include="AstNodes\FieldDefListNode.cs" />
     <Compile Include="AstNodes\FieldDefNode.cs" />
     <Compile Include="AstNodes\FromClauseNode.cs" />
     <Compile Include="AstNodes\IdListNode.cs" />
     <Compile Include="AstNodes\IdNode.cs" />
+    <Compile Include="AstNodes\InsertDataListNode.cs" />
+    <Compile Include="AstNodes\InsertDataNode.cs" />
+    <Compile Include="AstNodes\InsertNode.cs" />
+    <Compile Include="AstNodes\InsertObjectNode.cs" />
     <Compile Include="AstNodes\NullSpectOptNode.cs" />
     <Compile Include="AstNodes\NumberNode.cs" />
     <Compile Include="AstNodes\OperatorNode.cs" />
@@ -77,6 +85,7 @@
     <Compile Include="AstNodes\TypeParamsOptNode.cs" />
     <Compile Include="AstNodes\UnExprNode.cs" />
     <Compile Include="AstNodes\UnOpNode.cs" />
+    <Compile Include="AstNodes\UpdateNode.cs" />
     <Compile Include="AstNodes\WhereClauseNode.cs" />
     <Compile Include="IronySqlParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

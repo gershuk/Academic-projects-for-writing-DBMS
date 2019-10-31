@@ -6,6 +6,6 @@ namespace IronySqlParser.AstNodes
     {
         public List<List<string>> IdList { get; set; }
 
-        public override void CollectInfoFromChild() => IdList = FindChildNodesByType<ColumnItemListNode>()[0].IdList;
+        public override void CollectInfoFromChild() => IdList = FindFirstChildNodeByType<ColumnItemListNode>()?.IdList;
     }
 }

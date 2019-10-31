@@ -47,18 +47,29 @@ namespace IronySqlParser
             var ON = ToTerm("ON");
             var BEGIN_TRANSACTION = ToTerm("BEGIN TRANSACTION");
             var COMMIT = ToTerm("COMMIT");
+            var ROLLBACK = ToTerm("ROLLBACK");
             var SET = ToTerm("SET");
             var UPDATE = ToTerm("UPDATE");
             var INSERT = ToTerm("INSERT");
             var VALUES = ToTerm("VALUES");
             var STAR = ToTerm("*");
 
-            var id = new NonTerminal("id", typeof(IdNode));
-            var sqlCommand = new NonTerminal("sqlSequence", typeof(SqlNode));
-            var createTableStmt = new NonTerminal("CreateTableStmt", typeof(CreateTableNode));
-            var showTableStmt = new NonTerminal("ShowTableStmt", typeof(ShowTableNode));
+            var stmtList = new NonTerminal("stmtList", typeof(StmtListNode));
+            var stmtLine = new NonTerminal("stmtLine", typeof(SqlNode));
+            var semiOpt = new NonTerminal("semiOpt", typeof(SqlNode));
+            var sqlCommand = new NonTerminal("sqlSequence", typeof(SqlCommandNode));
 
-            var dropTableStmt = new NonTerminal("DropTableStmt", typeof(DropTableNode));
+            var transaction = new NonTerminal("transaction", typeof(SqlNode));
+            var transactionList = new NonTerminal("transactionList", typeof(SqlNode));
+            var transactionBeginOp = new NonTerminal("transactionBeginOp", typeof(SqlNode));
+            var transactionEndOp = new NonTerminal("transactionEndOp", typeof(SqlNode));
+            var transactionName = new NonTerminal("transactionName", typeof(SqlNode));
+
+            var id = new NonTerminal("id", typeof(IdNode));
+            var createTableStmt = new NonTerminal("CreateTableStmt", typeof(CreateTableCommandNode));
+            var showTableStmt = new NonTerminal("ShowTableStmt", typeof(ShowTableCommandNode));
+
+            var dropTableStmt = new NonTerminal("DropTableStmt", typeof(DropTableCommandNode));
             var fieldDef = new NonTerminal("fieldDef", typeof(FieldDefNode));
             var fieldDefList = new NonTerminal("fieldDefList", typeof(FieldDefListNode));
             var nullSpecOpt = new NonTerminal("nullSpecOpt", typeof(NullSpectOptNode));
@@ -76,11 +87,8 @@ namespace IronySqlParser
             var term = new NonTerminal("term", typeof(TermNode));
             var unOp = new NonTerminal("unOp", typeof(UnOpNode));
             var binOp = new NonTerminal("binOp", typeof(BinOpNode));
-            var stmtLine = new NonTerminal("stmtLine", typeof(SqlNode));
-            var semiOpt = new NonTerminal("semiOpt", typeof(SqlNode));
-            var stmtList = new NonTerminal("stmtList", typeof(SqlNode));
 
-            var selectStmt = new NonTerminal("SelectStmt", typeof(SelectNode));
+            var selectStmt = new NonTerminal("SelectStmt", typeof(SelectCommandNode));
             var expressionList = new NonTerminal("exprList", typeof(ExpressionListNode));
             var selRestrOpt = new NonTerminal("selRestrOpt", typeof(SqlNode));
             var selList = new NonTerminal("selList", typeof(SelListNode));
@@ -98,8 +106,10 @@ namespace IronySqlParser
             var aggregate = new NonTerminal("aggregate", typeof(SqlNode));
             var aggregateArg = new NonTerminal("aggregateArg", typeof(SqlNode));
             var aggregateName = new NonTerminal("aggregateName", typeof(SqlNode));
-            var joinChainOpt = new NonTerminal("joinChainOpt", typeof(SqlNode));
-            var joinKindOpt = new NonTerminal("joinKindOpt", typeof(SqlNode));
+            var joinChainOpt = new NonTerminal("joinChainOpt", typeof(JoinChainOptNode));
+            var joinKindOpt = new NonTerminal("joinKindOpt", typeof(JoinKindOptNode));
+            var joinStatement = new NonTerminal("joinStatement", typeof(JoinStatementNode));
+
             var orderList = new NonTerminal("orderList", typeof(SqlNode));
             var orderMember = new NonTerminal("orderMember", typeof(SqlNode));
             var orderDirOpt = new NonTerminal("orderDirOpt", typeof(SqlNode));
@@ -114,27 +124,29 @@ namespace IronySqlParser
             var inStmt = new NonTerminal("inStmt", typeof(SqlNode));
 
             var updateStmt = new NonTerminal("UpdateStmt", typeof(UpdateNode));
-            var insertStmt = new NonTerminal("InsertStmt", typeof(InsertNode));
+            var insertStmt = new NonTerminal("InsertStmt", typeof(InsertCommandNode));
             var intoOpt = new NonTerminal("intoOpt", typeof(SqlNode));
             var insertDataList = new NonTerminal("insertDataList", typeof(InsertDataListNode));
             var insertObject = new NonTerminal("insertObject", typeof(InsertObjectNode));
             var insertData = new NonTerminal("InsertData", typeof(InsertDataNode));
             var assignList = new NonTerminal("assignList", typeof(AssignmentListNode));
             var assignment = new NonTerminal("assignment", typeof(AssignmentNode));
-
-            var sqlSequence = new NonTerminal("sqlSequence", typeof(SqlNode));
             var columnNames = new NonTerminal("columnNames", typeof(ColumnNamesNode));
 
             var expressionBrackets = new NonTerminal("expressionBrackets", typeof(SqlNode));
 
+            //BNF Rules
+            this.Root = transactionList;
+            transactionName.Rule = id | Empty;
+            transactionBeginOp.Rule = BEGIN_TRANSACTION + transactionName;
+            transactionEndOp.Rule = COMMIT | ROLLBACK;
+            transaction.Rule = transactionBeginOp + stmtList + transactionEndOp | stmtLine;
+            transactionList.Rule = MakePlusRule(transactionList, transaction);
+            stmtList.Rule = MakePlusRule(stmtList, stmtLine);
+            stmtLine.Rule = sqlCommand + semiOpt;
             sqlCommand.Rule = createTableStmt | alterStmt
                       | dropTableStmt | showTableStmt | selectStmt | updateStmt | insertStmt;
-
-            //BNF Rules
-            this.Root = stmtList;
-            stmtLine.Rule = sqlCommand + semiOpt;
             semiOpt.Rule = Empty | ";";
-            stmtList.Rule = MakePlusRule(stmtList, stmtLine);
 
             //ID
             id.Rule = MakePlusRule(id, dot, simpleId);
@@ -181,8 +193,9 @@ namespace IronySqlParser
             aggregateName.Rule = COUNT | "Avg" | "Min" | "Max" | "StDev" | "StDevP" | "Sum" | "Var" | "VarP";
             intoClauseOpt.Rule = Empty | INTO + id;
             fromClauseOpt.Rule = Empty | FROM + idList + joinChainOpt;
-            joinChainOpt.Rule = Empty | joinKindOpt + JOIN + idList + ON + id + "=" + id;
+            joinChainOpt.Rule = Empty | joinKindOpt + JOIN + idList + ON + joinStatement;
             joinKindOpt.Rule = Empty | "INNER" | "LEFT" | "RIGHT";
+            joinStatement.Rule = id + "=" + id;
             whereClauseOpt.Rule = Empty | "WHERE" + expression;
             groupClauseOpt.Rule = Empty | "GROUP" + BY + idList;
             havingClauseOpt.Rule = Empty | "HAVING" + expression;

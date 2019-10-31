@@ -49,7 +49,7 @@ namespace IronySqlParser.AstNodes
 
         public override void CollectInfoFromChild()
         {
-            _binOp = FindChildNodesByType<BinOpNode>()[0].BinOp;
+            _binOp = FindFirstChildNodeByType<BinOpNode>().BinOp;
             var childNodes = ChildNodes.ToArray();
             _leftOperand = (ExpressionNode)childNodes[0];
             _rightOperand = (ExpressionNode)childNodes[2];

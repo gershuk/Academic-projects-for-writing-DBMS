@@ -6,6 +6,6 @@ namespace IronySqlParser.AstNodes
     {
         public List<AssignmentNode> Assignments { get; set; }
 
-        public override void CollectInfoFromChild() => Assignments = FindChildNodesByType<AssignmentNode>();
+        public override void CollectInfoFromChild() => Assignments = FindAllChildNodesByType<AssignmentNode>();
     }
 }

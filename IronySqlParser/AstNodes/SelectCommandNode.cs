@@ -2,7 +2,7 @@
 
 namespace IronySqlParser.AstNodes
 {
-    class SelectNode : SqlNode
+    class SelectCommandNode : SqlCommandNode
     {
 
         public List<List<string>> ColumnIdList { get; set; }
@@ -11,9 +11,9 @@ namespace IronySqlParser.AstNodes
 
         public override void CollectInfoFromChild()
         {
-            ColumnIdList = FindChildNodesByType<SelListNode>()[0].IdList;
-            TableIdList = FindChildNodesByType<FromClauseNode>()[0].IdList;
-            WhereExpression = FindChildNodesByType<WhereClauseNode>()[0].Expression;
+            ColumnIdList = FindFirstChildNodeByType<SelListNode>()?.IdList;
+            TableIdList = FindFirstChildNodeByType<FromClauseNode>()?.IdList;
+            WhereExpression = FindFirstChildNodeByType<WhereClauseNode>()?.Expression;
         }
     }
 }

@@ -6,6 +6,6 @@ namespace IronySqlParser.AstNodes
     {
         public List<ExpressionNode> ObjectParams { get; set; }
 
-        public override void CollectInfoFromChild() => ObjectParams = FindChildNodesByType<ExpressionListNode>()[0].Expressions;
+        public override void CollectInfoFromChild() => ObjectParams = FindFirstChildNodeByType<ExpressionListNode>()?.Expressions;
     }
 }

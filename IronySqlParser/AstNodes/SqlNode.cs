@@ -67,7 +67,7 @@ namespace IronySqlParser
         public virtual void CollectInfoFromChild()
         { }
 
-        protected virtual List<T> FindChildNodesByType<T>()
+        protected virtual List<T> FindAllChildNodesByType<T>()
         {
             var children = new List<T>();
 
@@ -80,6 +80,21 @@ namespace IronySqlParser
             }
 
             return children;
+        }
+
+        protected virtual T FindFirstChildNodeByType<T>()
+        {
+            var children = new List<T>();
+
+            foreach (var child in ChildNodes)
+            {
+                if (child is T)
+                {
+                    return (T)child;
+                }
+            }
+
+            return default;
         }
 
         public SqlNode()

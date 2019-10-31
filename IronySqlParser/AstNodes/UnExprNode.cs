@@ -21,9 +21,9 @@ namespace IronySqlParser.AstNodes
         {
             Variables = new Dictionary<List<string>, Variable>();
 
-            _unOp = FindChildNodesByType<UnOpNode>()[0].UnOp;
+            _unOp = FindFirstChildNodeByType<UnOpNode>().UnOp;
 
-            var operatorNode = FindChildNodesByType<OperatorNode>();
+            var operatorNode = FindAllChildNodesByType<OperatorNode>();
 
             if (operatorNode.Count > 0)
             {

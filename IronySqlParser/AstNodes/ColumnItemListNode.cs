@@ -8,7 +8,7 @@ namespace IronySqlParser.AstNodes
 
         public override void CollectInfoFromChild()
         {
-            var columnItemNodes = FindChildNodesByType<ColumnItemNode>();
+            var columnItemNodes = FindAllChildNodesByType<ColumnItemNode>();
 
             IdList = new List<List<string>>();
 

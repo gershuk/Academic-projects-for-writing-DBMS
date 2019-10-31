@@ -10,9 +10,9 @@ namespace IronySqlParser.AstNodes
 
         public override void CollectInfoFromChild()
         {
-            TableName = FindChildNodesByType<IdNode>()[0].Id;
-            Assignments = FindChildNodesByType<AssignmentListNode>()[0].Assignments;
-            WhereExpression = FindChildNodesByType<WhereClauseNode>()[0].Expression;
+            TableName = FindFirstChildNodeByType<IdNode>()?.Id;
+            Assignments = FindFirstChildNodeByType<AssignmentListNode>()?.Assignments;
+            WhereExpression = FindFirstChildNodeByType<WhereClauseNode>()?.Expression;
         }
     }
 }

@@ -12,10 +12,10 @@ namespace IronySqlParser.AstNodes
         {
             Variables = new Dictionary<List<string>, Variable>();
 
-            var numberNode = FindChildNodesByType<NumberNode>();
-            var stringLiteralNode = FindChildNodesByType<StringLiteralNode>();
-            var idNod = FindChildNodesByType<IdNode>();
-            var operatorNode = FindChildNodesByType<OperatorNode>();
+            var numberNode = FindAllChildNodesByType<NumberNode>();
+            var stringLiteralNode = FindAllChildNodesByType<StringLiteralNode>();
+            var idNod = FindAllChildNodesByType<IdNode>();
+            var operatorNode = FindAllChildNodesByType<OperatorNode>();
 
             if (numberNode.Count > 0)
             {

@@ -9,7 +9,7 @@ namespace IronySqlParser.AstNodes
         public override void CollectInfoFromChild()
         {
             ConstraintList = new List<string>();
-            var constraintDefNodes = FindChildNodesByType<ConstraintDefNode>();
+            var constraintDefNodes = FindAllChildNodesByType<ConstraintDefNode>();
 
             foreach (var constraintDefNode in constraintDefNodes)
             {

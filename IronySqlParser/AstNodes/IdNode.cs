@@ -11,7 +11,7 @@ namespace IronySqlParser
 
         public override void CollectInfoFromChild()
         {
-            var simpleIdList = FindChildNodesByType<SimpleIdNode>();
+            var simpleIdList = FindAllChildNodesByType<SimpleIdNode>();
 
             foreach (var simpleId in simpleIdList)
             {

@@ -1,6 +1,6 @@
 ﻿namespace IronySqlParser.AstNodes
 {
-    class InsertNode : SqlNode
+    class InsertCommandNode : SqlCommandNode
     {
         public IdNode TableName { get; set; }
         public ColumnNamesNode ColumnNames { get; set; }
@@ -8,9 +8,9 @@
 
         public override void CollectInfoFromChild()
         {
-            TableName = FindChildNodesByType<IdNode>()[0];
-            ColumnNames = FindChildNodesByType<ColumnNamesNode>()[0];
-            InsertDataNode = FindChildNodesByType<InsertDataNode>()[0];
+            TableName = FindFirstChildNodeByType<IdNode>();
+            ColumnNames = FindFirstChildNodeByType<ColumnNamesNode>();
+            InsertDataNode = FindFirstChildNodeByType<InsertDataNode>();
         }
     }
 }

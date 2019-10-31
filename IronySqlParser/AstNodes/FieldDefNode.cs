@@ -12,11 +12,11 @@ namespace IronySqlParser.AstNodes
 
         public override void CollectInfoFromChild()
         {
-            Id = FindChildNodesByType<IdNode>()[0].Id;
-            FieldType = FindChildNodesByType<TypeNameNode>()[0].FieldType;
-            TypeParamOpt = FindChildNodesByType<TypeParamsOptNode>()[0].TypeParamOpt;
-            ConstaraintList = FindChildNodesByType<ConstraintListOptNodes>()[0].ConstraintList;
-            NullSpecOpt = FindChildNodesByType<NullSpectOptNode>()[0].NullSpecOpt;
+            Id = FindFirstChildNodeByType<IdNode>().Id;
+            FieldType = FindFirstChildNodeByType<TypeNameNode>().FieldType;
+            TypeParamOpt = FindFirstChildNodeByType<TypeParamsOptNode>().TypeParamOpt;
+            ConstaraintList = FindFirstChildNodeByType<ConstraintListOptNodes>().ConstraintList;
+            NullSpecOpt = FindFirstChildNodeByType<NullSpectOptNode>().NullSpecOpt;
         }
     }
 }

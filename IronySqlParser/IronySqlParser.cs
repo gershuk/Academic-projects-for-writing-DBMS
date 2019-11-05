@@ -41,7 +41,6 @@ namespace IronySqlParser
             var FROM = ToTerm("FROM");
             var AS = ToTerm("AS");
             var COUNT = ToTerm("COUNT");
-            var JOIN = ToTerm("JOIN");
             var BY = ToTerm("BY");
             var INTO = ToTerm("INTO");
             var ON = ToTerm("ON");
@@ -53,6 +52,12 @@ namespace IronySqlParser
             var INSERT = ToTerm("INSERT");
             var VALUES = ToTerm("VALUES");
             var STAR = ToTerm("*");
+            var ALL = ToTerm("ALL");
+            var UNION = ToTerm("UNION");
+            var INTERSECT = ToTerm("INTERSECT");
+            var EXCEPT = ToTerm("EXCEPT");
+            var JOIN = ToTerm("JOIN");
+
 
             var stmtList = new NonTerminal("stmtList", typeof(StmtListNode));
             var stmtLine = new NonTerminal("stmtLine", typeof(SqlNode));
@@ -106,9 +111,6 @@ namespace IronySqlParser
             var aggregate = new NonTerminal("aggregate", typeof(SqlNode));
             var aggregateArg = new NonTerminal("aggregateArg", typeof(SqlNode));
             var aggregateName = new NonTerminal("aggregateName", typeof(SqlNode));
-            var joinChainOpt = new NonTerminal("joinChainOpt", typeof(JoinChainOptNode));
-            var joinKindOpt = new NonTerminal("joinKindOpt", typeof(JoinKindOptNode));
-            var joinStatement = new NonTerminal("joinStatement", typeof(JoinStatementNode));
 
             var orderList = new NonTerminal("orderList", typeof(SqlNode));
             var orderMember = new NonTerminal("orderMember", typeof(SqlNode));
@@ -133,7 +135,22 @@ namespace IronySqlParser
             var assignment = new NonTerminal("assignment", typeof(AssignmentNode));
             var columnNames = new NonTerminal("columnNames", typeof(ColumnNamesNode));
 
-            var expressionBrackets = new NonTerminal("expressionBrackets", typeof(SqlNode));
+            var expressionInBrackets = new NonTerminal("expressionBrackets", typeof(SqlNode));
+
+
+            var idLink = new NonTerminal("idLink", typeof(SqlNode));
+            var idLinkInBrackets = new NonTerminal("idLinkInBrackets", typeof(SqlNode));
+
+            var joinChainOpt = new NonTerminal("joinChainOpt", typeof(JoinChainOptNode));
+            var joinKindOpt = new NonTerminal("joinKindOpt", typeof(JoinKindOptNode));
+            var joinStatement = new NonTerminal("joinStatement", typeof(JoinStatementNode));
+
+            var unionChainOpt = new NonTerminal("unionChainOpt", typeof(SqlNode));
+            var unionKindOpt = new NonTerminal("unionKindOpt", typeof(SqlNode));
+
+            var intersectChainOpt = new NonTerminal("intersectChainOpt", typeof(SqlNode));
+            var exceptChainOpt = new NonTerminal("exceptChainOpt", typeof(SqlNode));
+
 
             //BNF Rules
             this.Root = transactionList;
@@ -147,6 +164,25 @@ namespace IronySqlParser
             sqlCommand.Rule = createTableStmt | alterStmt
                       | dropTableStmt | showTableStmt | selectStmt | updateStmt | insertStmt;
             semiOpt.Rule = Empty | ";";
+
+            //ID link node
+            idLink.Rule = id | joinChainOpt | unionChainOpt | intersectChainOpt | exceptChainOpt | selectStmt;
+            idLinkInBrackets.Rule = "(" + idLink + ")" | idLink;
+
+            //Join
+            joinChainOpt.Rule = "(" + idLink + ")" + joinKindOpt + JOIN + "(" + idLink + ")" + ON + joinStatement;
+            joinKindOpt.Rule = Empty | "INNER" | "LEFT" | "RIGHT";
+            joinStatement.Rule = id + "=" + id;
+
+            //Union
+            unionChainOpt.Rule = idLinkInBrackets + UNION + unionKindOpt + idLinkInBrackets;
+            unionKindOpt.Rule = Empty | ALL;
+
+            //Intersect
+            intersectChainOpt.Rule = idLinkInBrackets + INTERSECT + idLinkInBrackets;
+
+            //Except
+            exceptChainOpt.Rule = idLinkInBrackets + EXCEPT + idLinkInBrackets;
 
             //ID
             id.Rule = MakePlusRule(id, dot, simpleId);
@@ -181,7 +217,7 @@ namespace IronySqlParser
             //Select stmt
             selectStmt.Rule = SELECT + selRestrOpt + selList + intoClauseOpt + fromClauseOpt + whereClauseOpt +
                               groupClauseOpt + havingClauseOpt + orderClauseOpt;
-            selRestrOpt.Rule = Empty | "ALL" | "DISTINCT";
+            selRestrOpt.Rule = Empty | ALL | "DISTINCT";
             selList.Rule = columnItemList | STAR;
             columnItemList.Rule = MakePlusRule(columnItemList, comma, columnItem);
             columnItem.Rule = columnSource + aliasOpt;
@@ -192,10 +228,7 @@ namespace IronySqlParser
             aggregateArg.Rule = expression | STAR;
             aggregateName.Rule = COUNT | "Avg" | "Min" | "Max" | "StDev" | "StDevP" | "Sum" | "Var" | "VarP";
             intoClauseOpt.Rule = Empty | INTO + id;
-            fromClauseOpt.Rule = Empty | FROM + idList + joinChainOpt;
-            joinChainOpt.Rule = Empty | joinKindOpt + JOIN + idList + ON + joinStatement;
-            joinKindOpt.Rule = Empty | "INNER" | "LEFT" | "RIGHT";
-            joinStatement.Rule = id + "=" + id;
+            fromClauseOpt.Rule = Empty | FROM + idLinkInBrackets;
             whereClauseOpt.Rule = Empty | "WHERE" + expression;
             groupClauseOpt.Rule = Empty | "GROUP" + BY + idList;
             havingClauseOpt.Rule = Empty | "HAVING" + expression;
@@ -219,15 +252,15 @@ namespace IronySqlParser
 
 
             //Expression
-            expressionList.Rule = MakePlusRule(expressionList, comma, expressionBrackets);
-            expressionBrackets.Rule = "(" + expression + ")" | expression;
+            expressionList.Rule = MakePlusRule(expressionList, comma, expressionInBrackets);
+            expressionInBrackets.Rule = "(" + expression + ")" | expression;
             expression.Rule = term | unExpr | binExpr;// Add betweenExpr
             term.Rule = id | stringLiteral | number; //| funCall | tuple | parSelectStmt;// | inStmt;
             tuple.Rule = "(" + expressionList + ")";
             parSelectStmt.Rule = "(" + selectStmt + ")";
-            unExpr.Rule = unOp + expressionBrackets;
+            unExpr.Rule = unOp + expressionInBrackets;
             unOp.Rule = NOT | "+" | "-" | "~";
-            binExpr.Rule = expressionBrackets + binOp + expressionBrackets;
+            binExpr.Rule = expressionInBrackets + binOp + expressionInBrackets;
             binOp.Rule = ToTerm("+") | "-" | "*" | "/" | "%" | "&" | "|" | "^"
                        | "=" | ">" | "<" | ">=" | "<=" | "<>" | "!=" | "!<" | "!>"
                        | "AND" | "OR" | "LIKE" | NOT + "LIKE" | "IN" | NOT + "IN";
@@ -239,6 +272,7 @@ namespace IronySqlParser
 
             //Operators
             RegisterOperators(10, "*", "/", "%");
+            RegisterOperators(10, JOIN, UNION, INTERSECT, EXCEPT);
             RegisterOperators(9, "+", "-");
             RegisterOperators(8, "=", ">", "<", ">=", "<=", "<>", "!=", "!<", "!>", "LIKE", "IN");
             RegisterOperators(7, "^", "&", "|");
@@ -249,7 +283,7 @@ namespace IronySqlParser
             MarkPunctuation(",", "(", ")");
             MarkPunctuation(asOpt, semiOpt);
 
-            MarkTransient(sqlCommand, term, asOpt, aliasOpt, stmtLine, tuple, expressionBrackets, idlistPar);
+            MarkTransient(sqlCommand, term, asOpt, aliasOpt, stmtLine, tuple, expressionInBrackets, idlistPar, idLinkInBrackets, unionKindOpt);
             //LanguageFlags = LanguageFlags.CreateAst;
             binOp.SetFlag(TermFlags.InheritPrecedence);
         }

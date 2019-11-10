@@ -1,6 +1,6 @@
 ﻿namespace IronySqlParser.AstNodes
 {
-    class InsertCommandNode : SqlCommandNode
+    internal class InsertCommandNode : SqlCommandNode
     {
         public IdNode TableName { get; set; }
         public ColumnNamesNode ColumnNames { get; set; }

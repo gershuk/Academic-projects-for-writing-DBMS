@@ -5,9 +5,9 @@ using IronySqlParser.AstNodes;
 
 namespace IronySqlParser
 {
-    class IdNode : SimpleIdNode
+    internal class IdNode : SimpleIdNode
     {
-        public List<string> Id { get; set; }
+        public List<string> Id { get; private set; } = new List<string>();
 
         public override void CollectInfoFromChild()
         {

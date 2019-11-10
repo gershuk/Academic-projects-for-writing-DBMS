@@ -10,7 +10,7 @@ namespace IronySqlParser.AstNodes
         Tilde
     }
 
-    class UnOpNode : SqlNode
+    internal class UnOpNode : SqlNode
     {
         public UnOp UnOp { get; set; }
 

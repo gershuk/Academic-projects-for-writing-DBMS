@@ -2,7 +2,7 @@
 
 namespace IronySqlParser.AstNodes
 {
-    class ExpressionNode : OperatorNode
+    internal class ExpressionNode : OperatorNode
     {
         private OperatorNode _childOperator;
 

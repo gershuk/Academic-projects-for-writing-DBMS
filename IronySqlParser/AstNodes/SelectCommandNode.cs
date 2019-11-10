@@ -2,11 +2,11 @@
 
 namespace IronySqlParser.AstNodes
 {
-    class SelectCommandNode : SqlCommandNode
+    internal class SelectCommandNode : SqlCommandNode
     {
 
         public List<List<string>> ColumnIdList { get; set; }
-        public List<List<string>> TableIdList { get; set; }
+        public List<string> TableIdList { get; set; }
         public ExpressionNode WhereExpression { get; set; }
 
         public override void CollectInfoFromChild()

@@ -8,7 +8,7 @@ namespace IronySqlParser.AstNodes
         public List<string> Name { get; set; }
     }
 
-    abstract public class OperatorNode : SqlNode
+    public abstract class OperatorNode : SqlNode
     {
         public Dictionary<List<string>, Variable> Variables { get; set; }
         public Variable Value { get; set; }

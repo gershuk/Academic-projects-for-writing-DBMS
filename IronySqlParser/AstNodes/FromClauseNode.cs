@@ -2,10 +2,14 @@
 
 namespace IronySqlParser.AstNodes
 {
-    class FromClauseNode : SqlNode
+    internal class FromClauseNode : SqlNode
     {
-        public List<List<string>> IdList { get; set; }
+        public List<string> IdList { get; set; }
 
-        public override void CollectInfoFromChild() => IdList = FindFirstChildNodeByType<IdListNode>()?.IdList;
+        public override void CollectInfoFromChild()
+        {
+            var idLinkNode = FindFirstChildNodeByType<IdLinkNode>();
+            IdList = idLinkNode?.TableName;
+        }
     }
 }

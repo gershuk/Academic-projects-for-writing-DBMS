@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace IronySqlParser.AstNodes
 {
-    class BinExprNode : OperatorNode
+    internal class BinExprNode : OperatorNode
     {
         private BinOp _binOp;
         private ExpressionNode _leftOperand;

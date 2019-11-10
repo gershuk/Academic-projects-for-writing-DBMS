@@ -2,7 +2,7 @@
 
 namespace IronySqlParser.AstNodes
 {
-    class CreateTableCommandNode : SqlCommandNode
+    internal class CreateTableCommandNode : SqlCommandNode
     {
         public List<string> TableName { get; set; }
         public List<FieldDefNode> FieldDefList { get; set; }

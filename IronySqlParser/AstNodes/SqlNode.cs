@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 
 using Irony.Ast;
 using Irony.Parsing;
+using IronySqlParser.AstNodes;
 
 namespace IronySqlParser
 {
@@ -33,12 +34,12 @@ namespace IronySqlParser
         IEnumerable<Token> Tokens { get; }
     }
 
-    interface ISqlChildNode : ISqlNode
+    internal interface ISqlChildNode : ISqlNode
     {
         void SetParent(ISqlNode node);
     }
 
-    class SqlKeyNode : ISqlChildNode
+    internal class SqlKeyNode : ISqlChildNode
     {
         private readonly Token token;
         private ISqlNode parent;
@@ -63,6 +64,7 @@ namespace IronySqlParser
         protected string NodeName { get; private set; }
         protected IEnumerable<ISqlNode> ChildNodes { get; private set; }
         public IEnumerable<Token> Tokens { get; private set; }
+        public List<SqlCommandNode> SqlCommands { get; private set; }
 
         public virtual void CollectInfoFromChild()
         { }
@@ -80,21 +82,6 @@ namespace IronySqlParser
             }
 
             return children;
-        }
-
-        protected virtual T FindFirstChildNodeByType<T>()
-        {
-            var children = new List<T>();
-
-            foreach (var child in ChildNodes)
-            {
-                if (child is T)
-                {
-                    return (T)child;
-                }
-            }
-
-            return default;
         }
 
         public SqlNode()
@@ -149,6 +136,8 @@ namespace IronySqlParser
 
             CollectInfoFromChild();
 
+            CollectAllCommands();
+
             OnNodeInit();
         }
 
@@ -166,5 +155,40 @@ namespace IronySqlParser
         protected virtual ISqlNode OnChildNode(ISqlNode node) => node;
 
         protected static T ParseEnum<T>(string value) => (T)Enum.Parse(typeof(T), value, true);
+
+
+        protected virtual T FindFirstChildNodeByType<T>()
+        {
+            foreach (var child in ChildNodes)
+            {
+                if (child is T)
+                {
+                    return (T)child;
+                }
+            }
+
+            return default;
+        }
+
+        protected void CollectAllCommands()
+        {
+            SqlCommands = new List<SqlCommandNode>();
+
+            if (ChildNodes != null)
+            {
+                foreach (var child in ChildNodes)
+                {
+                    if (child is SqlNode sqlNode)
+                    {
+                        SqlCommands.AddRange(sqlNode.SqlCommands);
+                    }
+                }
+            }
+
+            if (this is SqlCommandNode thisCommand)
+            {
+                SqlCommands.Add(thisCommand);
+            }
+        }
     }
 }

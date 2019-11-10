@@ -60,15 +60,15 @@ namespace IronySqlParser
 
 
             var stmtList = new NonTerminal("stmtList", typeof(StmtListNode));
-            var stmtLine = new NonTerminal("stmtLine", typeof(SqlNode));
+            var stmtLine = new NonTerminal("stmtLine", typeof(StmtLineNode));
             var semiOpt = new NonTerminal("semiOpt", typeof(SqlNode));
             var sqlCommand = new NonTerminal("sqlSequence", typeof(SqlCommandNode));
 
-            var transaction = new NonTerminal("transaction", typeof(SqlNode));
-            var transactionList = new NonTerminal("transactionList", typeof(SqlNode));
-            var transactionBeginOp = new NonTerminal("transactionBeginOp", typeof(SqlNode));
-            var transactionEndOp = new NonTerminal("transactionEndOp", typeof(SqlNode));
-            var transactionName = new NonTerminal("transactionName", typeof(SqlNode));
+            var transaction = new NonTerminal("transaction", typeof(TransactionNode));
+            var transactionList = new NonTerminal("transactionList", typeof(TransactionListNode));
+            var transactionBeginOpt = new NonTerminal("transactionBeginOp", typeof(TransactionBeginOptNode));
+            var transactionEndOpt = new NonTerminal("transactionEndOp", typeof(TransactionEndOptNode));
+            var transactionName = new NonTerminal("transactionName", typeof(TransactionNameNode));
 
             var id = new NonTerminal("id", typeof(IdNode));
             var createTableStmt = new NonTerminal("CreateTableStmt", typeof(CreateTableCommandNode));
@@ -137,27 +137,26 @@ namespace IronySqlParser
 
             var expressionInBrackets = new NonTerminal("expressionBrackets", typeof(SqlNode));
 
-
-            var idLink = new NonTerminal("idLink", typeof(SqlNode));
-            var idLinkInBrackets = new NonTerminal("idLinkInBrackets", typeof(SqlNode));
+            var idOperator = new NonTerminal("idOperator", typeof(IdOperatorNode));
+            var idLink = new NonTerminal("idLink", typeof(IdLinkNode));
 
             var joinChainOpt = new NonTerminal("joinChainOpt", typeof(JoinChainOptNode));
             var joinKindOpt = new NonTerminal("joinKindOpt", typeof(JoinKindOptNode));
             var joinStatement = new NonTerminal("joinStatement", typeof(JoinStatementNode));
 
-            var unionChainOpt = new NonTerminal("unionChainOpt", typeof(SqlNode));
-            var unionKindOpt = new NonTerminal("unionKindOpt", typeof(SqlNode));
+            var unionChainOpt = new NonTerminal("unionChainOpt", typeof(UnionChainOptNode));
+            var unionKindOpt = new NonTerminal("unionKindOpt", typeof(UnionKindOptNode));
 
-            var intersectChainOpt = new NonTerminal("intersectChainOpt", typeof(SqlNode));
-            var exceptChainOpt = new NonTerminal("exceptChainOpt", typeof(SqlNode));
+            var intersectChainOpt = new NonTerminal("intersectChainOpt", typeof(InsertCommandNode));
+            var exceptChainOpt = new NonTerminal("exceptChainOpt", typeof(ExceptChainOptNode));
 
 
             //BNF Rules
-            this.Root = transactionList;
+            Root = transactionList;
             transactionName.Rule = id | Empty;
-            transactionBeginOp.Rule = BEGIN_TRANSACTION + transactionName;
-            transactionEndOp.Rule = COMMIT | ROLLBACK;
-            transaction.Rule = transactionBeginOp + stmtList + transactionEndOp | stmtLine;
+            transactionBeginOpt.Rule = BEGIN_TRANSACTION + transactionName;
+            transactionEndOpt.Rule = COMMIT | ROLLBACK;
+            transaction.Rule = transactionBeginOpt + stmtList + transactionEndOpt | stmtLine;
             transactionList.Rule = MakePlusRule(transactionList, transaction);
             stmtList.Rule = MakePlusRule(stmtList, stmtLine);
             stmtLine.Rule = sqlCommand + semiOpt;
@@ -166,23 +165,23 @@ namespace IronySqlParser
             semiOpt.Rule = Empty | ";";
 
             //ID link node
-            idLink.Rule = id | joinChainOpt | unionChainOpt | intersectChainOpt | exceptChainOpt | selectStmt;
-            idLinkInBrackets.Rule = "(" + idLink + ")" | idLink;
+            idOperator.Rule = joinChainOpt | unionChainOpt | intersectChainOpt | exceptChainOpt | selectStmt;
+            idLink.Rule = "(" + idOperator + ")" | id;
 
             //Join
-            joinChainOpt.Rule = "(" + idLink + ")" + joinKindOpt + JOIN + "(" + idLink + ")" + ON + joinStatement;
+            joinChainOpt.Rule = idLink + joinKindOpt + JOIN + idLink + ON + joinStatement;
             joinKindOpt.Rule = Empty | "INNER" | "LEFT" | "RIGHT";
             joinStatement.Rule = id + "=" + id;
 
             //Union
-            unionChainOpt.Rule = idLinkInBrackets + UNION + unionKindOpt + idLinkInBrackets;
+            unionChainOpt.Rule = idLink + UNION + unionKindOpt + idLink;
             unionKindOpt.Rule = Empty | ALL;
 
             //Intersect
-            intersectChainOpt.Rule = idLinkInBrackets + INTERSECT + idLinkInBrackets;
+            intersectChainOpt.Rule = idLink + INTERSECT + idLink;
 
             //Except
-            exceptChainOpt.Rule = idLinkInBrackets + EXCEPT + idLinkInBrackets;
+            exceptChainOpt.Rule = idLink + EXCEPT + idLink;
 
             //ID
             id.Rule = MakePlusRule(id, dot, simpleId);
@@ -228,7 +227,7 @@ namespace IronySqlParser
             aggregateArg.Rule = expression | STAR;
             aggregateName.Rule = COUNT | "Avg" | "Min" | "Max" | "StDev" | "StDevP" | "Sum" | "Var" | "VarP";
             intoClauseOpt.Rule = Empty | INTO + id;
-            fromClauseOpt.Rule = Empty | FROM + idLinkInBrackets;
+            fromClauseOpt.Rule = Empty | FROM + idLink;
             whereClauseOpt.Rule = Empty | "WHERE" + expression;
             groupClauseOpt.Rule = Empty | "GROUP" + BY + idList;
             havingClauseOpt.Rule = Empty | "HAVING" + expression;
@@ -283,7 +282,7 @@ namespace IronySqlParser
             MarkPunctuation(",", "(", ")");
             MarkPunctuation(asOpt, semiOpt);
 
-            MarkTransient(sqlCommand, term, asOpt, aliasOpt, stmtLine, tuple, expressionInBrackets, idlistPar, idLinkInBrackets, unionKindOpt);
+            MarkTransient(sqlCommand, term, asOpt, aliasOpt, stmtLine, tuple, expressionInBrackets, idlistPar, idOperator);
             //LanguageFlags = LanguageFlags.CreateAst;
             binOp.SetFlag(TermFlags.InheritPrecedence);
         }

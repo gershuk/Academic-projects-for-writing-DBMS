@@ -10,10 +10,16 @@ namespace IronySqlParser.AstNodes
         Right
     }
 
-    class JoinKindOptNode : SqlNode
+    internal class JoinKindOptNode : SqlNode
     {
-        public JoinKind JoinKindOpt { set; get; }
+        public JoinKind JoinKindOpt { set; get; } = JoinKind.Empty;
 
-        public override void CollectInfoFromChild() => JoinKindOpt = ParseEnum<JoinKind>((ChildNodes.First<ISqlNode>() as SqlKeyNode).Text);
+        public override void CollectInfoFromChild()
+        {
+            if (ChildNodes.Count() > 0)
+            {
+                JoinKindOpt = ParseEnum<JoinKind>((ChildNodes.First<ISqlNode>() as SqlKeyNode).Text);
+            }
+        }
     }
 }

@@ -130,6 +130,8 @@ namespace SunflowerDB
                 {
                     var parserTree = sqlCommand.Task.Result;
 
+                    var parserMessage = parserTree.ParserMessages[0];
+
                     _sqlParsers.Enqueue(sqlCommand.Parser);
                     sqlCommand.Parser = null;
                     _parsersSemaphore.Release();
@@ -141,8 +143,6 @@ namespace SunflowerDB
 
                         answer.State = OperationExecutionState.parserError;
                         answer.Result = null;
-
-                        var parserMessage = parserTree.ParserMessages[0];
 
                         answer.OperationException = new ParsingRequestError(parserMessage.Message, parserMessage.Location.ToString());
                     }

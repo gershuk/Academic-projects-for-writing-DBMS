@@ -1,7 +1,9 @@
-﻿namespace IronySqlParser.AstNodes
+﻿using System.Collections.Generic;
+
+namespace IronySqlParser.AstNodes
 {
     public class SqlCommandNode : SqlNode
     {
-        public string TableName { get; set; }
+        public List<string> ReturnedTableName { get; set; } = new List<string>();
     }
 }

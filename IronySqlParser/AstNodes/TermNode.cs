@@ -10,7 +10,7 @@ namespace IronySqlParser.AstNodes
         NumberInt
     }
 
-    class TermNode : SqlNode
+    internal class TermNode : SqlNode
     {
         public TermType TermType { get; set; }
 

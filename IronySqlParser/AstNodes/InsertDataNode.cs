@@ -1,6 +1,6 @@
 ﻿namespace IronySqlParser.AstNodes
 {
-    class InsertDataNode : SqlNode
+    internal class InsertDataNode : SqlNode
     {
         public InsertDataListNode InsertDataListNode { get; set; }
 

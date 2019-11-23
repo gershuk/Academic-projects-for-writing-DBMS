@@ -23,7 +23,8 @@ namespace StorageEngine
         [Index(0)] public virtual int CountRealRecords { get; set; } = 0;
         [Index(1)] public virtual int CountNotDeletedRecords { get; set; } = 0;
         [Index(2)] public virtual int NextBlock { get; set; } = 0;
-        [Index(3)] public virtual byte[] Data { get; set; } = null;
+        [Index(3)] public virtual int PrevBlock { get; set; } = 0;
+        [Index(4)] public virtual byte[] Data { get; set; } = null;
 
         public DataBlockNode()
         {
@@ -34,10 +35,12 @@ namespace StorageEngine
             CountRealRecords = from.CountRealRecords;
             CountNotDeletedRecords = from.CountNotDeletedRecords;
             NextBlock = from.NextBlock;
+            PrevBlock = from.PrevBlock;
             Data = from.Data;
         }
-        public DataBlockNode(int nextBlock, int dataSize)
+        public DataBlockNode(int prevBlock,int nextBlock, int dataSize)
         {
+            PrevBlock = prevBlock;
             NextBlock = nextBlock;
             Data = Enumerable.Repeat((byte)0x33, dataSize).ToArray();
             Data[0] = 77;
@@ -51,12 +54,42 @@ namespace StorageEngine
                 return false;
             }
 
-            using var memStream = new MemoryStream(Data);
-            memStream.Seek(CountRealRecords * recordSize, SeekOrigin.Begin);
-            ZeroFormatterSerializer.Serialize(memStream, record);
+            SaveRecord(record, CountRealRecords , recordSize);
             CountRealRecords++;
             CountNotDeletedRecords++;
             return true;
+        }
+        public RowRecord LoadRowRecord(int pos,int recordSize)
+        {
+            if (pos < CountRealRecords)
+            {
+                using var memStream = new MemoryStream(Data);
+                memStream.Seek(pos * recordSize, SeekOrigin.Begin);
+                var recordBytes = new byte[recordSize];
+                memStream.Read(recordBytes, 0, recordBytes.Length);
+                return ZeroFormatterSerializer.Deserialize<RowRecord>(recordBytes);
+            }
+            else
+            {
+                return null;
+            }
+        }
+        public void SaveRecord(RowRecord record, int pos, int recordSize)
+        {
+            using var memStream = new MemoryStream(Data);
+            memStream.Seek(pos * recordSize, SeekOrigin.Begin);
+            byte[] buffer = new byte[recordSize];
+            ZeroFormatterSerializer.Serialize(ref buffer,0, record);
+            memStream.Write(buffer, 0, buffer.Length);
+        }
+        public bool DeleteRow(int pos, int recordSize)
+        {
+            var rowRecord = LoadRowRecord(pos,recordSize);
+            rowRecord.IsDeleted = true;
+            SaveRecord(rowRecord,pos,recordSize);
+            var g = LoadRowRecord(pos, recordSize);
+            CountNotDeletedRecords--;
+            return CountNotDeletedRecords == 0;
         }
         public RecordsInDataBlockNodeEnumarator GetRowRecrodsEnumerator(int recordSize) => new RecordsInDataBlockNodeEnumarator(this, recordSize);
     }
@@ -102,21 +135,13 @@ namespace StorageEngine
         public bool MoveNext()
         {
             curPos++;
-            if (curPos < dataBlock.CountRealRecords)
-            {
-                using var memStream = new MemoryStream(dataBlock.Data);
-                memStream.Seek(curPos * recordSize, SeekOrigin.Begin);
-                var recordBytes = new byte[recordSize];
-                memStream.Read(recordBytes, 0, recordBytes.Length);
-                Current = ZeroFormatterSerializer.Deserialize<RowRecord>(recordBytes);
-                return Current.IsDeleted ? MoveNext() : true;
-            }
-            else
-            {
-                return false;
-            }
+            Current = dataBlock.LoadRowRecord(curPos, recordSize);
+            return Current != null ? Current.IsDeleted ? MoveNext() : true : false;
         }
-
+        public bool DeleteCurRow()
+        {
+           return dataBlock.DeleteRow(curPos, recordSize);
+        }
         public void Reset()
         {
             curPos = -1;
@@ -140,6 +165,7 @@ namespace StorageEngine
         {
             throw new NotImplementedException();
         }
+
     }
 
     class DataStorageRowsInFilesEnumerator : IEnumerator<Field[]>
@@ -148,9 +174,9 @@ namespace StorageEngine
         object IEnumerator.Current => throw new NotImplementedException();
 
         private TableFileManager tManager;
-        private IEnumerator<DataBlockNode> blocks;
-        private IEnumerator<RowRecord> curRowRecordsEnumarator;
-
+        private TableFileManagerDataBlockNodeEnumerator blocks;
+        private RecordsInDataBlockNodeEnumarator curRowRecordsEnumarator;
+        
         public DataStorageRowsInFilesEnumerator(TableFileManager tManager_)
         {
             tManager = tManager_;
@@ -163,7 +189,22 @@ namespace StorageEngine
             tManager.Dispose();
         }
 
-
+        public bool DeleteCurrentRow()
+        {
+            var res = curRowRecordsEnumarator.DeleteCurRow();
+            var prevBlock = blocks.Current;
+            
+            if (res)
+            {
+                tManager.DeleteBlock(prevBlock);
+            }
+            else
+            {
+                tManager.SaveDataBlock(blocks.Current,blocks.CurrentOffset) ;
+            }
+            var resMove = MoveNext();
+            return resMove;
+        }
         public bool MoveNext()
         {
             if (curRowRecordsEnumarator.MoveNext())
@@ -298,7 +339,28 @@ namespace StorageEngine
 
         public OperationResult<string> RemoveAllRow(string tableName, Predicate<Field[]> match)
         {
-            throw new NotImplementedException();
+
+            if (!File.Exists(GetTableFileName(tableName)))
+            {
+                return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
+            }
+            using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
+            {
+              var  tableData = new DataStorageRowsInFilesEnumerator(manager);
+                var isnLast = true;
+                while (isnLast)
+                {
+                    if (match(tableData.Current))
+                    {
+                        isnLast = tableData.DeleteCurrentRow();
+                    }
+                    else
+                    {
+                        isnLast = tableData.MoveNext();
+                    }
+                }
+            }
+            return new OperationResult<string>(OperationExecutionState.performed, "");
         }
 
         private void CreateDataStorageFolder(string path)
@@ -316,13 +378,14 @@ namespace StorageEngine
         object IEnumerator.Current => throw new NotImplementedException();
 
         public DataBlockNode Current { get; private set; }
+        public int CurrentOffset { get; set; }
 
         private TableFileManager tManager;
 
         public TableFileManagerDataBlockNodeEnumerator(TableFileManager tManager_)
         {
             tManager = tManager_;
-            Current = tManager.LoadHeadDataBlock();
+            Reset();
         }
 
         public void Dispose()
@@ -333,8 +396,9 @@ namespace StorageEngine
 
         public bool MoveNext()
         {
-            if (Current.NextBlock == 0)
+            if (Current.NextBlock != 0)
             {
+                CurrentOffset = Current.NextBlock;
                 Current = tManager.LoadDataBlock(Current.NextBlock);
                 return true;
             }
@@ -346,6 +410,7 @@ namespace StorageEngine
 
         public void Reset()
         {
+            CurrentOffset = tManager.metaInfDataStorage.HeadDataBlockList;
             Current = tManager.LoadHeadDataBlock();
         }
     }
@@ -360,7 +425,7 @@ namespace StorageEngine
                 return metaInfDataStorage.RowRecordSize;
             }
         }
-        private MetaInfDataStorage metaInfDataStorage;
+        public MetaInfDataStorage metaInfDataStorage;
         public TableFileManager(FileStream fs_)
         {
             fs = fs_;
@@ -379,7 +444,7 @@ namespace StorageEngine
         private int CalculateDataBlockNodeSize()
         {
             using var memStream = new MemoryStream();
-            var dataBlock = new DataBlockNode(0, 1);
+            var dataBlock = new DataBlockNode(0,0, 1);
             ZeroFormatterSerializer.Serialize(memStream, dataBlock);
             return metaInfDataStorage.DataBlockSize - (int)memStream.Length+1;
         }
@@ -408,12 +473,10 @@ namespace StorageEngine
         }
         public void InsertRecord(RowRecord rowRecord)
         {
-            if (metaInfDataStorage.HeadDataBlockList == 0)
-            {
-                CreateAndAddDataBlock();
-            }
+
             var dataBlock = LoadDataBlock(metaInfDataStorage.HeadDataBlockList);
-            if (!dataBlock.InsertRecord(rowRecord, metaInfDataStorage.RowRecordSize))
+            
+            if ( dataBlock == null ||!dataBlock.InsertRecord(rowRecord, metaInfDataStorage.RowRecordSize))
             {
                 MoveNewBlockToHead();
                 dataBlock = LoadDataBlock(metaInfDataStorage.HeadDataBlockList);
@@ -425,12 +488,52 @@ namespace StorageEngine
         {
             fs.Seek(0, SeekOrigin.End);
             ZeroFormatterSerializer.Serialize(fs, meta);
+            metaInfDataStorage = LoadMetaInfStorage();
         }
 
         private MetaInfDataStorage LoadMetaInfStorage()
         {
             fs.Seek(-CalculateMetaInfDataStorageSize(), SeekOrigin.End);
             return ZeroFormatterSerializer.Deserialize<MetaInfDataStorage>(fs);
+        }
+        public void DeleteBlock(DataBlockNode block)
+        {
+            var nextBlock = LoadDataBlock(block.NextBlock);
+            var prevBlock = LoadDataBlock(block.PrevBlock);
+            var curBlockOff = prevBlock == null ? metaInfDataStorage.HeadDataBlockList : prevBlock.NextBlock ;
+            if (nextBlock != null)
+            {
+                nextBlock.PrevBlock = block.PrevBlock;
+                SaveDataBlock(nextBlock, block.NextBlock);
+            }
+            if (prevBlock !=null)
+            {
+                prevBlock.NextBlock = block.NextBlock;
+                SaveDataBlock(prevBlock, block.PrevBlock);
+            }
+            else
+            {
+                metaInfDataStorage.HeadDataBlockList = block.NextBlock;
+            }
+         
+         
+            if (metaInfDataStorage.HeadFreeBlockList == 0)
+            {
+                
+                metaInfDataStorage.HeadFreeBlockList = curBlockOff;
+                block = new DataBlockNode(0, 0, CalculateDataBlockNodeSize());
+            }
+            else
+            {
+                var prevDelBlock = LoadDataBlock(metaInfDataStorage.HeadFreeBlockList);
+                block = new DataBlockNode(0, metaInfDataStorage.HeadFreeBlockList, CalculateDataBlockNodeSize());
+                metaInfDataStorage.HeadFreeBlockList = curBlockOff;
+                prevDelBlock.PrevBlock = metaInfDataStorage.HeadFreeBlockList;
+                SaveDataBlock(prevDelBlock, block.NextBlock);
+            }
+            SaveDataBlock(block, metaInfDataStorage.HeadFreeBlockList);
+            SaveMetaInfStorage(metaInfDataStorage);
+
         }
         public void MoveNewBlockToHead()
         {
@@ -441,11 +544,15 @@ namespace StorageEngine
             else
             {
                 var deletedBlock = LoadDataBlock(metaInfDataStorage.HeadFreeBlockList);
+                var deletedBlockNext = LoadDataBlock(deletedBlock.NextBlock);
                 var delBlockOffset = metaInfDataStorage.HeadFreeBlockList;
+                var delBlockNextOffset = deletedBlock.NextBlock;
+                deletedBlockNext.PrevBlock = 0;
                 metaInfDataStorage.HeadFreeBlockList = deletedBlock.NextBlock;
                 deletedBlock.NextBlock = metaInfDataStorage.HeadDataBlockList;
                 metaInfDataStorage.HeadDataBlockList = delBlockOffset;
                 SaveDataBlock(deletedBlock, metaInfDataStorage.HeadDataBlockList);
+                SaveDataBlock(deletedBlockNext, delBlockNextOffset);
                 SaveMetaInfStorage(metaInfDataStorage);
             }
         }
@@ -465,19 +572,28 @@ namespace StorageEngine
             if (metaInf.HeadDataBlockList != 0)
             {
                 var prevBlock = LoadDataBlock(metaInf.HeadDataBlockList);
-                newBlock = new DataBlockNode(metaInf.HeadDataBlockList, CalculateDataBlockNodeSize());
+                newBlock = new DataBlockNode(0,metaInf.HeadDataBlockList, CalculateDataBlockNodeSize());
+                metaInf.HeadDataBlockList = (int)fs.Seek(-CalculateMetaInfDataStorageSize(), SeekOrigin.End);
+                prevBlock.PrevBlock = metaInf.HeadDataBlockList;
+                SaveDataBlock(prevBlock, newBlock.NextBlock);
+                prevBlock = LoadDataBlock(newBlock.NextBlock);
             }
             else
             {
-                newBlock = new DataBlockNode(0, CalculateDataBlockNodeSize());
+                newBlock = new DataBlockNode(0,0, CalculateDataBlockNodeSize());
+                metaInf.HeadDataBlockList = (int)fs.Seek(-CalculateMetaInfDataStorageSize(), SeekOrigin.End);
             }
-            metaInf.HeadDataBlockList = (int)fs.Seek(-CalculateMetaInfDataStorageSize(), SeekOrigin.End);
+          
             ZeroFormatterSerializer.Serialize(fs, newBlock);
             SaveMetaInfStorage(metaInf);
         }
 
         public DataBlockNode LoadDataBlock(int offset)
         {
+            if (offset == 0)
+            {
+                return null;
+            }
             fs.Seek(offset, SeekOrigin.Begin);
             var buffer = new byte[metaInfDataStorage.DataBlockSize];
             fs.Read(buffer, 0, metaInfDataStorage.DataBlockSize);
@@ -494,6 +610,7 @@ namespace StorageEngine
         {
             return new TableFileManagerDataBlockNodeEnumerator(this);
         }
+
         public Table LoadTable()
         {
             var table = new Table();

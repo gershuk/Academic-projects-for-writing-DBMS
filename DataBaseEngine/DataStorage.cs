@@ -82,7 +82,7 @@ namespace StorageEngine
             ZeroFormatterSerializer.Serialize(ref buffer,0, record);
             memStream.Write(buffer, 0, buffer.Length);
         }
-        public bool DeleteRow(int pos, int recordSize)
+        public bool DeleteRecord(int pos, int recordSize)
         {
             var rowRecord = LoadRowRecord(pos,recordSize);
             rowRecord.IsDeleted = true;
@@ -90,6 +90,11 @@ namespace StorageEngine
             var g = LoadRowRecord(pos, recordSize);
             CountNotDeletedRecords--;
             return CountNotDeletedRecords == 0;
+        }
+        public bool UpdateRecord(RowRecord newRecord, int pos, int recordSize)
+        {
+            SaveRecord(newRecord, pos, recordSize);
+            return true;
         }
         public RecordsInDataBlockNodeEnumarator GetRowRecrodsEnumerator(int recordSize) => new RecordsInDataBlockNodeEnumarator(this, recordSize);
     }
@@ -139,7 +144,11 @@ namespace StorageEngine
         }
         public bool DeleteCurRow()
         {
-           return dataBlock.DeleteRow(curPos, recordSize);
+           return dataBlock.DeleteRecord(curPos, recordSize);
+        }
+        public bool UpdateCurRow(RowRecord rowRecord)
+        {
+            return dataBlock.UpdateRecord(rowRecord, curPos, recordSize);
         }
         public void Reset()
         {
@@ -186,7 +195,12 @@ namespace StorageEngine
         {
             tManager.Dispose();
         }
-
+        public bool UpdateCurrentRow(Field[] newRow)
+        {
+            curRowRecordsEnumarator.UpdateCurRow(new RowRecord(newRow));
+            tManager.SaveDataBlock(blocks.Current, blocks.CurrentOffset);
+            return MoveNext();
+        }
         public bool DeleteCurrentRow()
         {
             var res = curRowRecordsEnumarator.DeleteCurRow();
@@ -200,8 +214,7 @@ namespace StorageEngine
             {
                 tManager.SaveDataBlock(blocks.Current,blocks.CurrentOffset) ;
             }
-            var resMove = MoveNext();
-            return resMove;
+            return MoveNext();
         }
         public bool MoveNext()
         {
@@ -327,7 +340,20 @@ namespace StorageEngine
 
         public OperationResult<string> UpdateAllRow(string tableName, Field[] newRow, Predicate<Field[]> match)
         {
-            throw new NotImplementedException();
+            if (!File.Exists(GetTableFileName(tableName)))
+            {
+                return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
+            }
+            using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
+            {
+                var tableData = new DataStorageRowsInFilesEnumerator(manager);
+                var isnLast = tableData.MoveNext();
+                while (isnLast)
+                {
+                    isnLast = match(tableData.Current) ? tableData.UpdateCurrentRow(newRow) : tableData.MoveNext();
+                }
+            }
+            return new OperationResult<string>(OperationExecutionState.performed, "");
         }
 
         public OperationResult<string> InsertRow(string tableName, Field[] fields)

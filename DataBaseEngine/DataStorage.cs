@@ -445,7 +445,7 @@ namespace StorageEngine
             ZeroFormatterSerializer.Serialize(memStream, table.TableMetaInf);
             var metaInfStorage = new MetaInfDataStorage { TableMetaInfSize = (int)memStream.Length, RowRecordSize = CalculateRowRecordSize(table), DataBlockSize = blockSize, HeadDataBlockList = 0, HeadFreeBlockList = 0 };
             memStream.WriteTo(fs);
-            SaveMetaInfStorage(metaInfStorage);
+            CreateMetaInfInEnd(metaInfStorage);
             metaInfDataStorage = LoadMetaInfStorage();
         }
         private int CalculateDataBlockNodeSize()
@@ -491,9 +491,15 @@ namespace StorageEngine
             }
             SaveDataBlock(dataBlock, metaInfDataStorage.HeadDataBlockList);
         }
-        private void SaveMetaInfStorage(MetaInfDataStorage meta)
+        private void CreateMetaInfInEnd(MetaInfDataStorage meta)
         {
             fs.Seek(0, SeekOrigin.End);
+            ZeroFormatterSerializer.Serialize(fs, meta);
+            metaInfDataStorage = LoadMetaInfStorage();
+        }
+        private void SaveMetaInfStorage(MetaInfDataStorage meta)
+        {
+            fs.Seek(-CalculateMetaInfDataStorageSize(), SeekOrigin.End);
             ZeroFormatterSerializer.Serialize(fs, meta);
             metaInfDataStorage = LoadMetaInfStorage();
         }
@@ -550,16 +556,23 @@ namespace StorageEngine
             }
             else
             {
+                var oldBlock = LoadDataBlock(metaInfDataStorage.HeadDataBlockList);
+                var oldBlockOffset = metaInfDataStorage.HeadDataBlockList;
                 var deletedBlock = LoadDataBlock(metaInfDataStorage.HeadFreeBlockList);
                 var deletedBlockNext = LoadDataBlock(deletedBlock.NextBlock);
                 var delBlockOffset = metaInfDataStorage.HeadFreeBlockList;
                 var delBlockNextOffset = deletedBlock.NextBlock;
-                deletedBlockNext.PrevBlock = 0;
-                metaInfDataStorage.HeadFreeBlockList = deletedBlock.NextBlock;
+                if (deletedBlockNext != null)
+                {
+                    deletedBlockNext.PrevBlock = 0;
+                    SaveDataBlock(deletedBlockNext, delBlockNextOffset);
+                }
+                metaInfDataStorage.HeadFreeBlockList = delBlockNextOffset;
                 deletedBlock.NextBlock = metaInfDataStorage.HeadDataBlockList;
+                oldBlock.PrevBlock = delBlockOffset;
                 metaInfDataStorage.HeadDataBlockList = delBlockOffset;
-                SaveDataBlock(deletedBlock, metaInfDataStorage.HeadDataBlockList);
-                SaveDataBlock(deletedBlockNext, delBlockNextOffset);
+                SaveDataBlock(deletedBlock, metaInfDataStorage.HeadDataBlockList);   
+                SaveDataBlock(oldBlock, oldBlockOffset);
                 SaveMetaInfStorage(metaInfDataStorage);
             }
         }
@@ -590,9 +603,9 @@ namespace StorageEngine
                 newBlock = new DataBlockNode(0,0, CalculateDataBlockNodeSize());
                 metaInf.HeadDataBlockList = (int)fs.Seek(-CalculateMetaInfDataStorageSize(), SeekOrigin.End);
             }
-          
-            ZeroFormatterSerializer.Serialize(fs, newBlock);
-            SaveMetaInfStorage(metaInf);
+
+            SaveDataBlock(newBlock, metaInf.HeadDataBlockList);
+            CreateMetaInfInEnd(metaInf);
         }
 
         public DataBlockNode LoadDataBlock(int offset)

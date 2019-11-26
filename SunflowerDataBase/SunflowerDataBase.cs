@@ -23,7 +23,8 @@ namespace SunflowerDB
         {
             OperationExecutionState.parserError => $"{Answer.OperationException}",
             OperationExecutionState.failed => $"{Answer.OperationException}",
-            OperationExecutionState.performed => $"{Answer.Result}"
+            OperationExecutionState.performed => $"{Answer.Result}",
+            OperationExecutionState.notProcessed => $"Not processed"
         };
 
     }
@@ -91,9 +92,17 @@ namespace SunflowerDB
 
         public SqlCommandResult SendSqlSequence(string sqlSequence)
         {
-            var command = new SqlCommand(sqlSequence);
-            _waitingSqlCommands.Enqueue(command);
-            return command.CommandResult;
+            if (!_stopWorking)
+            {
+                var command = new SqlCommand(sqlSequence);
+                _waitingSqlCommands.Enqueue(command);
+                return command.CommandResult;
+            }
+            else
+            {
+                return null;
+            }
+
         }
 
         private void TryParseSql()
@@ -119,8 +128,9 @@ namespace SunflowerDB
             {
                 while (_workingSqlCommands.TryDequeue(out var sqlCommand))
                 {
-
                     var parserTree = sqlCommand.Task.Result;
+
+                    var parserMessage = parserTree.ParserMessages[0];
 
                     _sqlParsers.Enqueue(sqlCommand.Parser);
                     sqlCommand.Parser = null;
@@ -133,8 +143,6 @@ namespace SunflowerDB
 
                         answer.State = OperationExecutionState.parserError;
                         answer.Result = null;
-
-                        var parserMessage = parserTree.ParserMessages[0];
 
                         answer.OperationException = new ParsingRequestError(parserMessage.Message, parserMessage.Location.ToString());
                     }

@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // Общие сведения об этой сборке предоставляются следующим набором
 // набора атрибутов. Измените значения этих атрибутов для изменения сведений,
 // связанные с этой сборкой.
-[assembly: AssemblyTitle("SunflowerDataBase")]
+[assembly: AssemblyTitle("ConsoleServer")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("SunflowerDataBase")]
+[assembly: AssemblyProduct("ConsoleServer")]
 [assembly: AssemblyCopyright("Copyright ©  2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -19,7 +19,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // Следующий GUID представляет идентификатор typelib, если этот проект доступен из модели COM
-[assembly: Guid("21c8c4f5-5a41-4004-af35-66c3eda98cad")]
+[assembly: Guid("20d764ec-b0eb-4211-8432-ba0523039088")]
 
 // Сведения о версии сборки состоят из указанных ниже четырех значений:
 //

@@ -18,6 +18,7 @@ namespace SunflowerDB
 
         public OperationResult<Table> ExecuteCommand(ParseTreeNode treeNode)
         {
+
             var ans = treeNode.Term.Name switch
             {
                 "DropTableStmt" => DropTable(treeNode),

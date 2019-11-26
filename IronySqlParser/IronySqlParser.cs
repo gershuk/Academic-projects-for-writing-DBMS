@@ -2,9 +2,11 @@
 
 using Irony.Parsing;
 
+using IronySqlParser.AstNodes;
+
 namespace IronySqlParser
 {
-    public class SqlGrammar : Grammar
+    public class SqlGrammar : Irony.Interpreter.InterpretedLanguageGrammar
     {
         public SqlGrammar() : base(false)
         {
@@ -14,8 +16,12 @@ namespace IronySqlParser
             NonGrammarTerminals.Add(lineComment);
 
             var number = new NumberLiteral("number");
+            number.AstConfig.NodeType = typeof(NumberNode);
             var stringLiteral = new StringLiteral("string", "'", StringOptions.AllowsDoubledQuote);
+            stringLiteral.AstConfig.NodeType = typeof(StringLiteralNode);
             var simpleId = TerminalFactory.CreateSqlExtIdentifier(this, "id_simple");
+            simpleId.AstConfig.NodeType = typeof(SimpleIdNode);
+
             var comma = ToTerm(",");
             var dot = ToTerm(".");
             var CREATE = ToTerm("CREATE");
@@ -35,93 +41,147 @@ namespace IronySqlParser
             var FROM = ToTerm("FROM");
             var AS = ToTerm("AS");
             var COUNT = ToTerm("COUNT");
-            var JOIN = ToTerm("JOIN");
             var BY = ToTerm("BY");
             var INTO = ToTerm("INTO");
             var ON = ToTerm("ON");
             var BEGIN_TRANSACTION = ToTerm("BEGIN TRANSACTION");
             var COMMIT = ToTerm("COMMIT");
+            var ROLLBACK = ToTerm("ROLLBACK");
             var SET = ToTerm("SET");
             var UPDATE = ToTerm("UPDATE");
             var INSERT = ToTerm("INSERT");
             var VALUES = ToTerm("VALUES");
+            var STAR = ToTerm("*");
+            var ALL = ToTerm("ALL");
+            var UNION = ToTerm("UNION");
+            var INTERSECT = ToTerm("INTERSECT");
+            var EXCEPT = ToTerm("EXCEPT");
+            var JOIN = ToTerm("JOIN");
 
-            var id = new NonTerminal("id");
-            var sqlCommand = new NonTerminal("sqlSequence");
-            var createTableStmt = new NonTerminal("CreateTableStmt",typeof(SqlNode));
-            var showTableStmt = new NonTerminal("ShowTableStmt");
-            var alterStmt = new NonTerminal("AlterStmt");
-            var dropTableStmt = new NonTerminal("DropTableStmt");
-            var fieldDef = new NonTerminal("fieldDef");
-            var fieldDefList = new NonTerminal("fieldDefList");
-            var nullSpecOpt = new NonTerminal("nullSpecOpt");
-            var typeName = new NonTerminal("typeName");
-            var typeParamsOpt = new NonTerminal("typeParams");
-            var constraintDef = new NonTerminal("constraintDef");
-            var constraintListOpt = new NonTerminal("constraintListOpt");
-            var alterCmd = new NonTerminal("alterCmd");
-            var expression = new NonTerminal("expression");
-            var asOpt = new NonTerminal("asOpt");
-            var aliasOpt = new NonTerminal("aliasOpt");
-            var tuple = new NonTerminal("tuple");
-            var term = new NonTerminal("term");
-            var unOp = new NonTerminal("unOp");
-            var binOp = new NonTerminal("binOp");
-            var stmtLine = new NonTerminal("stmtLine");
-            var semiOpt = new NonTerminal("semiOpt");
-            var stmtList = new NonTerminal("stmtList");
 
-            var selectStmt = new NonTerminal("SelectStmt");
-            var exprList = new NonTerminal("exprList");
-            var selRestrOpt = new NonTerminal("selRestrOpt");
-            var selList = new NonTerminal("selList");
-            var intoClauseOpt = new NonTerminal("intoClauseOpt");
-            var fromClauseOpt = new NonTerminal("fromClauseOpt");
-            var groupClauseOpt = new NonTerminal("groupClauseOpt");
-            var havingClauseOpt = new NonTerminal("havingClauseOpt");
-            var orderClauseOpt = new NonTerminal("orderClauseOpt");
-            var whereClauseOpt = new NonTerminal("whereClauseOpt");
-            var columnItemList = new NonTerminal("columnItemList");
-            var columnItem = new NonTerminal("columnItem");
-            var columnSource = new NonTerminal("columnSource");
-            var idList = new NonTerminal("idList");
-            var idlistPar = new NonTerminal("idlistPar");
-            var aggregate = new NonTerminal("aggregate");
-            var aggregateArg = new NonTerminal("aggregateArg");
-            var aggregateName = new NonTerminal("aggregateName");
-            var joinChainOpt = new NonTerminal("joinChainOpt");
-            var joinKindOpt = new NonTerminal("joinKindOpt");
-            var orderList = new NonTerminal("orderList");
-            var orderMember = new NonTerminal("orderMember");
-            var orderDirOpt = new NonTerminal("orderDirOpt");
+            var stmtList = new NonTerminal("stmtList", typeof(StmtListNode));
+            var stmtLine = new NonTerminal("stmtLine", typeof(StmtLineNode));
+            var semiOpt = new NonTerminal("semiOpt", typeof(SqlNode));
+            var sqlCommand = new NonTerminal("sqlSequence", typeof(SqlCommandNode));
 
-            var unExpr = new NonTerminal("unExpr");
-            var binExpr = new NonTerminal("binExpr");
-            var funCall = new NonTerminal("funCall");
-            var parSelectStmt = new NonTerminal("parSelectStmt");
-            var betweenExpr = new NonTerminal("betweenExpr");
-            var notOpt = new NonTerminal("notOpt");
-            var funArgs = new NonTerminal("funArgs");
-            var inStmt = new NonTerminal("inStmt");
+            var transaction = new NonTerminal("transaction", typeof(TransactionNode));
+            var transactionList = new NonTerminal("transactionList", typeof(TransactionListNode));
+            var transactionBeginOpt = new NonTerminal("transactionBeginOp", typeof(TransactionBeginOptNode));
+            var transactionEndOpt = new NonTerminal("transactionEndOp", typeof(TransactionEndOptNode));
+            var transactionName = new NonTerminal("transactionName", typeof(TransactionNameNode));
 
-            var updateStmt = new NonTerminal("UpdateStmt");
-            var insertStmt = new NonTerminal("InsertStmt");
-            var intoOpt = new NonTerminal("intoOpt");
-            var insertData = new NonTerminal("InsertData");
-            var assignList = new NonTerminal("assignList");
-            var assignment = new NonTerminal("assignment");
+            var id = new NonTerminal("id", typeof(IdNode));
+            var createTableStmt = new NonTerminal("CreateTableStmt", typeof(CreateTableCommandNode));
+            var showTableStmt = new NonTerminal("ShowTableStmt", typeof(ShowTableCommandNode));
 
-            var sqlSequence = new NonTerminal("sqlSequence");
-            var columnNames = new NonTerminal("columnNames");
+            var dropTableStmt = new NonTerminal("DropTableStmt", typeof(DropTableCommandNode));
+            var fieldDef = new NonTerminal("fieldDef", typeof(FieldDefNode));
+            var fieldDefList = new NonTerminal("fieldDefList", typeof(FieldDefListNode));
+            var nullSpecOpt = new NonTerminal("nullSpecOpt", typeof(NullSpectOptNode));
+            var typeName = new NonTerminal("typeName", typeof(TypeNameNode));
+            var typeParamsOpt = new NonTerminal("typeParams", typeof(TypeParamsOptNode));
+            var constraintDef = new NonTerminal("constraintDef", typeof(ConstraintDefNode));
+            var constraintListOpt = new NonTerminal("constraintListOpt", typeof(ConstraintListOptNodes));
 
-            sqlCommand.Rule = createTableStmt | alterStmt
-                      | dropTableStmt | showTableStmt | selectStmt | updateStmt | insertStmt;
+            var alterStmt = new NonTerminal("AlterStmt", typeof(SqlNode));
+            var alterCmd = new NonTerminal("alterCmd", typeof(SqlNode));
+            var expression = new NonTerminal("expression", typeof(ExpressionNode));
+            var asOpt = new NonTerminal("asOpt", typeof(SqlNode));
+            var aliasOpt = new NonTerminal("aliasOpt", typeof(SqlNode));
+            var tuple = new NonTerminal("tuple", typeof(SqlNode));
+            var term = new NonTerminal("term", typeof(TermNode));
+            var unOp = new NonTerminal("unOp", typeof(UnOpNode));
+            var binOp = new NonTerminal("binOp", typeof(BinOpNode));
+
+            var selectStmt = new NonTerminal("SelectStmt", typeof(SelectCommandNode));
+            var expressionList = new NonTerminal("exprList", typeof(ExpressionListNode));
+            var selRestrOpt = new NonTerminal("selRestrOpt", typeof(SqlNode));
+            var selList = new NonTerminal("selList", typeof(SelListNode));
+            var intoClauseOpt = new NonTerminal("intoClauseOpt", typeof(SqlNode));
+            var fromClauseOpt = new NonTerminal("fromClauseOpt", typeof(FromClauseNode));
+            var groupClauseOpt = new NonTerminal("groupClauseOpt", typeof(SqlNode));
+            var havingClauseOpt = new NonTerminal("havingClauseOpt", typeof(SqlNode));
+            var orderClauseOpt = new NonTerminal("orderClauseOpt", typeof(SqlNode));
+            var whereClauseOpt = new NonTerminal("whereClauseOpt", typeof(WhereClauseNode));
+            var columnItemList = new NonTerminal("columnItemList", typeof(ColumnItemListNode));
+            var columnItem = new NonTerminal("columnItem", typeof(ColumnItemNode));
+            var columnSource = new NonTerminal("columnSource", typeof(ColumnSourceNode));
+            var idList = new NonTerminal("idList", typeof(IdListNode));
+            var idlistPar = new NonTerminal("idlistPar", typeof(SqlNode));
+            var aggregate = new NonTerminal("aggregate", typeof(SqlNode));
+            var aggregateArg = new NonTerminal("aggregateArg", typeof(SqlNode));
+            var aggregateName = new NonTerminal("aggregateName", typeof(SqlNode));
+
+            var orderList = new NonTerminal("orderList", typeof(SqlNode));
+            var orderMember = new NonTerminal("orderMember", typeof(SqlNode));
+            var orderDirOpt = new NonTerminal("orderDirOpt", typeof(SqlNode));
+
+            var unExpr = new NonTerminal("unExpr", typeof(UnExprNode));
+            var binExpr = new NonTerminal("binExpr", typeof(BinExprNode));
+            var funCall = new NonTerminal("funCall", typeof(SqlNode));
+            var parSelectStmt = new NonTerminal("parSelectStmt", typeof(SqlNode));
+            var betweenExpr = new NonTerminal("betweenExpr", typeof(SqlNode));
+            var notOpt = new NonTerminal("notOpt", typeof(SqlNode));
+            var funArgs = new NonTerminal("funArgs", typeof(SqlNode));
+            var inStmt = new NonTerminal("inStmt", typeof(SqlNode));
+
+            var updateStmt = new NonTerminal("UpdateStmt", typeof(UpdateNode));
+            var insertStmt = new NonTerminal("InsertStmt", typeof(InsertCommandNode));
+            var intoOpt = new NonTerminal("intoOpt", typeof(SqlNode));
+            var insertDataList = new NonTerminal("insertDataList", typeof(InsertDataListNode));
+            var insertObject = new NonTerminal("insertObject", typeof(InsertObjectNode));
+            var insertData = new NonTerminal("InsertData", typeof(InsertDataNode));
+            var assignList = new NonTerminal("assignList", typeof(AssignmentListNode));
+            var assignment = new NonTerminal("assignment", typeof(AssignmentNode));
+            var columnNames = new NonTerminal("columnNames", typeof(ColumnNamesNode));
+
+            var expressionInBrackets = new NonTerminal("expressionBrackets", typeof(SqlNode));
+
+            var idOperator = new NonTerminal("idOperator", typeof(IdOperatorNode));
+            var idLink = new NonTerminal("idLink", typeof(IdLinkNode));
+
+            var joinChainOpt = new NonTerminal("joinChainOpt", typeof(JoinChainOptNode));
+            var joinKindOpt = new NonTerminal("joinKindOpt", typeof(JoinKindOptNode));
+            var joinStatement = new NonTerminal("joinStatement", typeof(JoinStatementNode));
+
+            var unionChainOpt = new NonTerminal("unionChainOpt", typeof(UnionChainOptNode));
+            var unionKindOpt = new NonTerminal("unionKindOpt", typeof(UnionKindOptNode));
+
+            var intersectChainOpt = new NonTerminal("intersectChainOpt", typeof(InsertCommandNode));
+            var exceptChainOpt = new NonTerminal("exceptChainOpt", typeof(ExceptChainOptNode));
+
 
             //BNF Rules
-            this.Root = stmtList;
-            stmtLine.Rule = sqlCommand + semiOpt;
-            semiOpt.Rule = Empty | ";";
+            Root = transactionList;
+            transactionName.Rule = id | Empty;
+            transactionBeginOpt.Rule = BEGIN_TRANSACTION + transactionName;
+            transactionEndOpt.Rule = COMMIT | ROLLBACK;
+            transaction.Rule = transactionBeginOpt + stmtList + transactionEndOpt | stmtLine;
+            transactionList.Rule = MakePlusRule(transactionList, transaction);
             stmtList.Rule = MakePlusRule(stmtList, stmtLine);
+            stmtLine.Rule = sqlCommand + semiOpt;
+            sqlCommand.Rule = createTableStmt | alterStmt
+                      | dropTableStmt | showTableStmt | selectStmt | updateStmt | insertStmt;
+            semiOpt.Rule = Empty | ";";
+
+            //ID link node
+            idOperator.Rule = joinChainOpt | unionChainOpt | intersectChainOpt | exceptChainOpt | selectStmt;
+            idLink.Rule = "(" + idOperator + ")" | id;
+
+            //Join
+            joinChainOpt.Rule = idLink + joinKindOpt + JOIN + idLink + ON + joinStatement;
+            joinKindOpt.Rule = Empty | "INNER" | "LEFT" | "RIGHT";
+            joinStatement.Rule = id + "=" + id;
+
+            //Union
+            unionChainOpt.Rule = idLink + UNION + unionKindOpt + idLink;
+            unionKindOpt.Rule = Empty | ALL;
+
+            //Intersect
+            intersectChainOpt.Rule = idLink + INTERSECT + idLink;
+
+            //Except
+            exceptChainOpt.Rule = idLink + EXCEPT + idLink;
 
             //ID
             id.Rule = MakePlusRule(id, dot, simpleId);
@@ -129,12 +189,12 @@ namespace IronySqlParser
             idList.Rule = MakePlusRule(idList, comma, id);
 
             //Create table
-            createTableStmt.Rule = CREATE + TABLE + id + "(" + fieldDefList  + ")" ;
+            createTableStmt.Rule = CREATE + TABLE + id + "(" + fieldDefList + ")";
             fieldDefList.Rule = MakePlusRule(fieldDefList, comma, fieldDef);
             fieldDef.Rule = id + typeName + typeParamsOpt + constraintListOpt + nullSpecOpt;
             nullSpecOpt.Rule = NULL | NOT + NULL | Empty;
             typeName.Rule = ToTerm("DATETIME") | "INT" | "DOUBLE" | "CHAR" | "NCHAR" | "VARCHAR" | "NVARCHAR"
-                                   | "IMAGE" | "TEXT" | "NTEXT"; ;
+                                   | "IMAGE" | "TEXT" | "NTEXT";
 
             typeParamsOpt.Rule = "(" + number + ")" | "(" + number + comma + number + ")" | Empty;
 
@@ -143,8 +203,8 @@ namespace IronySqlParser
 
             //Alter 
             alterStmt.Rule = ALTER + TABLE + id + alterCmd;
-            alterCmd.Rule = ADD + simpleId + "(" + fieldDefList + ")" | DROP + COLUMN + id 
-                          | ALTER + COLUMN + id + typeName + (ADD + CONSTRAINT + constraintListOpt 
+            alterCmd.Rule = ADD + simpleId + "(" + fieldDefList + ")" | DROP + COLUMN + id
+                          | ALTER + COLUMN + id + typeName + (ADD + CONSTRAINT + constraintListOpt
                           | DROP + CONSTRAINT + constraintListOpt);
 
             //Drop stmts
@@ -156,20 +216,18 @@ namespace IronySqlParser
             //Select stmt
             selectStmt.Rule = SELECT + selRestrOpt + selList + intoClauseOpt + fromClauseOpt + whereClauseOpt +
                               groupClauseOpt + havingClauseOpt + orderClauseOpt;
-            selRestrOpt.Rule = Empty | "ALL" | "DISTINCT";
-            selList.Rule = columnItemList | "*";
+            selRestrOpt.Rule = Empty | ALL | "DISTINCT";
+            selList.Rule = columnItemList | STAR;
             columnItemList.Rule = MakePlusRule(columnItemList, comma, columnItem);
             columnItem.Rule = columnSource + aliasOpt;
             aliasOpt.Rule = Empty | asOpt + id;
             asOpt.Rule = Empty | AS;
             columnSource.Rule = aggregate | id;
             aggregate.Rule = aggregateName + "(" + aggregateArg + ")";
-            aggregateArg.Rule = expression | "*";
+            aggregateArg.Rule = expression | STAR;
             aggregateName.Rule = COUNT | "Avg" | "Min" | "Max" | "StDev" | "StDevP" | "Sum" | "Var" | "VarP";
             intoClauseOpt.Rule = Empty | INTO + id;
-            fromClauseOpt.Rule = Empty | FROM + idList + joinChainOpt;
-            joinChainOpt.Rule = Empty | joinKindOpt + JOIN + idList + ON + id + "=" + id;
-            joinKindOpt.Rule = Empty | "INNER" | "LEFT" | "RIGHT";
+            fromClauseOpt.Rule = Empty | FROM + idLink;
             whereClauseOpt.Rule = Empty | "WHERE" + expression;
             groupClauseOpt.Rule = Empty | "GROUP" + BY + idList;
             havingClauseOpt.Rule = Empty | "HAVING" + expression;
@@ -180,8 +238,10 @@ namespace IronySqlParser
 
             //Insert stmt
             insertStmt.Rule = INSERT + intoOpt + id + columnNames + insertData;
+            insertDataList.Rule = MakePlusRule(insertDataList, comma, insertObject);
+            insertObject.Rule = "(" + expressionList + ")";
             columnNames.Rule = idlistPar | Empty;
-            insertData.Rule = selectStmt | VALUES + "(" + exprList + ")";
+            insertData.Rule = selectStmt | VALUES + insertDataList;
             intoOpt.Rule = Empty | INTO; //Into is optional in MSSQL
 
             //Update stmt
@@ -191,25 +251,27 @@ namespace IronySqlParser
 
 
             //Expression
-            exprList.Rule = MakePlusRule(exprList, comma, expression);
+            expressionList.Rule = MakePlusRule(expressionList, comma, expressionInBrackets);
+            expressionInBrackets.Rule = "(" + expression + ")" | expression;
             expression.Rule = term | unExpr | binExpr;// Add betweenExpr
-            term.Rule = id | stringLiteral | number | funCall | tuple | parSelectStmt;// | inStmt;
-            tuple.Rule = "(" + exprList + ")";
+            term.Rule = id | stringLiteral | number; //| funCall | tuple | parSelectStmt;// | inStmt;
+            tuple.Rule = "(" + expressionList + ")";
             parSelectStmt.Rule = "(" + selectStmt + ")";
-            unExpr.Rule = unOp + term;
+            unExpr.Rule = unOp + expressionInBrackets;
             unOp.Rule = NOT | "+" | "-" | "~";
-            binExpr.Rule = expression + binOp + expression;
-            binOp.Rule = ToTerm("+") | "-" | "*" | "/" | "%" | "&" | "|" | "^" 
+            binExpr.Rule = expressionInBrackets + binOp + expressionInBrackets;
+            binOp.Rule = ToTerm("+") | "-" | "*" | "/" | "%" | "&" | "|" | "^"
                        | "=" | ">" | "<" | ">=" | "<=" | "<>" | "!=" | "!<" | "!>"
                        | "AND" | "OR" | "LIKE" | NOT + "LIKE" | "IN" | NOT + "IN";
             betweenExpr.Rule = expression + notOpt + "BETWEEN" + expression + "AND" + expression;
             notOpt.Rule = Empty | NOT;
             funCall.Rule = id + "(" + funArgs + ")";
-            funArgs.Rule = selectStmt | exprList;
-            inStmt.Rule = expression + "IN" + "(" + exprList + ")";
+            funArgs.Rule = selectStmt | expressionList;
+            inStmt.Rule = expression + "IN" + "(" + expressionList + ")";
 
             //Operators
             RegisterOperators(10, "*", "/", "%");
+            RegisterOperators(10, JOIN, UNION, INTERSECT, EXCEPT);
             RegisterOperators(9, "+", "-");
             RegisterOperators(8, "=", ">", "<", ">=", "<=", "<>", "!=", "!<", "!>", "LIKE", "IN");
             RegisterOperators(7, "^", "&", "|");
@@ -220,7 +282,7 @@ namespace IronySqlParser
             MarkPunctuation(",", "(", ")");
             MarkPunctuation(asOpt, semiOpt);
 
-            MarkTransient(sqlCommand, term, asOpt, aliasOpt, stmtLine, expression, unOp, tuple);
+            MarkTransient(sqlCommand, term, asOpt, aliasOpt, stmtLine, tuple, expressionInBrackets, idlistPar, idOperator);
             //LanguageFlags = LanguageFlags.CreateAst;
             binOp.SetFlag(TermFlags.InheritPrecedence);
         }
@@ -248,9 +310,10 @@ namespace IronySqlParser
 
         public ParseTree BuildLexicalTree(string sequence) => parser.Parse(sequence);
 
-        public void ShowLexicalTree(ParseTreeNode node, int level=0)
+        public void ShowLexicalTree(ParseTreeNode node, int level = 0)
         {
-            if (node != null) {
+            if (node != null)
+            {
                 for (var i = 0; i < level; i++)
                 {
                     Console.Write("  ");

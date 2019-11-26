@@ -4,7 +4,7 @@ namespace DataBaseErrors
 {
     class ParsingRequestError : Exception
     {
-        public ParsingRequestError (string message,string errorLocation)
+        public ParsingRequestError(string message, string errorLocation)
             : base($"{message} {errorLocation}")
         { }
 

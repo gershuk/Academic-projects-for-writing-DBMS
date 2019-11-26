@@ -78,7 +78,7 @@ namespace StorageEngine
         {
             using var memStream = new MemoryStream(Data);
             memStream.Seek(pos * recordSize, SeekOrigin.Begin);
-            byte[] buffer = new byte[recordSize];
+            var buffer = new byte[recordSize];
             ZeroFormatterSerializer.Serialize(ref buffer,0, record);
             memStream.Write(buffer, 0, buffer.Length);
         }
@@ -124,8 +124,7 @@ namespace StorageEngine
         {
             dataBlock = dataBlock_;
             recordSize = recordSize_;
-            curPos = -1;
-            MoveNext();
+            Reset();
         }
         public void Dispose()
         {
@@ -145,7 +144,6 @@ namespace StorageEngine
         public void Reset()
         {
             curPos = -1;
-            MoveNext();
         }
     }
 
@@ -207,6 +205,15 @@ namespace StorageEngine
         }
         public bool MoveNext()
         {
+            if(curRowRecordsEnumarator == null)
+            {
+             var res  = blocks.MoveNext();
+                if (!res)
+                {
+                    return res;
+                }
+                curRowRecordsEnumarator = blocks.Current.GetRowRecrodsEnumerator(tManager.RowRecordSize);
+            }
             if (curRowRecordsEnumarator.MoveNext())
             {
                 Current = curRowRecordsEnumarator.Current.Fields;
@@ -217,6 +224,7 @@ namespace StorageEngine
                 if (blocks.MoveNext())
                 {
                     curRowRecordsEnumarator = blocks.Current.GetRowRecrodsEnumerator(tManager.RowRecordSize);
+                    curRowRecordsEnumarator.MoveNext();
                     Current = curRowRecordsEnumarator.Current.Fields;
                     return true;
                 }
@@ -231,8 +239,8 @@ namespace StorageEngine
         public void Reset()
         {
             blocks = tManager.GetBlockEnumarator();
-            curRowRecordsEnumarator = blocks.Current.GetRowRecrodsEnumerator(tManager.RowRecordSize);
-            Current = curRowRecordsEnumarator.Current.Fields;
+            curRowRecordsEnumarator = null;
+            Current = null;
         }
     }
     [ZeroFormattable]
@@ -347,17 +355,10 @@ namespace StorageEngine
             using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
             {
               var  tableData = new DataStorageRowsInFilesEnumerator(manager);
-                var isnLast = true;
+                var isnLast = tableData.MoveNext();
                 while (isnLast)
                 {
-                    if (match(tableData.Current))
-                    {
-                        isnLast = tableData.DeleteCurrentRow();
-                    }
-                    else
-                    {
-                        isnLast = tableData.MoveNext();
-                    }
+                    isnLast = match(tableData.Current) ? tableData.DeleteCurrentRow() : tableData.MoveNext();
                 }
             }
             return new OperationResult<string>(OperationExecutionState.performed, "");
@@ -396,6 +397,12 @@ namespace StorageEngine
 
         public bool MoveNext()
         {
+            if(Current == null)
+            {
+                CurrentOffset = tManager.metaInfDataStorage.HeadDataBlockList;
+                Current = tManager.LoadHeadDataBlock();
+                return Current != null;
+            }
             if (Current.NextBlock != 0)
             {
                 CurrentOffset = Current.NextBlock;
@@ -411,7 +418,7 @@ namespace StorageEngine
         public void Reset()
         {
             CurrentOffset = tManager.metaInfDataStorage.HeadDataBlockList;
-            Current = tManager.LoadHeadDataBlock();
+           // Current = tManager.LoadHeadDataBlock();
         }
     }
 

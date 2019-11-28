@@ -84,11 +84,11 @@ namespace SunflowerDB
             var transactionListNode = (TransactionListNode)parseTree.Root.AstNode;
             var result = new SqlSequenceResult();
 
-            foreach (var transaction in transactionListNode.TransactionNodes)
+            foreach (var transactionNode in transactionListNode.TransactionNodes)
             {
                 var tableLocks = new List<TableLock>();
 
-                foreach (var command in transaction.SqlCommands)
+                foreach (var command in transactionNode.ExecuteCommnadsForNode)
                 {
                     tableLocks.AddRange(command.GetCommandInfo());
                 }
@@ -99,7 +99,22 @@ namespace SunflowerDB
                 _transactionScheduler.WaitTransactionResourceLock(currentTransaction.Guid);
 
                 currentTransaction.StartTime = DateTime.Now;
-                currentTransaction.OperationsResults = _engineCommander.ExecuteCommandList(transaction.SqlCommands);
+
+                var transactionResult = _engineCommander.ExecuteCommandList(transactionNode.ExecuteCommnadsForNode);
+                if (transactionResult.state == OperationExecutionState.performed)
+                {
+                    _engineCommander.CommitTransaction(currentTransaction.Guid);
+                    foreach (var stmt in transactionNode.StmtListNode.StmtList)
+                    {
+                        currentTransaction.OperationsResults.Add(_engineCommander.GetTableByName(stmt.SqlCommand.ReturnedTableName));
+                    }
+                }
+                else
+                {
+                    _engineCommander.RollBackTransaction(currentTransaction.Guid);
+                    currentTransaction.OperationsResults.Add(new OperationResult<Table>(transactionResult.state, null, transactionResult.exception));
+                }
+
                 currentTransaction.EndTime = DateTime.Now;
 
                 _transactionScheduler.RemoveTransactionResourcesLocks(currentTransaction.Guid);

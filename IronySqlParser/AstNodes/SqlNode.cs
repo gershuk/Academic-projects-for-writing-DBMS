@@ -81,7 +81,7 @@ namespace IronySqlParser.AstNodes
     public class SqlNode : ISqlNode, IAstNodeInit
     {
         public IEnumerable<Token> Tokens { get; private set; }
-        public List<SqlCommandNode> SqlCommands { get; private set; }
+        public List<SqlCommandNode> ExecuteCommnadsForNode { get; private set; }
 
         protected ISqlNode Parent { get; private set; }
         protected string NodeName { get; private set; }
@@ -193,7 +193,7 @@ namespace IronySqlParser.AstNodes
 
         protected void CollectAllCommands()
         {
-            SqlCommands = new List<SqlCommandNode>();
+            ExecuteCommnadsForNode = new List<SqlCommandNode>();
 
             if (ChildNodes != null)
             {
@@ -201,14 +201,14 @@ namespace IronySqlParser.AstNodes
                 {
                     if (child is SqlNode sqlNode)
                     {
-                        SqlCommands.AddRange(sqlNode.SqlCommands);
+                        ExecuteCommnadsForNode.AddRange(sqlNode.ExecuteCommnadsForNode);
                     }
                 }
             }
 
             if (this is SqlCommandNode thisCommand)
             {
-                SqlCommands.Add(thisCommand);
+                ExecuteCommnadsForNode.Add(thisCommand);
             }
         }
 

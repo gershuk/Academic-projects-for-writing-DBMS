@@ -11,7 +11,10 @@ namespace SunflowerDB
 {
     public interface IEngineCommander
     {
-        public List<OperationResult<Table>> ExecuteCommandList(List<SqlCommandNode> sqlCommand);
+        public (OperationExecutionState state, Exception exception) ExecuteCommandList(List<SqlCommandNode> sqlCommand);
+        public void RollBackTransaction(Guid transactionGuid);
+        public void CommitTransaction(Guid transactionGuid);
+        public OperationResult<Table> GetTableByName(List<string> tableName);
     }
 
     public class EngineCommander : IEngineCommander, ISqlNodeExecutor
@@ -20,7 +23,19 @@ namespace SunflowerDB
 
         public EngineCommander(IDataBaseEngine engine) => Engine = engine ?? throw new ArgumentNullException(nameof(engine));
 
-        public List<OperationResult<Table>> ExecuteCommandList(List<SqlCommandNode> sqlCommand) => null;
+        public (OperationExecutionState state, Exception exception) ExecuteCommandList(List<SqlCommandNode> sqlCommands)
+        {
+            foreach (var sqlCommand in sqlCommands)
+            {
+                var result = ExecuteSqlNode(sqlCommand) as OperationResult<Table>;
+                if (result.State != OperationExecutionState.performed)
+                {
+                    return (result.State, result.OperationException);
+                }
+            }
+
+            return (OperationExecutionState.performed, null);
+        }
 
         public object ExecuteSqlNode(SqlNode node) => node.Accept(this);
 
@@ -170,5 +185,9 @@ namespace SunflowerDB
         public object ExecuteSqlNode(UnionChainOptNode node) => throw new NotImplementedException();
         public object ExecuteSqlNode(IntersectChainOptNode node) => throw new NotImplementedException();
         public object ExecuteSqlNode(ExceptChainOptNode node) => throw new NotImplementedException();
+
+        public void RollBackTransaction(Guid transactionGuid) => Engine.RollBackTransaction(transactionGuid);
+        public void CommitTransaction(Guid transactionGuid) => Engine.CommitTransaction(transactionGuid);
+        public OperationResult<Table> GetTableByName(List<string> tableName) => Engine.GetTable(tableName);
     }
 }

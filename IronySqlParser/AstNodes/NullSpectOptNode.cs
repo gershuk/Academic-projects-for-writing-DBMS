@@ -14,7 +14,7 @@ namespace IronySqlParser.AstNodes
                 state += child.Text;
             }
 
-            if (state.Length==0)
+            if (state.Length == 0)
             {
                 state = "Empty";
             }

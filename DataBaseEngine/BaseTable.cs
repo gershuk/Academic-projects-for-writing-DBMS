@@ -79,10 +79,7 @@ namespace DataBaseTable
             TypeState = typeState;
         }
 
-        public OperationResult<Field> CreateField(string data)
-        {
-            return null;
-        }
+        public OperationResult<Field> CreateField(string data) => null;
     }
 
     public class TableMetaInf

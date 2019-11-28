@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-
-using DataBaseErrors;
 
 using DataBaseTable;
 using DataBaseType;
 using DBMS_Operation;
-using Newtonsoft.Json;
 
 namespace DataBaseEngine
 {
@@ -41,11 +37,16 @@ namespace DataBaseEngine
         OperationResult<Table> Delete(List<string> tableName, ExpressionFunction expression);
 
         OperationResult<Table> ShowTable(List<string> tableName);
+
+        void RollBackTransaction(Guid transactionGuid);
+
+        void CommitTransaction(Guid transactionGuid);
     }
 
     public class DataBaseEngineMain : IDataBaseEngine
     {
         public OperationResult<Table> AddColumnToTable(List<string> tableName, Column column) => throw new NotImplementedException();
+        public void CommitTransaction(Guid transactionGuid) => throw new NotImplementedException();
         public OperationResult<Table> CreateTable(List<string> name) => throw new NotImplementedException();
         public OperationResult<Table> Delete(List<string> tableName, ExpressionFunction expression) => throw new NotImplementedException();
         public OperationResult<Table> DeleteColumnFromTable(List<string> tableName, string ColumnName) => throw new NotImplementedException();
@@ -54,6 +55,7 @@ namespace DataBaseEngine
         public OperationResult<TableData> GetTableData(List<string> name) => throw new NotImplementedException();
         public OperationResult<TableMetaInf> GetTableMetaInf(List<string> name) => throw new NotImplementedException();
         public OperationResult<Table> Insert(List<string> tableName, List<List<string>> columnNames, List<ExpressionFunction> objectParams) => throw new NotImplementedException();
+        public void RollBackTransaction(Guid transactionGuid) => throw new NotImplementedException();
         public OperationResult<Table> Select(List<string> tableName, List<List<string>> columnNames, ExpressionFunction expression) => throw new NotImplementedException();
         public OperationResult<Table> ShowTable(List<string> tableName) => throw new NotImplementedException();
         public OperationResult<Table> Update(List<string> tableName, List<Assigment> assigmentList, ExpressionFunction expressionFunction) => throw new NotImplementedException();

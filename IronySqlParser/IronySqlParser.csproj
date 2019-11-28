@@ -109,13 +109,6 @@
     <Compile Include="AstNodes\SqlNode.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DataBaseEngine\DataBaseEngine.csproj">
-      <Project>{663469A0-7E1D-429A-B243-17502EF9447A}</Project>
-      <Name>DataBaseEngine</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DataBaseTypes\DataBaseTypes.csproj">
       <Project>{C0635319-ED1D-4BC7-91A5-4E5B9FBD5076}</Project>
       <Name>DataBaseTypes</Name>
@@ -124,6 +117,9 @@
       <Project>{34E97B73-A6E8-49C5-A7ED-00B540B29551}</Project>
       <Name>TransactionManagement</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -36,9 +36,7 @@
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Irony, Version=1.1.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
-      <HintPath>..\packages\Irony.1.1.0\lib\net40\Irony.dll</HintPath>
-    </Reference>
+    <Reference Include="Irony, Version=1.1.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -57,11 +55,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DataBaseEngine\DataBaseEngine.csproj">
-      <Project>{55fc74af-52b0-4aef-acba-c080e76a5fc1}</Project>
+      <Project>{663469A0-7E1D-429A-B243-17502EF9447A}</Project>
       <Name>DataBaseEngine</Name>
     </ProjectReference>
     <ProjectReference Include="..\DataBaseTypes\DataBaseTypes.csproj">
@@ -73,7 +70,7 @@
       <Name>DBMS_Operation</Name>
     </ProjectReference>
     <ProjectReference Include="..\IronySqlParser\IronySqlParser.csproj">
-      <Project>{f76788b3-3114-45c0-ab42-8b1a9e62cf71}</Project>
+      <Project>{441EA1BB-8AB8-405B-991B-28B8DFCA33BE}</Project>
       <Name>IronySqlParser</Name>
     </ProjectReference>
     <ProjectReference Include="..\TransactionManagement\TransactionManagement\TransactionManagement.csproj">

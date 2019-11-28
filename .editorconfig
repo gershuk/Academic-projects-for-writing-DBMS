@@ -203,3 +203,6 @@ dotnet_naming_style.начинается_с_i.required_prefix = I
 dotnet_naming_style.начинается_с_i.required_suffix = 
 dotnet_naming_style.начинается_с_i.word_separator = 
 dotnet_naming_style.начинается_с_i.capitalization = pascal_case
+
+# CA1063: Implement IDisposable Correctly
+dotnet_diagnostic.CA1063.severity = suggestion

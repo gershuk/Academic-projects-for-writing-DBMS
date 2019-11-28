@@ -2,7 +2,7 @@
 
 namespace IronySqlParser.AstNodes
 {
-    internal class TransactionBeginOptNode : SqlNode
+    public class TransactionBeginOptNode : SqlNode
     {
         public List<string> TransactionName { get; set; }
 

@@ -57,6 +57,7 @@ namespace IronySqlParser
             var INTERSECT = ToTerm("INTERSECT");
             var EXCEPT = ToTerm("EXCEPT");
             var JOIN = ToTerm("JOIN");
+            var DELETE = ToTerm("DELETE");
 
 
             var stmtList = new NonTerminal("stmtList", typeof(StmtListNode));
@@ -125,7 +126,7 @@ namespace IronySqlParser
             var funArgs = new NonTerminal("funArgs", typeof(SqlNode));
             var inStmt = new NonTerminal("inStmt", typeof(SqlNode));
 
-            var updateStmt = new NonTerminal("UpdateStmt", typeof(UpdateNode));
+            var updateStmt = new NonTerminal("UpdateStmt", typeof(UpdateCommandNode));
             var insertStmt = new NonTerminal("InsertStmt", typeof(InsertCommandNode));
             var intoOpt = new NonTerminal("intoOpt", typeof(SqlNode));
             var insertDataList = new NonTerminal("insertDataList", typeof(InsertDataListNode));
@@ -150,6 +151,8 @@ namespace IronySqlParser
             var intersectChainOpt = new NonTerminal("intersectChainOpt", typeof(InsertCommandNode));
             var exceptChainOpt = new NonTerminal("exceptChainOpt", typeof(ExceptChainOptNode));
 
+            var deleteStmt = new NonTerminal("DeleteStmt", typeof(DeleteCommandNode));
+
 
             //BNF Rules
             Root = transactionList;
@@ -160,7 +163,7 @@ namespace IronySqlParser
             transactionList.Rule = MakePlusRule(transactionList, transaction);
             stmtList.Rule = MakePlusRule(stmtList, stmtLine);
             stmtLine.Rule = sqlCommand + semiOpt;
-            sqlCommand.Rule = createTableStmt | alterStmt
+            sqlCommand.Rule = createTableStmt | alterStmt | deleteStmt
                       | dropTableStmt | showTableStmt | selectStmt | updateStmt | insertStmt;
             semiOpt.Rule = Empty | ";";
 
@@ -200,6 +203,9 @@ namespace IronySqlParser
 
             constraintListOpt.Rule = MakeStarRule(constraintListOpt, constraintDef);
             constraintDef.Rule = (UNIQUE) | (PRIMARY + KEY) | ("FOREIGN" + KEY + "REFERENCES" + id) | ("DEFAULT" + stringLiteral) | ("INDEX" + id);
+
+            //Delete stmt
+            deleteStmt.Rule = DELETE + FROM + id + whereClauseOpt;
 
             //Alter 
             alterStmt.Rule = ALTER + TABLE + id + alterCmd;
@@ -308,7 +314,7 @@ namespace IronySqlParser
             return root != null;
         }
 
-        public ParseTree BuildLexicalTree(string sequence) => parser.Parse(sequence);
+        public ParseTree BuildTree(string sequence) => parser.Parse(sequence);
 
         public void ShowLexicalTree(ParseTreeNode node, int level = 0)
         {

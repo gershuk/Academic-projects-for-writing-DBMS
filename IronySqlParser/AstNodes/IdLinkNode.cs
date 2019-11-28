@@ -2,7 +2,7 @@
 
 namespace IronySqlParser.AstNodes
 {
-    internal class IdLinkNode : SqlNode
+    public class IdLinkNode : SqlNode
     {
         public List<string> TableName { get; private set; }
         public override void CollectInfoFromChild()

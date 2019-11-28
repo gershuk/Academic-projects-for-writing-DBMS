@@ -64,9 +64,21 @@
       <Project>{55fc74af-52b0-4aef-acba-c080e76a5fc1}</Project>
       <Name>DataBaseEngine</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DataBaseTypes\DataBaseTypes.csproj">
+      <Project>{C0635319-ED1D-4BC7-91A5-4E5B9FBD5076}</Project>
+      <Name>DataBaseTypes</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DBMS_Operation\DBMS_Operation.csproj">
+      <Project>{0B57093A-131A-49FA-8930-CBBA8C06CB64}</Project>
+      <Name>DBMS_Operation</Name>
+    </ProjectReference>
     <ProjectReference Include="..\IronySqlParser\IronySqlParser.csproj">
       <Project>{f76788b3-3114-45c0-ab42-8b1a9e62cf71}</Project>
       <Name>IronySqlParser</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TransactionManagement\TransactionManagement\TransactionManagement.csproj">
+      <Project>{34E97B73-A6E8-49C5-A7ED-00B540B29551}</Project>
+      <Name>TransactionManagement</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

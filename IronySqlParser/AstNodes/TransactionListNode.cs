@@ -2,9 +2,9 @@
 
 namespace IronySqlParser.AstNodes
 {
-    internal class TransactionListNode : SqlNode
+    public class TransactionListNode : SqlNode
     {
-        private List<TransactionNode> TransactionNodes { get; set; }
+        public List<TransactionNode> TransactionNodes { get; set; }
 
         public override void CollectInfoFromChild() => TransactionNodes = FindAllChildNodesByType<TransactionNode>();
     }

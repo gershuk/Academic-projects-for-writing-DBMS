@@ -22,7 +22,7 @@ namespace IronySqlParser.AstNodes
         Or
     }
 
-    internal class BinOpNode : SqlNode
+    public class BinOpNode : SqlNode
     {
         public BinOp BinOp { get; set; }
 

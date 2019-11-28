@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using TransactionManagement;
 
 namespace IronySqlParser.AstNodes
 {
-    internal class CreateTableCommandNode : SqlCommandNode
+    public class CreateTableCommandNode : SqlCommandNode
     {
         public List<string> TableName { get; set; }
         public List<FieldDefNode> FieldDefList { get; set; }
@@ -12,5 +13,7 @@ namespace IronySqlParser.AstNodes
             TableName = FindFirstChildNodeByType<IdNode>().Id;
             FieldDefList = FindFirstChildNodeByType<FieldDefListNode>().FieldDefList;
         }
+
+        public override List<TableLock> GetCommandInfo() => new List<TableLock>() { };
     }
 }

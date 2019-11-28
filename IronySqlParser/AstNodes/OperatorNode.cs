@@ -1,13 +1,8 @@
 ﻿using System.Collections.Generic;
+using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
-    public class Variable
-    {
-        public dynamic Data { get; set; }
-        public List<string> Name { get; set; }
-    }
-
     public abstract class OperatorNode : SqlNode
     {
         public Dictionary<List<string>, Variable> Variables { get; set; }

@@ -1,288 +1,174 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-
 using DataBaseEngine;
 
 using DataBaseTable;
-
-using Irony.Parsing;
+using DataBaseType;
+using DBMS_Operation;
+using IronySqlParser.AstNodes;
 
 namespace SunflowerDB
 {
-    public class EngineCommander
+    public interface IEngineCommander
     {
-        public EngineCommander(DataBaseEngineMain engine) => Engine = engine ?? throw new ArgumentNullException(nameof(engine));
+        public List<OperationResult<Table>> ExecuteCommandList(List<SqlCommandNode> sqlCommand);
+    }
 
-        public DataBaseEngineMain Engine { get; set; }
+    public class EngineCommander : IEngineCommander, ISqlNodeExecutor
+    {
+        public IDataBaseEngine Engine { get; private set; }
 
-        public OperationResult<Table> ExecuteCommand(ParseTreeNode treeNode)
+        public EngineCommander(IDataBaseEngine engine) => Engine = engine ?? throw new ArgumentNullException(nameof(engine));
+
+        public List<OperationResult<Table>> ExecuteCommandList(List<SqlCommandNode> sqlCommand) => null;
+
+        public object ExecuteSqlNode(SqlNode node) => node.Accept(this);
+
+        public object ExecuteSqlNode(CreateTableCommandNode node)
         {
+            var createResult = Engine.CreateTable(node.TableName);
 
-            var ans = treeNode.Term.Name switch
+            if (createResult.State != OperationExecutionState.performed)
             {
-                "DropTableStmt" => DropTable(treeNode),
-                "CreateTableStmt" => CreateTable(treeNode),
-                "ShowTableStmt" => ShowTable(treeNode),
-                "SelectStmt" => Select(treeNode),
-                "UpdateStmt" => Update(treeNode),
-                "AlterStmt" => null,
-                "InsertStmt" => Insert(treeNode),
-                _ => null
+                return createResult;
+            }
+
+            foreach (var def in node.FieldDefList)
+            {
+                var column = new Column(def.Id, def.FieldType, def.TypeParamOpt, def.ConstaraintList, def.NullSpecOpt);
+                var addResult = Engine.AddColumnToTable(node.TableName, column);
+
+                if (addResult.State != OperationExecutionState.performed)
+                {
+                    return addResult;
+                }
+            }
+
+            node.SetReturnedTableName(createResult.Result.TableMetaInf.Name);
+
+            return createResult;
+        }
+
+        public object ExecuteSqlNode(DropTableCommandNode node)
+        {
+            var dropResult = Engine.DropTable(node.TableName);
+
+            if (dropResult.State == OperationExecutionState.performed)
+            {
+                node.SetReturnedTableName(dropResult.Result.TableMetaInf.Name);
+            }
+
+            return dropResult;
+        }
+
+        public object ExecuteSqlNode(ShowTableCommandNode node)
+        {
+            var showResult = Engine.ShowTable(node.TableName);
+
+            if (showResult.State == OperationExecutionState.performed)
+            {
+                node.SetReturnedTableName(showResult.Result.TableMetaInf.Name);
+            }
+
+            return showResult;
+        }
+
+        public object ExecuteSqlNode(InsertCommandNode node)
+        {
+            foreach (var insertObject in node.InsertDataNode.InsertDataListNode.InsertObjects)
+            {
+                var parmsList = new List<ExpressionFunction>();
+
+                foreach (var param in insertObject.ObjectParams)
+                {
+                    parmsList.Add(new ExpressionFunction(param.Calc, param.Variables));
+                }
+
+                var insertResult = Engine.Insert(node.TableName, node.ColumnNames.IdListNode.IdList, parmsList);
+
+                if (insertResult.State != OperationExecutionState.performed)
+                {
+                    return insertResult;
+                }
+
+                node.SetReturnedTableName(insertResult.Result.TableMetaInf.Name);
+            }
+
+            return new OperationResult<Table>(OperationExecutionState.performed, null);
+        }
+
+        public object ExecuteSqlNode(DeleteCommandNode node)
+        {
+            var expression = new ExpressionFunction()
+            {
+                CalcFunc = node.WhereClauseNode.Expression.Calc,
+                Variables = node.WhereClauseNode.Expression.Variables
             };
 
-            Engine.Commit();
-            return ans;
+            var deleteResult = Engine.Delete(node.TableName, expression);
+
+            if (deleteResult.State == OperationExecutionState.performed)
+            {
+                node.SetReturnedTableName(deleteResult.Result.TableMetaInf.Name);
+            }
+
+            return deleteResult;
         }
 
-        public OperationResult<Table> Update(ParseTreeNode node)
+        public object ExecuteSqlNode(SelectCommandNode node)
         {
-            var _idNode = FindChildNodeByName(node, "id")[0];
-            var _idTable = BuildNameFromId(_idNode);
-
-            var _assignListNode = FindChildNodeByName(node, "assignList")[0];
-            var _assigmentList = FindChildNodeByName(_assignListNode, "assignment");
-
-            var _values = new Dictionary<string, string>();
-
-            foreach (var _assigment in _assigmentList)
+            var expression = new ExpressionFunction()
             {
-                _values.Add(BuildNameFromId(_assigment.ChildNodes[0]), _assigment.ChildNodes[2].Token.Text);
+                CalcFunc = node.WhereExpression.Calc,
+                Variables = node.WhereExpression.Variables
+            };
+
+            var selectResult = Engine.Select(node.TableName, node.ColumnIdList, expression);
+
+            if (selectResult.State == OperationExecutionState.performed)
+            {
+                node.SetReturnedTableName(selectResult.Result.TableMetaInf.Name);
             }
 
-            return Engine.Update(_idTable, _values);
+            return selectResult;
         }
 
-        public OperationResult<Table> Insert(ParseTreeNode node)
+        public object ExecuteSqlNode(UpdateCommandNode node)
         {
-            var _idNode = FindChildNodeByName(node, "id")[0];
-            var _idTable = BuildNameFromId(_idNode);
-            var _columnNamesNode = FindChildNodeByName(node, "columnNames")[0];
-            var _columnNames = new List<string>();
+            var assignmentsList = new List<Assigment>();
 
-            if (_columnNamesNode.ChildNodes.Count > 0)
+            foreach (var assignment in node.Assignments)
             {
-                var _idListNode = _columnNamesNode.ChildNodes[0].ChildNodes[0];
-
-                foreach (var _idColumnNode in _idListNode.ChildNodes)
+                var assigExp = new ExpressionFunction()
                 {
-                    _columnNames.Add(BuildNameFromId(_idColumnNode));
-                }
+                    Variables = assignment.Expression.Variables,
+                    CalcFunc = assignment.Expression.Calc
+                };
+
+                var assigmnet = new Assigment(assignment.Id, assigExp);
+
+                assignmentsList.Add(assigmnet);
             }
-            else
+
+            var expression = new ExpressionFunction()
             {
-                _columnNames = null;
-            }
+                Variables = node.WhereExpression.Variables,
+                CalcFunc = node.WhereExpression.Calc
+            };
 
-            var _insertData = FindChildNodeByName(node, "InsertData")[0];
-            var _expressionListNode = FindChildNodeByName(_insertData, "exprList")[0];
-            var _expressionList = FindChildNodeByName(_expressionListNode, "exprList");
+            var updateResult = Engine.Update(node.TableName, assignmentsList, expression);
 
-            var _values = new List<List<string>>();
-
-            foreach (var _expressionNode in _expressionList)
+            if (updateResult.State == OperationExecutionState.performed)
             {
-                var _valueList = new List<string>();
-                foreach (var _value in _expressionNode.ChildNodes)
-                {
-                    _valueList.Add(_value.Token.Text);
-                }
-
-                _values.Add(_valueList);
+                node.SetReturnedTableName(updateResult.Result.TableMetaInf.Name);
             }
-            return Engine.Insert(_idTable, _columnNames, _values);
+
+            return updateResult;
         }
 
-        public OperationResult<Table> Select(ParseTreeNode node)
-        {
-            var _selListNode = FindChildNodeByName(node, "selList")[0];
-            var _allStateNode = FindChildNodeByName(_selListNode, "*");
-            var _columnItemList = FindChildNodeByName(_selListNode, "columnItemList");
-
-            var _selsId = new List<string>();
-
-            if (_allStateNode.Count == 0)
-            {
-                foreach (var columnItem in _columnItemList[0].ChildNodes)
-                {
-                    var _columnSourceNode = FindChildNodeByName(columnItem, "columnSource")[0];
-                    var _idList = FindChildNodeByName(_columnSourceNode, "id");
-
-                    foreach (var id in _idList)
-                    {
-                        _selsId.Add(BuildNameFromId(id));
-                    }
-                }
-            }
-            else
-            {
-                _selsId.Add("*");
-            }
-
-            var _fromClauseOpt = FindChildNodeByName(node, "fromClauseOpt");
-            var _fromId = new List<string>();
-
-            if (_fromClauseOpt.Count > 0)
-            {
-                var _fromClauseOptNode = _fromClauseOpt[0];
-                var _idListNode = FindChildNodeByName(_fromClauseOptNode, "idList")[0];
-                var _idList = FindChildNodeByName(_idListNode, "id");
-                foreach (var id in _idList)
-                {
-                    _fromId.Add(BuildNameFromId(id));
-                }
-            }
-
-            var selsIdTuple = new List<Tuple<string, string>>();
-            foreach (var L in _selsId)
-            {
-                var strs = L.Split('.');
-                if (strs.Length == 1)
-                {
-                    selsIdTuple.Add(new Tuple<string, string>(_fromId[0], strs[0]));
-                }
-                else
-                {
-                    selsIdTuple.Add(new Tuple<string, string>(strs[0], strs[1]));
-                }
-            }
-
-            return Engine.Select(_fromId, selsIdTuple);
-        }
-
-        public OperationResult<Table> CreateTable(ParseTreeNode node)
-        {
-            var idNode = FindChildNodeByName(node, "id")[0];
-            var fieldDefList = FindChildNodeByName(node, "fieldDefList")[0];
-            var fieldDefs = FindChildNodeByName(fieldDefList, "fieldDef");
-
-            var tableName = BuildNameFromId(idNode);
-
-            var state = Engine.CreateTable(tableName);
-
-            if (state.State == OperationExecutionState.failed)
-            {
-                return state;
-            }
-
-            foreach (var fieldDef in fieldDefs)
-            {
-                var _idfieldDef = FindChildNodeByName(fieldDef, "id")[0];
-                var _typeNameNode = FindChildNodeByName(fieldDef, "typeName")[0];
-                var _typeParamsNode = FindChildNodeByName(fieldDef, "typeParams")[0];
-
-                var _columnName = BuildNameFromId(_idfieldDef);
-
-                var _type = ParseEnum<ColumnDataType>(_typeNameNode.ChildNodes[0].Token.Text);
-                var _typeParams = _typeParamsNode?.ChildNodes.Count > 0 ?
-                                  _typeParamsNode?.ChildNodes[0].Token.Text : null;
-
-                var _constraintListOptNode = FindChildNodeByName(fieldDef, "constraintListOpt")[0];
-                var _constraintDefList = FindChildNodeByName(_constraintListOptNode, "constraintDef");
-
-                var _constraintList = BuildConstraintList(_constraintDefList);
-
-                var _typeParamsInt = _typeParams == null ? 0 : int.Parse(_typeParams);
-
-                var _nullSpecOptNode = FindChildNodeByName(fieldDef, "nullSpecOpt")[0];
-                var _nullSpecOptName = "";
-
-                foreach (var childs in _nullSpecOptNode.ChildNodes)
-                {
-                    _nullSpecOptName += childs.Term.Name;
-                }
-
-                var _nullSpecOpt = _nullSpecOptName == "" ? NullSpecOpt.Empty : ParseEnum<NullSpecOpt>(_nullSpecOptName);
-
-                var column = new Column(_columnName, _type, _typeParamsInt, _constraintList, _nullSpecOpt);
-
-                var _state = Engine.AddColumnToTable(tableName, column);
-
-                if (_state.State == OperationExecutionState.failed)
-                {
-                    return _state;
-                }
-            }
-
-            return state;
-        }
-
-        public OperationResult<Table> DropTable(ParseTreeNode node)
-        {
-            var idNode = FindChildNodeByName(node, "id")[0];
-
-            var name = BuildNameFromId(idNode);
-
-            return Engine.DeleteTable(name);
-        }
-
-        public OperationResult<Table> ShowTable(ParseTreeNode node)
-        {
-            var idNode = FindChildNodeByName(node, "id")[0];
-
-            var name = BuildNameFromId(idNode);
-
-            return Engine.GetTable(name);
-        }
-
-        private static List<ParseTreeNode> FindChildNodeByName(ParseTreeNode treeNode, string name)
-        {
-            var nodeList = new List<ParseTreeNode>();
-
-            foreach (var childNode in treeNode.ChildNodes)
-            {
-                if (childNode.Term.Name == name)
-                {
-                    nodeList.Add(childNode);
-                }
-            }
-
-            return nodeList;
-        }
-
-        public static string BuildNameFromId(ParseTreeNode treeNode)
-        {
-            var name = new StringBuilder();
-
-            foreach (var childNode in treeNode?.ChildNodes)
-            {
-                name.Append(childNode.Token.Text + ".");
-            }
-
-            name.Remove(name.Length - 1, 1);
-
-            return name.ToString();
-        }
-
-        private static List<string> BuildConstraintList(List<ParseTreeNode> _constraintDefList)
-        {
-            var _constraintList = new List<string>();
-            foreach (var _constraintDef in _constraintDefList)
-            {
-                var constrain = "";
-                foreach (var childNode in _constraintDef.ChildNodes)
-                {
-                    if (childNode.Term.Name == "id")
-                    {
-                        var _id = BuildNameFromId(childNode);
-                        if (_id != null)
-                        {
-                            constrain += _id + ".";
-                        }
-                    }
-                    else
-                    {
-                        constrain += childNode.Token.Text + ".";
-                    }
-                }
-
-                constrain = constrain.Trim('.');
-                _constraintList.Add(constrain);
-            }
-
-            return _constraintList;
-        }
-
-        private static T ParseEnum<T>(string value) => (T)Enum.Parse(typeof(T), value, true);
+        public object ExecuteSqlNode(JoinChainOptNode node) => throw new NotImplementedException();
+        public object ExecuteSqlNode(UnionChainOptNode node) => throw new NotImplementedException();
+        public object ExecuteSqlNode(IntersectChainOptNode node) => throw new NotImplementedException();
+        public object ExecuteSqlNode(ExceptChainOptNode node) => throw new NotImplementedException();
     }
 }

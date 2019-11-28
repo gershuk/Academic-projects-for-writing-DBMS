@@ -8,7 +8,7 @@ namespace IronySqlParser.AstNodes
         All
     }
 
-    internal class UnionKindOptNode : SqlNode
+    public class UnionKindOptNode : SqlNode
     {
         public UnionKind UnionKindOpt { set; get; } = UnionKind.Empty;
 

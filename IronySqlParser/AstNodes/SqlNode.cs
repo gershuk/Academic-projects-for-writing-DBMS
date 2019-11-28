@@ -4,9 +4,10 @@ using System.Collections.ObjectModel;
 
 using Irony.Ast;
 using Irony.Parsing;
-using IronySqlParser.AstNodes;
 
-namespace IronySqlParser
+using TransactionManagement;
+
+namespace IronySqlParser.AstNodes
 {
     public sealed class Token
     {
@@ -15,7 +16,7 @@ namespace IronySqlParser
         public string Text { get; private set; }
         public object Value { get; private set; }
 
-        internal Token(int column, int line, string text, object value)
+        public Token(int column, int line, string text, object value)
         {
             Text = text;
             Value = value;
@@ -32,19 +33,37 @@ namespace IronySqlParser
         ISqlNode Parent { get; }
         IEnumerable<ISqlNode> ChildNodes { get; }
         IEnumerable<Token> Tokens { get; }
+
+        public object Accept(ISqlNodeExecutor sqlNodeVisitor);
     }
 
-    internal interface ISqlChildNode : ISqlNode
+    public interface ISqlChildNode : ISqlNode
     {
         void SetParent(ISqlNode node);
     }
 
-    internal class SqlKeyNode : ISqlChildNode
+    public interface ISqlNodeExecutor
+    {
+        public object ExecuteSqlNode(SqlNode node);
+        public object ExecuteSqlNode(CreateTableCommandNode node);
+        public object ExecuteSqlNode(DropTableCommandNode node);
+        public object ExecuteSqlNode(ShowTableCommandNode node);
+        public object ExecuteSqlNode(InsertCommandNode node);
+        public object ExecuteSqlNode(DeleteCommandNode node);
+        public object ExecuteSqlNode(SelectCommandNode node);
+        public object ExecuteSqlNode(UpdateCommandNode node);
+        public object ExecuteSqlNode(JoinChainOptNode node);
+        public object ExecuteSqlNode(UnionChainOptNode node);
+        public object ExecuteSqlNode(IntersectChainOptNode node);
+        public object ExecuteSqlNode(ExceptChainOptNode node);
+    }
+
+    public class SqlKeyNode : ISqlChildNode
     {
         private readonly Token token;
         private ISqlNode parent;
 
-        internal SqlKeyNode(Token token)
+        public SqlKeyNode(Token token)
         {
             this.token = token;
             Text = token.Text;
@@ -56,15 +75,17 @@ namespace IronySqlParser
         IEnumerable<Token> ISqlNode.Tokens => new Token[] { token };
         void ISqlChildNode.SetParent(ISqlNode node) => parent = node;
         public string Text { get; private set; }
+        public object Accept(ISqlNodeExecutor sqlNodeVisitor) => null;
     }
 
     public class SqlNode : ISqlNode, IAstNodeInit
     {
+        public IEnumerable<Token> Tokens { get; private set; }
+        public List<SqlCommandNode> SqlCommands { get; private set; }
+
         protected ISqlNode Parent { get; private set; }
         protected string NodeName { get; private set; }
         protected IEnumerable<ISqlNode> ChildNodes { get; private set; }
-        public IEnumerable<Token> Tokens { get; private set; }
-        public List<SqlCommandNode> SqlCommands { get; private set; }
 
         public virtual void CollectInfoFromChild()
         { }
@@ -190,5 +211,14 @@ namespace IronySqlParser
                 SqlCommands.Add(thisCommand);
             }
         }
+
+        public object Accept(ISqlNodeExecutor sqlNodeVisitor) => sqlNodeVisitor.ExecuteSqlNode(this);
+    }
+
+    public abstract class SqlCommandNode : SqlNode
+    {
+        public List<string> ReturnedTableName { get; private set; } = new List<string>();
+        public abstract List<TableLock> GetCommandInfo();
+        public void SetReturnedTableName(List<string> name) => ReturnedTableName.AddRange(name);
     }
 }

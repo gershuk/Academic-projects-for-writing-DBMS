@@ -2,7 +2,7 @@
 
 namespace IronySqlParser.AstNodes
 {
-    internal class AssignmentListNode : SqlNode
+    public class AssignmentListNode : SqlNode
     {
         public List<AssignmentNode> Assignments { get; set; }
 

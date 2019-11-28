@@ -5,7 +5,8 @@ using System.IO;
 using DataBaseErrors;
 
 using DataBaseTable;
-
+using DataBaseType;
+using DBMS_Operation;
 using Newtonsoft.Json;
 
 namespace DataBaseEngine
@@ -15,341 +16,46 @@ namespace DataBaseEngine
         public string Path { get; set; }
     }
 
-    public enum OperationExecutionState
+    public interface IDataBaseEngine
     {
-        notProcessed,
-        parserError,
-        failed,
-        performed
+        OperationResult<Table> CreateTable(List<string> name);
+
+        OperationResult<Table> DeleteColumnFromTable(List<string> tableName, string ColumnName);
+
+        OperationResult<Table> AddColumnToTable(List<string> tableName, Column column);
+
+        OperationResult<TableData> GetTableData(List<string> name);
+
+        OperationResult<Table> GetTable(List<string> name);
+
+        OperationResult<TableMetaInf> GetTableMetaInf(List<string> name);
+
+        OperationResult<Table> DropTable(List<string> name);
+
+        OperationResult<Table> Insert(List<string> tableName, List<List<string>> columnNames, List<ExpressionFunction> objectParams);
+
+        OperationResult<Table> Select(List<string> tableName, List<List<string>> columnNames, ExpressionFunction expression);
+
+        OperationResult<Table> Update(List<string> tableName, List<Assigment> assigmentList, ExpressionFunction expressionFunction);
+
+        OperationResult<Table> Delete(List<string> tableName, ExpressionFunction expression);
+
+        OperationResult<Table> ShowTable(List<string> tableName);
     }
 
-    public class OperationResult<T>
+    public class DataBaseEngineMain : IDataBaseEngine
     {
-        public OperationExecutionState State { get; set; }
-        public Exception OperationException { get; set; }
-        public T Result { get; set; }
-
-        public OperationResult(OperationExecutionState state, T result, Exception opException = null)
-        {
-            State = state;
-            Result = result;
-            OperationException = opException;
-        }
+        public OperationResult<Table> AddColumnToTable(List<string> tableName, Column column) => throw new NotImplementedException();
+        public OperationResult<Table> CreateTable(List<string> name) => throw new NotImplementedException();
+        public OperationResult<Table> Delete(List<string> tableName, ExpressionFunction expression) => throw new NotImplementedException();
+        public OperationResult<Table> DeleteColumnFromTable(List<string> tableName, string ColumnName) => throw new NotImplementedException();
+        public OperationResult<Table> DropTable(List<string> name) => throw new NotImplementedException();
+        public OperationResult<Table> GetTable(List<string> name) => throw new NotImplementedException();
+        public OperationResult<TableData> GetTableData(List<string> name) => throw new NotImplementedException();
+        public OperationResult<TableMetaInf> GetTableMetaInf(List<string> name) => throw new NotImplementedException();
+        public OperationResult<Table> Insert(List<string> tableName, List<List<string>> columnNames, List<ExpressionFunction> objectParams) => throw new NotImplementedException();
+        public OperationResult<Table> Select(List<string> tableName, List<List<string>> columnNames, ExpressionFunction expression) => throw new NotImplementedException();
+        public OperationResult<Table> ShowTable(List<string> tableName) => throw new NotImplementedException();
+        public OperationResult<Table> Update(List<string> tableName, List<Assigment> assigmentList, ExpressionFunction expressionFunction) => throw new NotImplementedException();
     }
-
-    public interface IDataBaseEngineFunction
-    {
-        OperationResult<Table> CreateTable(string name);
-
-        OperationResult<Table> DeleteColumnFromTable(string tableName, string ColumnName);
-
-        OperationResult<Table> AddColumnToTable(string tableName, Column column);
-
-        OperationResult<TableData> GetTableData(string name);
-
-        OperationResult<Table> GetTable(string name);
-
-        OperationResult<TableMetaInf> GetTableMetaInf(string name);
-
-        OperationResult<Table> DeleteTable(string name);
-
-        OperationResult<Table> Insert(string tableName, List<string> columnNames, List<List<string>> rows);
-
-        OperationResult<Table> Select(List<string> tableName, List<Tuple<string, string>> columnNames);
-
-        OperationResult<Table> Update(string tableName, Dictionary<string, string> row);
-
-        OperationResult<Table> Delete(string tableName);
-    }
-
-
-
-    public class DataBaseEngineMain : IDataBaseEngineFunction
-    {
-        private const string _fileMarkEngineConfig = "ENGINE_CONFIG_FILE";
-        private const string _DefPathToEngineConfig = "DataEngineConfig.json";
-
-        public Dictionary<string, Table> TablePool { get; set; }
-        public EngineConfig EngineConfig { get; set; }
-        public IDataStorage DataStorage { get; set; }
-
-
-        public DataBaseEngineMain() => LoadEngine(_DefPathToEngineConfig);
-
-        public DataBaseEngineMain(string configPath) => LoadEngine(configPath);
-
-        private void LoadEngine(string configPath)
-        {
-            var result = LoadEngineConfig(configPath);
-
-            if (result.State == OperationExecutionState.failed)
-            {
-                CreateDefaultEngineConfig(configPath);
-            }
-
-            DataStorage = new DataStorageInFiles(EngineConfig.Path);
-            var resultLoad = DataStorage.LoadTablePoolMetaInf();
-
-            TablePool = resultLoad.State == OperationExecutionState.performed ? resultLoad.Result : new Dictionary<string, Table>();
-        }
-
-        private void CreateDefaultEngineConfig(string path)
-        {
-            EngineConfig = new EngineConfig
-            {
-                Path = "MainDataBase.db"
-            };
-            SaveEngineConfig(path);
-        }
-
-        private OperationResult<string> LoadEngineConfig(string path)
-        {
-            if (!File.Exists(path))
-            {
-                return new OperationResult<string>(OperationExecutionState.failed, "", new FileNotExistExeption(path));
-            }
-
-            using (var sr = new StreamReader(path))
-            {
-                if (sr.ReadLine() != _fileMarkEngineConfig)
-                {
-                    return new OperationResult<string>(OperationExecutionState.failed, "", new FileMarkNotExistExeption(path, _fileMarkEngineConfig));
-
-                }
-                EngineConfig = JsonConvert.DeserializeObject<EngineConfig>(sr.ReadToEnd());
-            }
-
-            return new OperationResult<string>(OperationExecutionState.performed, "Config loaded.");
-        }
-
-        private OperationResult<string> SaveEngineConfig(string path)
-        {
-            using (var sw = new StreamWriter(path))
-            {
-                sw.WriteLine(_fileMarkEngineConfig);
-                sw.Write(JsonConvert.SerializeObject(EngineConfig));
-            }
-
-            return new OperationResult<string>(OperationExecutionState.performed, "ok");
-        }
-
-        public OperationResult<Table> AddColumnToTable(string tableName, Column column)
-        {
-            return !TablePool.ContainsKey(tableName)
-                ? new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName))
-                : TablePool[tableName].AddColumn(column);
-        }
-
-        public OperationResult<Table> CreateTable(string name)
-        {
-            if (TablePool.ContainsKey(name))
-            {
-                return new OperationResult<Table>(OperationExecutionState.failed, null, new TableAlreadyExistExeption(name));
-            }
-
-            TablePool.Add(name, new Table(name));
-            return new OperationResult<Table>(OperationExecutionState.performed, TablePool[name]);
-        }
-
-        public OperationResult<Table> DeleteColumnFromTable(string tableName, string ColumnName)
-        {
-            return !TablePool.ContainsKey(tableName)
-                ? new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName))
-                : TablePool[tableName].DeleteColumn(ColumnName);
-        }
-
-        public OperationResult<Table> DeleteTable(string tableName)
-        {
-            if (!TablePool.ContainsKey(tableName))
-            {
-                return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
-            }
-
-            TablePool.Remove(tableName);
-            return new OperationResult<Table>(OperationExecutionState.performed, null);
-        }
-
-        public OperationResult<TableData> GetTableData(string tableName)
-        {
-            return !TablePool.ContainsKey(tableName)
-                ? new OperationResult<TableData>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName))
-                : new OperationResult<TableData>(OperationExecutionState.performed, TablePool[tableName].TableData);
-        }
-
-        public OperationResult<TableMetaInf> GetTableMetaInf(string tableName)
-        {
-            return !TablePool.ContainsKey(tableName)
-                ? new OperationResult<TableMetaInf>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName))
-                : new OperationResult<TableMetaInf>(OperationExecutionState.performed, TablePool[tableName].TableMetaInf);
-        }
-
-        public OperationResult<string> Commit()
-        {
-            DataStorage.SaveTablePoolMetaInf(TablePool);
-
-            foreach (var t in TablePool)
-            {
-                DataStorage.SaveTableData(t.Value);
-                t.Value.TableData = null;
-            }
-
-            return new OperationResult<string>(OperationExecutionState.performed, "Commited");
-        }
-
-        public OperationResult<Table> GetTable(string name)
-        {
-            return !TablePool.ContainsKey(name)
-                ? new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(name))
-                : new OperationResult<Table>(OperationExecutionState.performed, TablePool[name]);
-        }
-
-        public OperationResult<Table> Insert(string tableName, List<string> columnNames, List<List<string>> rows)
-        {
-            if (!TablePool.ContainsKey(tableName))
-            {
-                return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
-            }
-
-            if (columnNames == null)
-            {
-                columnNames = new List<string>();
-                columnNames.AddRange(TablePool[tableName].TableMetaInf.ColumnPool.Keys);
-            }
-
-            var table = TablePool[tableName];
-
-            DataStorage.LoadTableData(table);
-
-            table.TableData ??= new TableData { Rows = new List<Dictionary<string, Field>>() };
-
-            foreach (var L1 in rows)
-            {
-                var row = new Dictionary<string, Field>();
-
-                for (var i = 0; i < L1.Count; ++i)
-                {
-                    if (!table.TableMetaInf.ColumnPool.ContainsKey(columnNames[i]))
-                    {
-                        return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnNotExistExeption(tableName, columnNames[i]));
-                    }
-
-                    var result = table.TableMetaInf.ColumnPool[columnNames[i]].CreateField(L1[i]);
-                    if (result.State != OperationExecutionState.performed)
-                    {
-                        return new OperationResult<Table>(OperationExecutionState.failed, null, result.OperationException);
-                    }
-
-                    row.Add(columnNames[i], result.Result);
-                }
-                table.TableData.Rows.Add(row);
-            }
-            return new OperationResult<Table>(OperationExecutionState.performed, table);
-        }
-        /// <summary>
-        /// Select statment
-        /// </summary>
-        /// <param name="tableNames">tableNames</param>
-        /// <param name="columnNames">Item1 - tableName, Item2 - columnName. For *, Item2 == "*" then adding all colums from table Item1</param>
-        /// <returns>New table</returns>
-        public OperationResult<Table> Select(List<string> tableNames, List<Tuple<string, string>> columnNames)
-        {
-
-            foreach (var L in tableNames)
-            {
-                if (!TablePool.ContainsKey(L))
-                {
-                    return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(L));
-                }
-            }
-
-            var subColumns = new List<Tuple<string, string>>();
-
-            foreach (var L in columnNames)
-            {
-                var tableName = L.Item1 ?? tableNames[0];
-                if (L.Item2 == "*")
-                {
-                    foreach (var column in TablePool[tableName].TableMetaInf.ColumnPool)
-                    {
-                        subColumns.Add(new Tuple<string, string>(L.Item1, column.Key));
-                    }
-                }
-            }
-
-            columnNames.AddRange(subColumns);
-            columnNames.RemoveAll(item => item.Item2 == "*");
-
-            var tableOut = new Table("tableOut");
-
-            foreach (var d in columnNames)
-            {
-                tableOut.AddColumn(TablePool[d.Item1].TableMetaInf.ColumnPool[d.Item2]);
-            }
-
-            var tableData = new TableData { Rows = new List<Dictionary<string, Field>>() };
-
-            foreach (var L in tableNames)
-            {
-                DataStorage.LoadTableData(TablePool[L]);
-
-                foreach (var fromRow in TablePool[L].TableData.Rows)
-                {
-                    var newRow = new Dictionary<string, Field>();
-                    foreach (var d in tableOut.TableMetaInf.ColumnPool)
-                    {
-                        newRow.Add(d.Key, fromRow[d.Key]);
-                    }
-                    tableData.Rows.Add(newRow);
-                }
-
-                TablePool[L].TableData = null;
-            }
-
-            tableOut.TableData = tableData;
-            return new OperationResult<Table>(OperationExecutionState.performed, tableOut);
-        }
-
-        public OperationResult<Table> Update(string tableName, Dictionary<string, string> row)
-        {
-            if (!TablePool.ContainsKey(tableName))
-            {
-                return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
-            }
-
-            var table = TablePool[tableName];
-            DataStorage.LoadTableData(table);
-
-            foreach (var L in table.TableData.Rows)
-            {
-                foreach (var d in table.TableMetaInf.ColumnPool)
-                {
-                    var result = d.Value.CreateField(row[d.Key]);
-
-                    if (result.State != OperationExecutionState.performed)
-                    {
-                        return new OperationResult<Table>(OperationExecutionState.failed, null, result.OperationException);
-                    }
-
-                    L[d.Key] = result.Result;
-                }
-            }
-
-            return new OperationResult<Table>(OperationExecutionState.performed, table);
-        }
-        public OperationResult<Table> Delete(string tableName)
-        {
-            if (!TablePool.ContainsKey(tableName))
-            {
-                return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistExeption(tableName));
-            }
-
-            var table = TablePool[tableName];
-
-            DataStorage.LoadTableData(table);
-            table.TableData.Rows.RemoveAll(item => true);
-
-            return new OperationResult<Table>(OperationExecutionState.performed, table);
-        }
-    }
-
 }

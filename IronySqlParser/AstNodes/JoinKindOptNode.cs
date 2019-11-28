@@ -10,7 +10,7 @@ namespace IronySqlParser.AstNodes
         Right
     }
 
-    internal class JoinKindOptNode : SqlNode
+    public class JoinKindOptNode : SqlNode
     {
         public JoinKind JoinKindOpt { set; get; } = JoinKind.Empty;
 

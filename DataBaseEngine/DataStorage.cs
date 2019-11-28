@@ -7,7 +7,7 @@ using System.Linq;
 using DataBaseErrors;
 
 using DataBaseTable;
-
+using DBMS_Operation;
 using Newtonsoft.Json;
 
 using ProtoBuf;
@@ -67,7 +67,7 @@ namespace DataBaseEngine
                     {
                         TableMetaInf = JsonConvert.DeserializeObject<TableMetaInf>(line)
                     };
-                    TablePool.Add(table.TableMetaInf.Name, table);
+                    TablePool.Add(table.TableMetaInf.Name.ToString(), table);
                 }
             }
 

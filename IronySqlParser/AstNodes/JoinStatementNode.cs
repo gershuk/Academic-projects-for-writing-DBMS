@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace IronySqlParser.AstNodes
 {
-    internal class JoinStatementNode : SqlNode
+    public class JoinStatementNode : SqlNode
     {
         public List<string> LeftId { get; set; }
         public List<string> RightId { get; set; }

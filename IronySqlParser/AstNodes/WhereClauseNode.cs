@@ -1,6 +1,6 @@
 ﻿namespace IronySqlParser.AstNodes
 {
-    internal class WhereClauseNode : SqlNode
+    public class WhereClauseNode : SqlNode
     {
         public ExpressionNode Expression { get; set; }
 

@@ -1,79 +1,69 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 
 using DataBaseEngine;
 
-using DataBaseErrors;
-
 using DataBaseTable;
 
-using Irony.Parsing;
+using DBMS_Operation;
 
 using IronySqlParser;
+using IronySqlParser.AstNodes;
+
+using TransactionManagement;
 
 namespace SunflowerDB
 {
-    public class SqlCommandResult
+    public class TransactionInfo
     {
-        public OperationResult<Table> Answer { get; set; }
-        public ManualResetEvent AnswerNotify;
-        public override string ToString() => Answer.State switch
+        public Guid Guid { get; set; }
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+        public List<OperationResult<Table>> OperationsResults { get; set; }
+        public TransactionLocksInfo LocksInfo { get; set; }
+
+        public TransactionInfo(Guid guid,
+                               DateTime startTime,
+                               DateTime endTime,
+                               List<OperationResult<Table>> operationResults,
+                               TransactionLocksInfo transactionLocksInfo)
         {
-            OperationExecutionState.parserError => $"{Answer.OperationException}",
-            OperationExecutionState.failed => $"{Answer.OperationException}",
-            OperationExecutionState.performed => $"{Answer.Result}",
-            OperationExecutionState.notProcessed => $"Not processed"
-        };
-
-    }
-
-    sealed public class DataBase : IDisposable
-    {
-        private class SqlCommand
-        {
-            public SqlSequenceParser Parser { get; set; }
-            public Task<ParseTree> Task { get; }
-            public SqlCommandResult CommandResult { get; set; }
-
-            private readonly string _sqlSequence;
-
-            public SqlCommand(string sql)
-            {
-                CommandResult = new SqlCommandResult
-                {
-                    Answer = new OperationResult<Table>(OperationExecutionState.notProcessed, null),
-                    AnswerNotify = new ManualResetEvent(false)
-                };
-
-                _sqlSequence = sql ?? throw new ArgumentNullException(nameof(sql));
-
-                Task = new Task<ParseTree>(() => Parser.BuildLexicalTree(_sqlSequence));
-            }
+            Guid = guid;
+            StartTime = startTime;
+            EndTime = endTime;
+            OperationsResults = operationResults ?? throw new ArgumentNullException(nameof(operationResults));
+            LocksInfo = transactionLocksInfo ?? throw new ArgumentNullException(nameof(transactionLocksInfo));
         }
 
-        private readonly EngineCommander _engineCommander;
+        public TransactionInfo(TransactionLocksInfo transactionLocksInfo) => LocksInfo = transactionLocksInfo
+            ?? throw new ArgumentNullException(nameof(transactionLocksInfo));
+    }
 
+    public class SqlSequenceResult
+    {
+        public List<TransactionInfo> Answer { get; private set; }
+    }
+
+    public interface IDataBase
+    {
+        public SqlSequenceResult ExecuteSqlSequence(string sqlSequence);
+    }
+
+    public sealed class DataBase : IDisposable, IDataBase
+    {
+        private readonly IEngineCommander _engineCommander;
+        private readonly ITransactionScheduler _transactionScheduler;
         private readonly ConcurrentQueue<SqlSequenceParser> _sqlParsers;
-        private readonly ConcurrentQueue<SqlCommand> _waitingSqlCommands;
-        private readonly ConcurrentQueue<SqlCommand> _workingSqlCommands;
-
         private readonly Semaphore _parsersSemaphore;
-
-        private readonly Thread _inputQueueControler;
-        private readonly Thread _executeControler;
-
         private bool _disposed = false;
-        private bool _stopWorking = false;
 
-        public DataBase(int parsersCount, DataBaseEngineMain baseEngine)
+        public DataBase(int parsersCount, IDataBaseEngine engine, ITransactionScheduler transactionScheduler)
         {
-            _engineCommander = new EngineCommander(baseEngine);
-
+            _engineCommander = new EngineCommander(engine);
+            _transactionScheduler = transactionScheduler;
             _sqlParsers = new ConcurrentQueue<SqlSequenceParser>();
-            _waitingSqlCommands = new ConcurrentQueue<SqlCommand>();
-            _workingSqlCommands = new ConcurrentQueue<SqlCommand>();
 
             _parsersSemaphore = new Semaphore(parsersCount, parsersCount, "Parsers Semaphore");
 
@@ -81,80 +71,43 @@ namespace SunflowerDB
             {
                 _sqlParsers.Enqueue(new SqlSequenceParser());
             }
-
-            _inputQueueControler = new Thread(TryParseSql);
-            _inputQueueControler.Start();
-
-            _executeControler = new Thread(TryExecuteCommand);
-            _executeControler.Start();
         }
 
-
-        public SqlCommandResult SendSqlSequence(string sqlSequence)
+        public SqlSequenceResult ExecuteSqlSequence(string sqlSequence)
         {
-            if (!_stopWorking)
-            {
-                var command = new SqlCommand(sqlSequence);
-                _waitingSqlCommands.Enqueue(command);
-                return command.CommandResult;
-            }
-            else
-            {
-                return null;
-            }
+            _parsersSemaphore.WaitOne();
+            _sqlParsers.TryDequeue(out var parser);
+            var parseTree = parser.BuildTree(sqlSequence);
+            _sqlParsers.Enqueue(parser);
+            _parsersSemaphore.Release();
 
-        }
+            var transactionListNode = (TransactionListNode)parseTree.Root.AstNode;
+            var result = new SqlSequenceResult();
 
-        private void TryParseSql()
-        {
-            while (!_stopWorking)
+            foreach (var transaction in transactionListNode.TransactionNodes)
             {
-                while (_waitingSqlCommands.TryDequeue(out var sqlCommand))
+                var tableLocks = new List<TableLock>();
+
+                foreach (var command in transaction.SqlCommands)
                 {
-                    _parsersSemaphore.WaitOne();
-                    _sqlParsers.TryDequeue(out var parser);
-                    sqlCommand.Parser = parser;
-
-                    sqlCommand.Task.Start();
-
-                    _workingSqlCommands.Enqueue(sqlCommand);
+                    tableLocks.AddRange(command.GetCommandInfo());
                 }
+
+                var currentTransaction = new TransactionInfo(new TransactionLocksInfo(tableLocks));
+                currentTransaction.Guid = _transactionScheduler.RegisterTransaction(currentTransaction.LocksInfo);
+
+                _transactionScheduler.WaitTransactionResourceLock(currentTransaction.Guid);
+
+                currentTransaction.StartTime = DateTime.Now;
+                currentTransaction.OperationsResults = _engineCommander.ExecuteCommandList(transaction.SqlCommands);
+                currentTransaction.EndTime = DateTime.Now;
+
+                _transactionScheduler.RemoveTransactionResourcesLocks(currentTransaction.Guid);
+
+                result.Answer.Add(currentTransaction);
             }
-        }
 
-        private void TryExecuteCommand()
-        {
-            while (!_stopWorking)
-            {
-                while (_workingSqlCommands.TryDequeue(out var sqlCommand))
-                {
-                    var parserTree = sqlCommand.Task.Result;
-
-                    var parserMessage = parserTree.ParserMessages[0];
-
-                    _sqlParsers.Enqueue(sqlCommand.Parser);
-                    sqlCommand.Parser = null;
-                    _parsersSemaphore.Release();
-
-
-                    if (parserTree.Root == null)
-                    {
-                        var answer = sqlCommand.CommandResult.Answer;
-
-                        answer.State = OperationExecutionState.parserError;
-                        answer.Result = null;
-
-                        answer.OperationException = new ParsingRequestError(parserMessage.Message, parserMessage.Location.ToString());
-                    }
-                    else
-                    {
-                        var treeNode = parserTree.Root.ChildNodes[0];
-                        sqlCommand.CommandResult.Answer = _engineCommander.ExecuteCommand(treeNode);
-                    }
-
-                    sqlCommand.CommandResult.AnswerNotify.Set();
-                }
-            }
+            return result;
         }
 
         public void Dispose()
@@ -175,9 +128,6 @@ namespace SunflowerDB
             if (disposing)
             {
                 _parsersSemaphore.Dispose();
-                _stopWorking = true;
-                _inputQueueControler.Join();
-                _executeControler.Join();
             }
             _disposed = true;
         }

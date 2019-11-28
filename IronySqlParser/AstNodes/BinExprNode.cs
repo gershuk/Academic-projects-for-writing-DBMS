@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
-    internal class BinExprNode : OperatorNode
+    public class BinExprNode : OperatorNode
     {
         private BinOp _binOp;
         private ExpressionNode _leftOperand;
@@ -43,7 +45,9 @@ namespace IronySqlParser.AstNodes
 
                  BinOp.And => _leftOperand.Calc() && _rightOperand.Calc(),
 
-                 BinOp.Or => _leftOperand.Calc() || _rightOperand.Calc()
+                 BinOp.Or => _leftOperand.Calc() || _rightOperand.Calc(),
+
+                 _ => throw new NotImplementedException()
              };
 
 

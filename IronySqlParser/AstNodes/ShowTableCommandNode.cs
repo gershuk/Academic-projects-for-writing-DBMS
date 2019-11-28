@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
+using TransactionManagement;
 
 namespace IronySqlParser.AstNodes
 {
-    internal class ShowTableCommandNode : SqlCommandNode
+    public class ShowTableCommandNode : SqlCommandNode
     {
         public List<string> TableName { get; set; }
 
         public override void CollectInfoFromChild() => TableName = FindFirstChildNodeByType<IdNode>()?.Id;
+        public override List<TableLock> GetCommandInfo() => new List<TableLock>();
     }
 }

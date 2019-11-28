@@ -1,16 +1,21 @@
-﻿namespace IronySqlParser.AstNodes
+﻿using System.Collections.Generic;
+using TransactionManagement;
+
+namespace IronySqlParser.AstNodes
 {
-    internal class InsertCommandNode : SqlCommandNode
+    public class InsertCommandNode : SqlCommandNode
     {
-        public IdNode TableName { get; set; }
+        public List<string> TableName { get; set; }
         public ColumnNamesNode ColumnNames { get; set; }
         public InsertDataNode InsertDataNode { get; set; }
 
         public override void CollectInfoFromChild()
         {
-            TableName = FindFirstChildNodeByType<IdNode>();
+            TableName = FindFirstChildNodeByType<IdNode>().Id;
             ColumnNames = FindFirstChildNodeByType<ColumnNamesNode>();
             InsertDataNode = FindFirstChildNodeByType<InsertDataNode>();
         }
+
+        public override List<TableLock> GetCommandInfo() => new List<TableLock>() { new TableLock(LockType.Write, TableName, new System.Threading.ManualResetEvent(false)) };
     }
 }

@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using TransactionManagement;
 
 namespace IronySqlParser.AstNodes
 {
-    internal class UpdateNode : SqlNode
+    public class UpdateCommandNode : SqlCommandNode
     {
         public List<string> TableName { get; set; }
         public List<AssignmentNode> Assignments { get; set; }
@@ -14,5 +15,7 @@ namespace IronySqlParser.AstNodes
             Assignments = FindFirstChildNodeByType<AssignmentListNode>()?.Assignments;
             WhereExpression = FindFirstChildNodeByType<WhereClauseNode>()?.Expression;
         }
+
+        public override List<TableLock> GetCommandInfo() => new List<TableLock>() { new TableLock(LockType.Update, TableName, new System.Threading.ManualResetEvent(false)) };
     }
 }

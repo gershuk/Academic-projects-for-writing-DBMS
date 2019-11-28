@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
-    internal class ExpressionNode : OperatorNode
+    public class ExpressionNode : OperatorNode
     {
         private OperatorNode _childOperator;
 

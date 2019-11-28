@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace IronySqlParser.AstNodes
 {
-    internal class TypeParamsOptNode : SqlNode
+    public class TypeParamsOptNode : SqlNode
     {
         public double? TypeParamOpt { get; set; }
 
@@ -18,7 +18,7 @@ namespace IronySqlParser.AstNodes
 
             param = param.TrimEnd(',');
 
-            TypeParamOpt = param == "" ? null : (double?)Convert.ToDouble(param);
+            TypeParamOpt = param.Length == 0 ? null : (double?)Convert.ToDouble(param);
         }
     }
 }

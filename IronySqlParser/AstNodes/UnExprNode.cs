@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
-    internal class UnExprNode : OperatorNode
+    public class UnExprNode : OperatorNode
     {
         private OperatorNode _childOperator;
         private UnOp _unOp;
@@ -13,7 +15,8 @@ namespace IronySqlParser.AstNodes
                 UnOp.Plus => _childOperator == null ? +Value.Data() : +_childOperator.Calc(),
                 UnOp.Minus => _childOperator == null ? -Value.Data() : -_childOperator.Calc(),
                 UnOp.Not => _childOperator == null ? !Value.Data() : !_childOperator.Calc(),
-                UnOp.Tilde => _childOperator == null ? ~Value.Data() : ~_childOperator.Calc()
+                UnOp.Tilde => _childOperator == null ? ~Value.Data() : ~_childOperator.Calc(),
+                _ => throw new NotImplementedException()
             };
 
 

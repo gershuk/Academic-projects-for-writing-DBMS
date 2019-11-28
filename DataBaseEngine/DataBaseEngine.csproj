@@ -62,5 +62,15 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DataBaseTypes\DataBaseTypes.csproj">
+      <Project>{C0635319-ED1D-4BC7-91A5-4E5B9FBD5076}</Project>
+      <Name>DataBaseTypes</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DBMS_Operation\DBMS_Operation.csproj">
+      <Project>{0B57093A-131A-49FA-8930-CBBA8C06CB64}</Project>
+      <Name>DBMS_Operation</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

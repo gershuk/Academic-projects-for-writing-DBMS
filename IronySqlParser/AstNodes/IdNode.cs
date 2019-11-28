@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-using IronySqlParser.AstNodes;
-
-namespace IronySqlParser
+namespace IronySqlParser.AstNodes
 {
-    internal class IdNode : SimpleIdNode
+    public class IdNode : SimpleIdNode
     {
         public List<string> Id { get; private set; } = new List<string>();
 

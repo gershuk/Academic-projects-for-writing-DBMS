@@ -8,7 +8,7 @@ namespace IronySqlParser.AstNodes
         Rollback
     }
 
-    internal class TransactionEndOptNode : SqlNode
+    public class TransactionEndOptNode : SqlNode
     {
         public TransactionEndType TransactionEndType { get; set; }
 

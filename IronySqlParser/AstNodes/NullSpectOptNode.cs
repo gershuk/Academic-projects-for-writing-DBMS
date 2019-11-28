@@ -1,12 +1,7 @@
-﻿namespace IronySqlParser.AstNodes
-{
-    public enum NullSpecOpt
-    {
-        Null,
-        NotNull,
-        Empty
-    }
+﻿using DataBaseType;
 
+namespace IronySqlParser.AstNodes
+{
     public class NullSpectOptNode : SqlNode
     {
         public NullSpecOpt NullSpecOpt { get; set; }
@@ -19,7 +14,7 @@
                 state += child.Text;
             }
 
-            if (state == "")
+            if (state.Length==0)
             {
                 state = "Empty";
             }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TransactionManagement;
 
 namespace IronySqlParser.AstNodes
 {
@@ -7,5 +8,7 @@ namespace IronySqlParser.AstNodes
         public List<string> TableName { get; set; }
 
         public override void CollectInfoFromChild() => TableName = FindFirstChildNodeByType<IdNode>().Id;
+
+        public override List<TableLock> GetCommandInfo() => new List<TableLock>();
     }
 }

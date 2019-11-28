@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using TransactionManagement;
 
 namespace IronySqlParser.AstNodes
 {
-    internal class JoinChainOptNode : IdOperatorNode
+    public class JoinChainOptNode : IdOperatorNode
     {
         public JoinKind JoinKind { get; set; }
         public List<string> LeftId { get; set; }
@@ -18,5 +19,8 @@ namespace IronySqlParser.AstNodes
             RightId = (childNodes[3] as IdLinkNode).TableName;
             JoinStatementNode = FindFirstChildNodeByType<JoinStatementNode>();
         }
+
+        public override List<TableLock> GetCommandInfo() => new List<TableLock>() { new TableLock(LockType.Read, LeftId, new System.Threading.ManualResetEvent(false)),
+            new TableLock(LockType.Read, RightId, new System.Threading.ManualResetEvent(false)) };
     }
 }

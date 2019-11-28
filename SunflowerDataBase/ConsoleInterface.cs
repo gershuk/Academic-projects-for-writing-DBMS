@@ -2,6 +2,8 @@
 
 using DataBaseEngine;
 
+using TransactionManagement;
+
 namespace SunflowerDB
 {
     public class ConsoleInterface
@@ -9,7 +11,7 @@ namespace SunflowerDB
 
         public static void Main()
         {
-            var core = new DataBase(20, new DataBaseEngineMain());
+            using var core = new DataBase(20, new DataBaseEngineMain(), new TransactionScheduler());
             var exitState = true;
 
             Console.WriteLine("Hello!");
@@ -26,13 +28,10 @@ namespace SunflowerDB
                 }
                 else
                 {
-                    var ans = core.SendSqlSequence(input);
-                    ans.AnswerNotify.WaitOne();
+                    var ans = core.ExecuteSqlSequence(input);
                     Console.WriteLine(ans);
                     Console.WriteLine("--------------------------------------------------------------------------------");
                 }
-                //"CREATE TABLE Customers (Id INT NOT NULL,Age FLOAT, Name VARCHAR(20));"
-                //"SHOW TABLE Customers;"
             }
         }
     }

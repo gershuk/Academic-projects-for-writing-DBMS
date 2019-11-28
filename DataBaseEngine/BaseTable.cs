@@ -3,28 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-using DataBaseEngine;
-
 using DataBaseErrors;
-
+using DataBaseType;
+using DBMS_Operation;
 using ProtoBuf;
 
 namespace DataBaseTable
 {
-    public enum ColumnDataType
-    {
-        INT,
-        DOUBLE,
-        CHAR,
-    }
-
-    public enum NullSpecOpt
-    {
-        Null,
-        NotNull,
-        Empty
-    }
-
     [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     [ProtoInclude(100, typeof(FieldInt))]
     [ProtoInclude(101, typeof(FieldDouble))]
@@ -74,18 +59,18 @@ namespace DataBaseTable
 
     public class Column
     {
-        public string Name { get; set; }
-        public ColumnDataType DataType { get; set; }
-        public int DataParam { get; set; }
+        public List<string> Name { get; set; }
+        public DataType DataType { get; set; }
+        public double? DataParam { get; set; }
         public List<string> Constrains { get; set; }
         public int Size { get; set; }
         public NullSpecOpt TypeState { get; set; }
 
         public Column() { }
 
-        public Column(string name) => Name = name;
+        public Column(List<string> name) => Name = name;
 
-        public Column(string name, ColumnDataType dataType, int dataParam, List<string> constrains, NullSpecOpt typeState)
+        public Column(List<string> name, DataType dataType, double? dataParam, List<string> constrains, NullSpecOpt typeState)
         {
             Name = name;
             DataType = dataType;
@@ -96,45 +81,19 @@ namespace DataBaseTable
 
         public OperationResult<Field> CreateField(string data)
         {
-            switch (DataType)
-            {
-                case ColumnDataType.INT:
-                    try
-                    {
-                        var val = Convert.ToInt32(data);
-                        return new OperationResult<Field>(OperationExecutionState.performed, new FieldInt { Value = val });
-                    }
-                    catch
-                    {
-                        return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldExeption(Name, DataType.ToString(), data));
-                    }
-                case ColumnDataType.DOUBLE:
-                    try
-                    {
-                        var val = Convert.ToDouble(data);
-                        return new OperationResult<Field>(OperationExecutionState.performed, new FieldDouble { Value = val });
-                    }
-                    catch
-                    {
-                        return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldExeption(Name, DataType.ToString(), data));
-                    }
-                case ColumnDataType.CHAR:
-                    return new OperationResult<Field>(OperationExecutionState.performed, new FieldChar(data, DataParam));
-
-            }
-            return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldExeption(Name, DataType.ToString(), data));
+            return null;
         }
     }
 
     public class TableMetaInf
     {
-        public string Name { get; set; }
+        public List<string> Name { get; set; }
         public Dictionary<string, Column> ColumnPool { get; set; }
         public int SizeInBytes { get; }
 
         public TableMetaInf() { }
 
-        public TableMetaInf(string name) => Name = name;
+        public TableMetaInf(List<string> name) => Name = name;
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
@@ -151,7 +110,7 @@ namespace DataBaseTable
         public Table()
         { }
 
-        public Table(string name) => TableMetaInf = new TableMetaInf(name);
+        public Table(List<string> name) => TableMetaInf = new TableMetaInf(name);
 
         public Table(TableMetaInf tableMetaInf) => TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
 
@@ -164,13 +123,13 @@ namespace DataBaseTable
         public OperationResult<Table> AddColumn(Column column)
         {
             TableMetaInf.ColumnPool ??= new Dictionary<string, Column>();
-            if (!TableMetaInf.ColumnPool.ContainsKey(column.Name))
+            if (!TableMetaInf.ColumnPool.ContainsKey(column.Name.ToString()))
             {
-                TableMetaInf.ColumnPool.Add(column.Name, column);
+                TableMetaInf.ColumnPool.Add(column.Name.ToString(), column);
             }
             else
             {
-                return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnAlreadyExistExeption(column.Name, TableMetaInf.Name));
+                return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnAlreadyExistExeption(column.Name.ToString(), TableMetaInf.Name.ToString()));
             }
 
             return new OperationResult<Table>(OperationExecutionState.performed, this);
@@ -185,7 +144,7 @@ namespace DataBaseTable
             }
             else
             {
-                return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnNotExistExeption(ColumName, TableMetaInf.Name));
+                return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnNotExistExeption(ColumName, TableMetaInf.Name.ToString()));
             }
             return new OperationResult<Table>(OperationExecutionState.performed, this);
         }

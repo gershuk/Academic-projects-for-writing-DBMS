@@ -1,13 +1,13 @@
 ﻿using System;
 
-namespace DataBaseErrors
+namespace SunflowerDB
 {
-    class ParsingRequestError : Exception
+    internal class ParsingRequestError : Exception
     {
         public ParsingRequestError(string message, string errorLocation)
             : base($"{message} {errorLocation}")
         { }
 
-        public override string ToString() => this.Message;
+        public override string ToString() => Message;
     }
 }

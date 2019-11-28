@@ -1,5 +1,10 @@
-﻿namespace IronySqlParser.AstNodes
+﻿using System.Collections.Generic;
+using TransactionManagement;
+
+namespace IronySqlParser.AstNodes
 {
-    internal class IdOperatorNode : SqlCommandNode
-    { }
+    public class IdOperatorNode : SqlCommandNode
+    {
+        public override List<TableLock> GetCommandInfo() => new List<TableLock>();
+    }
 }

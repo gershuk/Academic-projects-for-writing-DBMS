@@ -3,6 +3,12 @@ using System.Collections.Generic;
 
 namespace DataBaseType
 {
+    public enum TransactionEndType
+    {
+        Commit,
+        Rollback
+    }
+
     public enum NullSpecOpt
     {
         Null,

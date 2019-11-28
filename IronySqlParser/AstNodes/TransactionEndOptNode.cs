@@ -1,13 +1,8 @@
 ﻿using System.Linq;
+using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
-    public enum TransactionEndType
-    {
-        Commit,
-        Rollback
-    }
-
     public class TransactionEndOptNode : SqlNode
     {
         public TransactionEndType TransactionEndType { get; set; }

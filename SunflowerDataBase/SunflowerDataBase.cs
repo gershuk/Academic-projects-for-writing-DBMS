@@ -7,6 +7,8 @@ using DataBaseEngine;
 
 using DataBaseTable;
 
+using DataBaseType;
+
 using DBMS_Operation;
 
 using IronySqlParser;
@@ -103,10 +105,28 @@ namespace SunflowerDB
                 var transactionResult = _engineCommander.ExecuteCommandList(transactionNode.ExecuteCommnadsForNode);
                 if (transactionResult.state == OperationExecutionState.performed)
                 {
-                    _engineCommander.CommitTransaction(currentTransaction.Guid);
                     foreach (var stmt in transactionNode.StmtListNode.StmtList)
                     {
                         currentTransaction.OperationsResults.Add(_engineCommander.GetTableByName(stmt.SqlCommand.ReturnedTableName));
+                    }
+
+                    var transactionEndNode = (transactionNode as TransactionNode).TransactionEndOptNode;
+
+                    if (transactionEndNode != null)
+                    {
+                        switch (transactionEndNode.TransactionEndType)
+                        {
+                            case TransactionEndType.Commit:
+                                _engineCommander.CommitTransaction(currentTransaction.Guid);
+                                break;
+                            case TransactionEndType.Rollback:
+                                _engineCommander.RollBackTransaction(currentTransaction.Guid);
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        _engineCommander.CommitTransaction(currentTransaction.Guid);
                     }
                 }
                 else

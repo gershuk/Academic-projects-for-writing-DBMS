@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 
 using DataBaseType;
-
 namespace DataBaseEngine
 {
     public class EngineConfig
@@ -18,7 +17,6 @@ namespace DataBaseEngine
 
         OperationResult<Table> AddColumnToTable(List<string> tableName, Column column);
 
-        OperationResult<TableData> GetTableData(List<string> name);
 
         OperationResult<Table> GetTable(List<string> name);
 
@@ -63,7 +61,6 @@ namespace DataBaseEngine
         public OperationResult<Table> DropTable(List<string> name) => throw new NotImplementedException();
         public OperationResult<Table> Except(List<string> leftId, List<string> rightId) => throw new NotImplementedException();
         public OperationResult<Table> GetTable(List<string> name) => throw new NotImplementedException();
-        public OperationResult<TableData> GetTableData(List<string> name) => throw new NotImplementedException();
         public OperationResult<TableMetaInf> GetTableMetaInf(List<string> name) => throw new NotImplementedException();
         public OperationResult<Table> Insert(List<string> tableName, List<List<string>> columnNames, List<ExpressionFunction> objectParams) => throw new NotImplementedException();
         public OperationResult<Table> Intersect(List<string> leftId, List<string> rightId) => throw new NotImplementedException();

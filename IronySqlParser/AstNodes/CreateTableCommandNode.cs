@@ -14,6 +14,6 @@ namespace IronySqlParser.AstNodes
             FieldDefList = FindFirstChildNodeByType<FieldDefListNode>().FieldDefList;
         }
 
-        public override List<TableLock> GetCommandInfo() => new List<TableLock>() { };
+        public override List<TableLock> GetTableLocks() => new List<TableLock>() { };
     }
 }

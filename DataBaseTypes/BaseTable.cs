@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-using DataBaseErrors;
-using DataBaseType;
-using DBMS_Operation;
 using ProtoBuf;
 
-namespace DataBaseTable
+namespace DataBaseType
 {
     [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
     [ProtoInclude(100, typeof(FieldInt))]

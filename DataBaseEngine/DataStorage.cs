@@ -4,10 +4,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 
-using DataBaseErrors;
+using DataBaseType;
 
-using DataBaseTable;
-using DBMS_Operation;
 using Newtonsoft.Json;
 
 using ProtoBuf;

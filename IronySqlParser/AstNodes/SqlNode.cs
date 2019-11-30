@@ -218,7 +218,9 @@ namespace IronySqlParser.AstNodes
     public abstract class SqlCommandNode : SqlNode
     {
         public List<string> ReturnedTableName { get; private set; } = new List<string>();
-        public abstract List<TableLock> GetCommandInfo();
+
+        public abstract List<TableLock> GetTableLocks();
+
         public void SetReturnedTableName(List<string> name) => ReturnedTableName.AddRange(name);
     }
 }

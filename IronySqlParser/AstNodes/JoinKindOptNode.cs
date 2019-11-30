@@ -1,15 +1,9 @@
 ﻿using System.Linq;
 
+using DataBaseType;
+
 namespace IronySqlParser.AstNodes
 {
-    public enum JoinKind
-    {
-        Empty,
-        Inner,
-        Left,
-        Right
-    }
-
     public class JoinKindOptNode : SqlNode
     {
         public JoinKind JoinKindOpt { set; get; } = JoinKind.Empty;

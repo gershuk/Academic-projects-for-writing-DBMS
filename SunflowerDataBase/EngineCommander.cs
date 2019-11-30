@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using DataBaseEngine;
 
-using DataBaseTable;
 using DataBaseType;
-using DBMS_Operation;
+
 using IronySqlParser.AstNodes;
 
 namespace SunflowerDB
@@ -181,10 +181,57 @@ namespace SunflowerDB
             return updateResult;
         }
 
-        public object ExecuteSqlNode(JoinChainOptNode node) => throw new NotImplementedException();
-        public object ExecuteSqlNode(UnionChainOptNode node) => throw new NotImplementedException();
-        public object ExecuteSqlNode(IntersectChainOptNode node) => throw new NotImplementedException();
-        public object ExecuteSqlNode(ExceptChainOptNode node) => throw new NotImplementedException();
+        public object ExecuteSqlNode(JoinChainOptNode node)
+        {
+            var joinResult = Engine.Join(node.LeftId,
+                                         node.RightId,
+                                         node.JoinKind,
+                                         node.JoinStatementNode.LeftId,
+                                         node.JoinStatementNode.RightId);
+
+            if (joinResult.State == OperationExecutionState.performed)
+            {
+                node.SetReturnedTableName(joinResult.Result.TableMetaInf.Name);
+            }
+
+            return joinResult;
+        }
+
+        public object ExecuteSqlNode(UnionChainOptNode node)
+        {
+            var unionResult = Engine.Union(node.LeftId, node.RightId, node.UnionKind);
+
+            if (unionResult.State == OperationExecutionState.performed)
+            {
+                node.SetReturnedTableName(unionResult.Result.TableMetaInf.Name);
+            }
+
+            return unionResult;
+        }
+
+        public object ExecuteSqlNode(IntersectChainOptNode node)
+        {
+            var intersectResult = Engine.Intersect(node.LeftId, node.RightId);
+
+            if (intersectResult.State == OperationExecutionState.performed)
+            {
+                node.SetReturnedTableName(intersectResult.Result.TableMetaInf.Name);
+            }
+
+            return intersectResult;
+        }
+
+        public object ExecuteSqlNode(ExceptChainOptNode node)
+        {
+            var exceptResult = Engine.Except(node.LeftId, node.RightId);
+
+            if (exceptResult.State == OperationExecutionState.performed)
+            {
+                node.SetReturnedTableName(exceptResult.Result.TableMetaInf.Name);
+            }
+
+            return exceptResult;
+        }
 
         public void RollBackTransaction(Guid transactionGuid) => Engine.RollBackTransaction(transactionGuid);
         public void CommitTransaction(Guid transactionGuid) => Engine.CommitTransaction(transactionGuid);

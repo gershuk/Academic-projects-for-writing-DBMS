@@ -1,13 +1,9 @@
 ﻿using System.Linq;
 
+using DataBaseType;
+
 namespace IronySqlParser.AstNodes
 {
-    public enum UnionKind
-    {
-        Empty,
-        All
-    }
-
     public class UnionKindOptNode : SqlNode
     {
         public UnionKind UnionKindOpt { set; get; } = UnionKind.Empty;

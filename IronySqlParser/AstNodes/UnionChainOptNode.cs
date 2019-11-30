@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+
+using DataBaseType;
+
 using TransactionManagement;
 
 namespace IronySqlParser.AstNodes
@@ -18,7 +21,7 @@ namespace IronySqlParser.AstNodes
             RightId = (childNodes[3] as IdLinkNode).TableName;
         }
 
-        public override List<TableLock> GetCommandInfo() => new List<TableLock>() { new TableLock(LockType.Read, LeftId, new System.Threading.ManualResetEvent(false)),
+        public override List<TableLock> GetTableLocks() => new List<TableLock>() { new TableLock(LockType.Read, LeftId, new System.Threading.ManualResetEvent(false)),
             new TableLock(LockType.Read, RightId, new System.Threading.ManualResetEvent(false)) };
     }
 }

@@ -6,7 +6,7 @@ using TransactionManagement;
 
 namespace SunflowerDB
 {
-    public class ConsoleInterface
+    public static class ConsoleInterface
     {
 
         public static void Main()

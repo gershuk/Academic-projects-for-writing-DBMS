@@ -16,7 +16,7 @@ namespace IronySqlParser.AstNodes
             RightId = (childNodes[2] as IdLinkNode).TableName;
         }
 
-        public override List<TableLock> GetCommandInfo() => new List<TableLock>() { new TableLock(LockType.Read, LeftId, new System.Threading.ManualResetEvent(false)),
+        public override List<TableLock> GetTableLocks() => new List<TableLock>() { new TableLock(LockType.Read, LeftId, new System.Threading.ManualResetEvent(false)),
             new TableLock(LockType.Read, RightId, new System.Threading.ManualResetEvent(false)) };
     }
 }

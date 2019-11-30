@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace TransactionManagement
 {
-    internal interface ITableLockInfo
+    public interface ITableLockInfo
     {
         public void AddLock(TableLock tableLock);
         public void RemoveLock(TableLock tableLock);
     }
 
-    internal class TableLockQueue : ITableLockInfo
+    public class TableLockQueue : ITableLockInfo
     {
         private (LockType LockType, int Count) _currentLock;
         private readonly Queue<TableLock> _tableLocksQueue;

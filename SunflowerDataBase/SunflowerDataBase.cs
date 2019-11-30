@@ -5,11 +5,7 @@ using System.Threading;
 
 using DataBaseEngine;
 
-using DataBaseTable;
-
 using DataBaseType;
-
-using DBMS_Operation;
 
 using IronySqlParser;
 using IronySqlParser.AstNodes;
@@ -20,27 +16,34 @@ namespace SunflowerDB
 {
     public class TransactionInfo
     {
+        public List<string> Name { get; set; }
         public Guid Guid { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public List<OperationResult<Table>> OperationsResults { get; set; }
         public TransactionLocksInfo LocksInfo { get; set; }
 
-        public TransactionInfo(Guid guid,
+        public TransactionInfo(TransactionLocksInfo transactionLocksInfo) => LocksInfo = transactionLocksInfo
+            ?? throw new ArgumentNullException(nameof(transactionLocksInfo));
+
+        public TransactionInfo(List<string> name,
+                               Guid guid,
                                DateTime startTime,
                                DateTime endTime,
-                               List<OperationResult<Table>> operationResults,
-                               TransactionLocksInfo transactionLocksInfo)
+                               List<OperationResult<Table>> operationsResults,
+                               TransactionLocksInfo locksInfo)
         {
+            Name = name ?? throw new ArgumentNullException(nameof(name));
             Guid = guid;
             StartTime = startTime;
             EndTime = endTime;
-            OperationsResults = operationResults ?? throw new ArgumentNullException(nameof(operationResults));
-            LocksInfo = transactionLocksInfo ?? throw new ArgumentNullException(nameof(transactionLocksInfo));
+            OperationsResults = operationsResults ?? throw new ArgumentNullException(nameof(operationsResults));
+            LocksInfo = locksInfo ?? throw new ArgumentNullException(nameof(locksInfo));
         }
 
-        public TransactionInfo(TransactionLocksInfo transactionLocksInfo) => LocksInfo = transactionLocksInfo
-            ?? throw new ArgumentNullException(nameof(transactionLocksInfo));
+        public TransactionInfo()
+        {
+        }
     }
 
     public class SqlSequenceResult
@@ -50,7 +53,7 @@ namespace SunflowerDB
 
     public interface IDataBase
     {
-        public SqlSequenceResult ExecuteSqlSequence(string sqlSequence);
+        public OperationResult<SqlSequenceResult> ExecuteSqlSequence(string sqlSequence);
     }
 
     public sealed class DataBase : IDisposable, IDataBase
@@ -75,16 +78,29 @@ namespace SunflowerDB
             }
         }
 
-        public SqlSequenceResult ExecuteSqlSequence(string sqlSequence)
+        public OperationResult<SqlSequenceResult> ExecuteSqlSequence(string sqlSequence)
         {
+
+            var result = new SqlSequenceResult();
+
+            #region Sequence Parsing
             _parsersSemaphore.WaitOne();
             _sqlParsers.TryDequeue(out var parser);
             var parseTree = parser.BuildTree(sqlSequence);
             _sqlParsers.Enqueue(parser);
             _parsersSemaphore.Release();
+            #endregion
 
+            //Is parsing failed
+            if (parseTree.Root == null)
+            {
+                var message = parseTree.ParserMessages[0];
+                var error = new ParsingRequestException(message.Message, message.Location.ToString());
+                return new OperationResult<SqlSequenceResult>(OperationExecutionState.parserError, null, error);
+            }
+
+            #region Sequence Executing
             var transactionListNode = (TransactionListNode)parseTree.Root.AstNode;
-            var result = new SqlSequenceResult();
 
             foreach (var transactionNode in transactionListNode.TransactionNodes)
             {
@@ -92,47 +108,48 @@ namespace SunflowerDB
 
                 foreach (var command in transactionNode.ExecuteCommnadsForNode)
                 {
-                    tableLocks.AddRange(command.GetCommandInfo());
+                    tableLocks.AddRange(command.GetTableLocks());
                 }
 
-                var currentTransaction = new TransactionInfo(new TransactionLocksInfo(tableLocks));
-                currentTransaction.Guid = _transactionScheduler.RegisterTransaction(currentTransaction.LocksInfo);
+                var transactionLocksInfo = new TransactionLocksInfo(tableLocks);
+
+                var currentTransaction = new TransactionInfo()
+                {
+                    Name = transactionNode.TransactionBeginOptNode.TransactionName,
+                    Guid = _transactionScheduler.RegisterTransaction(transactionLocksInfo),
+                    LocksInfo = transactionLocksInfo
+                };
 
                 _transactionScheduler.WaitTransactionResourceLock(currentTransaction.Guid);
 
                 currentTransaction.StartTime = DateTime.Now;
 
-                var transactionResult = _engineCommander.ExecuteCommandList(transactionNode.ExecuteCommnadsForNode);
-                if (transactionResult.state == OperationExecutionState.performed)
+                var (state, exception) = _engineCommander.ExecuteCommandList(transactionNode.ExecuteCommnadsForNode);
+
+                if (state == OperationExecutionState.performed)
                 {
                     foreach (var stmt in transactionNode.StmtListNode.StmtList)
                     {
-                        currentTransaction.OperationsResults.Add(_engineCommander.GetTableByName(stmt.SqlCommand.ReturnedTableName));
+                        var table = _engineCommander.GetTableByName(stmt.SqlCommand.ReturnedTableName);
+                        currentTransaction.OperationsResults.Add(table);
                     }
 
                     var transactionEndNode = (transactionNode as TransactionNode).TransactionEndOptNode;
 
-                    if (transactionEndNode != null)
+                    switch (transactionEndNode.TransactionEndType)
                     {
-                        switch (transactionEndNode.TransactionEndType)
-                        {
-                            case TransactionEndType.Commit:
-                                _engineCommander.CommitTransaction(currentTransaction.Guid);
-                                break;
-                            case TransactionEndType.Rollback:
-                                _engineCommander.RollBackTransaction(currentTransaction.Guid);
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        _engineCommander.CommitTransaction(currentTransaction.Guid);
+                        case TransactionEndType.Commit:
+                            _engineCommander.CommitTransaction(currentTransaction.Guid);
+                            break;
+                        case TransactionEndType.Rollback:
+                            _engineCommander.RollBackTransaction(currentTransaction.Guid);
+                            break;
                     }
                 }
                 else
                 {
                     _engineCommander.RollBackTransaction(currentTransaction.Guid);
-                    currentTransaction.OperationsResults.Add(new OperationResult<Table>(transactionResult.state, null, transactionResult.exception));
+                    currentTransaction.OperationsResults.Add(new OperationResult<Table>(state, null, exception));
                 }
 
                 currentTransaction.EndTime = DateTime.Now;
@@ -141,8 +158,9 @@ namespace SunflowerDB
 
                 result.Answer.Add(currentTransaction);
             }
+            #endregion
 
-            return result;
+            return new OperationResult<SqlSequenceResult>(OperationExecutionState.performed, result, null);
         }
 
         public void Dispose()

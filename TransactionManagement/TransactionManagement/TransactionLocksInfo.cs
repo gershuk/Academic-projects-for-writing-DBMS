@@ -10,7 +10,7 @@ namespace TransactionManagement
         Write
     }
 
-    internal interface ITransactionLocksInfo
+    public interface ITransactionLocksInfo
     {
         public List<TableLock> TablesLocks { get; }
     }

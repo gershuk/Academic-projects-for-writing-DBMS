@@ -10,7 +10,8 @@
         public override void CollectInfoFromChild()
         {
             TransactionBeginOptNode = FindFirstChildNodeByType<TransactionBeginOptNode>();
-            TransactionEndOptNode = FindFirstChildNodeByType<TransactionEndOptNode>();
+            TransactionEndOptNode = FindFirstChildNodeByType<TransactionEndOptNode>()
+                ?? new TransactionEndOptNode() { TransactionEndType = DataBaseType.TransactionEndType.Commit };
             StmtListNode = FindFirstChildNodeByType<StmtListNode>();
             SqlCommandNode = FindFirstChildNodeByType<SqlCommandNode>();
         }

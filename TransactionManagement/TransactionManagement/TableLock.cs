@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace TransactionManagement
 {
-    internal interface ITableLock
+    public interface ITableLock
     {
         public LockType LockType { get; }
         public ManualResetEvent Notify { get; }

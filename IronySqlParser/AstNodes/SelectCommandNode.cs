@@ -17,7 +17,7 @@ namespace IronySqlParser.AstNodes
             WhereExpression = FindFirstChildNodeByType<WhereClauseNode>()?.Expression;
         }
 
-        public override List<TableLock> GetCommandInfo() => new List<TableLock>() { new TableLock(LockType.Read, TableName, new System.Threading.ManualResetEvent(false)) };
+        public override List<TableLock> GetTableLocks() => new List<TableLock>() { new TableLock(LockType.Read, TableName, new System.Threading.ManualResetEvent(false)) };
     }
 }
 

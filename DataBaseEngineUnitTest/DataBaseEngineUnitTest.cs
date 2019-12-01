@@ -3,7 +3,7 @@ using System.IO;
 
 using DataBaseEngine;
 
-using DataBaseTable;
+using DataBaseType;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,19 +13,19 @@ namespace DataBaseEngineUnitTest
     [TestClass]
     public class DataBaseUnitTests
     {
-        DataBaseEngineMain dataBase;
-        const string testConfigPath = "TestConfig.json";
-        [TestInitialize]
-        public void TestInitialize() => dataBase = new DataBaseEngineMain(testConfigPath);
+        //DataBaseEngineMain dataBase;
+        //const string testConfigPath = "TestConfig.json";
+        //[TestInitialize]
+        //public void TestInitialize() => dataBase = new DataBaseEngineMain(testConfigPath);
 
-        [TestCleanup]
-        public void TestCleanup()
-        {
-            if (File.Exists(dataBase.EngineConfig.Path))
-            {
-                File.Delete(dataBase.EngineConfig.Path);
-            }
-        }
+        //[TestCleanup]
+        //public void TestCleanup()
+        //{
+        //    if (File.Exists(dataBase.EngineConfig.Path))
+        //    {
+        //        File.Delete(dataBase.EngineConfig.Path);
+        //    }
+        //}
 
         //[TestMethod]
         //public void AddTableOnlyNameTest()

@@ -72,6 +72,10 @@
       <Project>{663469a0-7e1d-429a-b243-17502ef9447a}</Project>
       <Name>DataBaseEngine</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DataBaseTypes\DataBaseTypes.csproj">
+      <Project>{c0635319-ed1d-4bc7-91a5-4e5b9fbd5076}</Project>
+      <Name>DataBaseTypes</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -54,6 +54,14 @@
       <Project>{C15134B4-06AA-4850-B366-46CCCCC4B4F4}</Project>
       <Name>ConsoleClientServer</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DataBaseTypes\DataBaseTypes.csproj">
+      <Project>{C0635319-ED1D-4BC7-91A5-4E5B9FBD5076}</Project>
+      <Name>DataBaseTypes</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SunflowerDataBase\SunflowerDataBase.csproj">
+      <Project>{21c8c4f5-5a41-4004-af35-66c3eda98cad}</Project>
+      <Name>SunflowerDataBase</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

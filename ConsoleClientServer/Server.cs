@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using SunflowerDB;
 
 namespace ConsoleClientServer
 {
@@ -13,9 +14,10 @@ namespace ConsoleClientServer
         void Disconnect();
         void Listen();
         void RemoveConnection(string id);
+        byte[] ExecuteQuery(string query);
     }
 
-    public class Server : IServer
+    public abstract class Server : IServer
     {
         private TcpListener _tcpListener; // сервер для прослушивания
         private readonly List<Listener> _clients = new List<Listener>(); // все подключения
@@ -93,5 +95,7 @@ namespace ConsoleClientServer
 
             Environment.Exit(0); //завершение процесса
         }
+
+        public abstract byte[] ExecuteQuery(string query);
     }
 }

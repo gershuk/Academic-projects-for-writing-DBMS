@@ -1,7 +1,11 @@
 ﻿using System;
+using System.IO;
 using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
+using DataBaseType;
+using SunflowerDB;
 
 namespace ConsoleClientServer
 {
@@ -9,13 +13,14 @@ namespace ConsoleClientServer
     {
         void Connect();
         void Dispose();
-        void SendResieveMessage();
+        void SendResieveMessage<T>();
+        string ConvertMessageToString<T>(T value);
     }
 
-    public class Client : IDisposable, IClient
+    public abstract class Client : IDisposable, IClient
     {
-        private readonly string _host = "127.0.0.1";
-        private readonly int _port = 8888;
+        private readonly string _host;
+        private readonly int _port;
         private readonly TcpClient _client;
         private NetworkStream _stream;
         private readonly Thread _receiveThread;
@@ -27,8 +32,6 @@ namespace ConsoleClientServer
             _host = host;
             _port = port;
             _client = new TcpClient();
-
-
         }
         public void Connect()
         {
@@ -68,7 +71,9 @@ namespace ConsoleClientServer
         }
 
         // отправка сообщений
-        public void SendResieveMessage()
+        public abstract string ConvertMessageToString<T>(T value);
+
+        public void SendResieveMessage<T>()
         {
             if (_stream == null)
             {
@@ -86,17 +91,18 @@ namespace ConsoleClientServer
                     }
                     {
                         var data = new byte[64]; // буфер для получаемых данных
-                        var builder = new StringBuilder();
                         var bytes = 0;
-
+                        using var binaryData = new MemoryStream();
                         do
                         {
                             bytes = _stream.Read(data, 0, data.Length);
-                            builder.Append(Encoding.Unicode.GetString(data, 0, bytes));
+                            binaryData.Write(data, 0, bytes);
                         }
                         while (_stream.DataAvailable);
 
-                        var result = builder.ToString();
+                        var formatter = new BinaryFormatter();
+                        var value = (T)formatter.Deserialize(binaryData);
+                        var result = ConvertMessageToString<T>(value);
                         Console.WriteLine(result);//вывод сообщения
                     }
                 }
@@ -150,6 +156,11 @@ namespace ConsoleClientServer
             }
 
             _disposed = true;
+        }
+
+        ~Client()
+        {
+            Dispose(false);
         }
     }
 }

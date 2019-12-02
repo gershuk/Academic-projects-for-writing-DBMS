@@ -37,8 +37,7 @@ namespace ConsoleClientServer
                     try
                     {
                         message = GetMessage();
-                        ///todo работа с БД
-                        var data = Encoding.Unicode.GetBytes(message);
+                        var data = _server.ExecuteQuery(message);
                         Stream.Write(data, 0, data.Length); //передача данных всем
                     }
                     catch

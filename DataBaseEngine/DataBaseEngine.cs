@@ -67,7 +67,7 @@ namespace DataBaseEngine
             _dataStorage = new DataStorageInFiles(pathDataBaseStorage, blockSize);
         }
 
-        public OperationResult<Table> AddColumnToTable(List<string> tableName, Column column) => throw new NotImplementedException();
+        public OperationResult<Table> AddColumnCommand(List<string> tableName, Column column) => throw new NotImplementedException();
         public void CommitTransaction(Guid transactionGuid) => throw new NotImplementedException();
         public OperationResult<Table> CreateTableCommand(List<string> name) => throw new NotImplementedException();
         public OperationResult<Table> DeleteCommand(List<string> tableName, ExpressionFunction expression) => throw new NotImplementedException();

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ConsoleClientServer;
 using DataBaseType;
 using SunflowerDB;
@@ -43,27 +39,25 @@ namespace SunflowerDBClient
             throw new NotImplementedException();
 
         }
-        public class ConsoleClient
-    {
-        private static void Main(string[] args)
+        internal class ConsoleClient
         {
-            const string BaseHost = "127.0.0.1";
-            const int BasePort = 8888;
-            Client client;
-
-            if (args.Length < 2)
+            private static void Main(string[] args)
             {
+                var BaseHost = "127.0.0.1";
+                var BasePort = 8888;
+                Client client;
+
+                if (args.Length == 2)
+                {
+                    BaseHost = args[0];
+                    BasePort = int.Parse(args[1]);
+                }
+
                 client = new SunflowerDBClient(BaseHost, BasePort);
-            }
-            else
-            {
 
-                client = new SunflowerDBClient(args[0], int.Parse(args[1]));
+                client.SendResieveMessage<OperationResult<SqlSequenceResult>>();
+                client.Dispose();
             }
-
-            client.SendResieveMessage<OperationResult<SqlSequenceResult>>();
-            client.Dispose();
         }
-    }
     }
 }

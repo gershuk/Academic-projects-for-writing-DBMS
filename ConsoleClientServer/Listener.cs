@@ -58,11 +58,10 @@ namespace ConsoleClientServer
         {
             var data = new byte[128];
             var builder = new StringBuilder();
-            var bytes = 0;
 
             do
             {
-                bytes = Stream.Read(data, 0, data.Length);
+                var bytes = Stream.Read(data, 0, data.Length);
                 builder.Append(Encoding.Unicode.GetString(data, 0, bytes));
             }
             while (Stream.DataAvailable);

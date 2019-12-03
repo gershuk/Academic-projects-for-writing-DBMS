@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace TransactionManagement
 {
@@ -15,6 +16,7 @@ namespace TransactionManagement
         public List<TableLock> TablesLocks { get; }
     }
 
+    [Serializable]
     public class TransactionLocksInfo : ITransactionLocksInfo
     {
         public List<TableLock> TablesLocks { get; private set; }

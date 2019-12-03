@@ -46,6 +46,34 @@ namespace DataBaseType
             Result = result;
             OperationException = opException;
         }
+
+        public override string ToString()
+        {
+            var result = "---------------------------------------\n";
+
+            switch (State)
+            {
+                case OperationExecutionState.notProcessed:
+                    result += "Not Processed\n";
+                    break;
+                case OperationExecutionState.parserError:
+                    result += "Parser Error\n";
+                    result += OperationException.Message + "\n";
+                    break;
+                case OperationExecutionState.failed:
+                    result += "Failed\n";
+                    result += OperationException.Message + "\n";
+                    break;
+                case OperationExecutionState.performed:
+                    result += "Performed\n";
+                    result += Result?.ToString() + "\n";
+                    break;
+            }
+
+            result+= "---------------------------------------\n";
+
+            return result;
+        }
     }
 
     public enum TransactionEndType

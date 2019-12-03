@@ -1,18 +1,18 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("DataBaseEngineUnitTest")]
+[assembly: AssemblyTitle("IntegrationTests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("DataBaseEngineUnitTest")]
+[assembly: AssemblyProduct("IntegrationTests")]
 [assembly: AssemblyCopyright("Copyright ©  2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 [assembly: ComVisible(false)]
 
-[assembly: Guid("2b95ce51-9831-438e-a996-e2871b2b7209")]
+[assembly: Guid("bee96720-8eaa-451b-8ef3-42faff873627")]
 
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]

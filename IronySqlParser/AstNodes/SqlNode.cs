@@ -60,20 +60,20 @@ namespace IronySqlParser.AstNodes
 
     public class SqlKeyNode : ISqlChildNode
     {
-        private readonly Token token;
-        private ISqlNode parent;
+        private readonly Token _token;
+        private ISqlNode _parent;
 
         public SqlKeyNode(Token token)
         {
-            this.token = token;
+            _token = token;
             Text = token.Text;
         }
 
         string ISqlNode.NodeName => Text;
-        ISqlNode ISqlNode.Parent => parent;
+        ISqlNode ISqlNode.Parent => _parent;
         IEnumerable<ISqlNode> ISqlNode.ChildNodes => new ISqlNode[0];
-        IEnumerable<Token> ISqlNode.Tokens => new Token[] { token };
-        void ISqlChildNode.SetParent(ISqlNode node) => parent = node;
+        IEnumerable<Token> ISqlNode.Tokens => new Token[] { _token };
+        void ISqlChildNode.SetParent(ISqlNode node) => _parent = node;
         public string Text { get; private set; }
         public object Accept(ISqlNodeExecutor sqlNodeVisitor) => null;
     }

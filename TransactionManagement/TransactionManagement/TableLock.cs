@@ -11,10 +11,13 @@ namespace TransactionManagement
         public List<string> TableName { get; }
     }
 
+    [Serializable]
     public class TableLock : ITableLock
     {
         public LockType LockType { get; private set; }
         public List<string> TableName { get; private set; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2235:Mark all non-serializable fields", Justification = "<Ожидание>")]
         public ManualResetEvent Notify { get; private set; }
 
         public TableLock(LockType lockType, List<string> name, ManualResetEvent notify)

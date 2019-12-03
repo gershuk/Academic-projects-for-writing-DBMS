@@ -14,6 +14,7 @@ using TransactionManagement;
 
 namespace SunflowerDB
 {
+    [Serializable]
     public class TransactionInfo
     {
         public List<string> Name { get; set; }
@@ -46,6 +47,7 @@ namespace SunflowerDB
         }
     }
 
+    [Serializable]
     public class SqlSequenceResult
     {
         public List<TransactionInfo> Answer { get; private set; }

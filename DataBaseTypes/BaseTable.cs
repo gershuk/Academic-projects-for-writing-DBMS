@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
-using System.Globalization;
-
-using DataBaseType;
 using ZeroFormatter;
 
 namespace DataBaseType
@@ -14,19 +12,12 @@ namespace DataBaseType
     {
         [UnionKey]
         public abstract DataType Type { get; }
-        public Field() { }
     }
 
     [ZeroFormattable]
     public class FieldInt : Field
     {
-        public override DataType Type
-        {
-            get
-            {
-                return DataType.INT;
-            }
-        }
+        public override DataType Type => DataType.INT;
 
         [Index(0)]
         public virtual int Value { get; set; }
@@ -41,15 +32,11 @@ namespace DataBaseType
     [ZeroFormattable]
     public class FieldDouble : Field
     {
-        public override DataType Type
-        {
-            get
-            {
-                return DataType.DOUBLE;
-            }
-        }
+        public override DataType Type => DataType.DOUBLE;
+
         [Index(0)]
         public virtual double Value { get; set; }
+
         public FieldDouble()
         {
 
@@ -61,21 +48,19 @@ namespace DataBaseType
     [ZeroFormattable]
     public class FieldChar : Field
     {
-        public override DataType Type
-        {
-            get
-            {
-                return DataType.CHAR;
-            }
-        }
+        public override DataType Type => DataType.CHAR;
+
         [Index(0)]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1819:Свойства не должны возвращать массивы", Justification = "<Ожидание>")]
         public virtual byte[] ValueBytes { get; set; }
+
         [IgnoreFormat]
         public string Value => Encoding.UTF8.GetString(ValueBytes, 0, ValueBytes.Length);
 
         public FieldChar()
         {
         }
+
         public FieldChar(string val, int size)
         {
             ValueBytes = new byte[size];
@@ -84,22 +69,36 @@ namespace DataBaseType
             {
                 ValueBytes[i] = buf[i];
             }
+
             for (var i = buf.Length; i < size; i++)
             {
                 ValueBytes[i] = System.Text.Encoding.ASCII.GetBytes(" ")[0];
             }
         }
+
         public override string ToString() => Value.ToString();
     }
+
     [ZeroFormattable]
     public class Column
     {
-        [Index(0)] public virtual List<string> Name { get; set; }
-        [Index(1)] public virtual DataType DataType { get; set; }
-        [Index(2)] public virtual double? DataParam { get; set; }
-        [Index(3)] public virtual List<string> Constrains { get; set; }
-        [Index(4)] public virtual int Size { get; set; }
-        [Index(5)] public virtual NullSpecOpt TypeState { get; set; }
+        [Index(0)]
+        public virtual List<string> Name { get; set; }
+
+        [Index(1)]
+        public virtual DataType DataType { get; set; }
+
+        [Index(2)]
+        public virtual double? DataParam { get; set; }
+
+        [Index(3)]
+        public virtual List<string> Constrains { get; set; }
+
+        [Index(4)]
+        public virtual int Size { get; set; }
+
+        [Index(5)]
+        public virtual NullSpecOpt TypeState { get; set; }
 
         public Column() { }
 
@@ -126,7 +125,7 @@ namespace DataBaseType
                     }
                     catch
                     {
-                        return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldExeption(Name, DataType.ToString(), data));
+                        return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
                     }
                 case DataType.DOUBLE:
                     try
@@ -136,23 +135,32 @@ namespace DataBaseType
                     }
                     catch
                     {
-                        return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldExeption(Name, DataType.ToString(), data));
+                        return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
                     }
                 case DataType.CHAR:
                     return new OperationResult<Field>(OperationExecutionState.performed, new FieldChar(data, (int)DataParam));
 
             }
-            return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldExeption(Name, DataType.ToString(), data));
+
+            return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
         }
     }
+
+    [Serializable]
     [ZeroFormattable]
     public class TableMetaInf
     {
-        [Index(0)] public virtual List<string> Name { get; set; }
-        [Index(1)] public virtual Dictionary<string, Column> ColumnPool { get; set; }
-        [Index(2)] public virtual int SizeInBytes { get; set; }
+        [Index(0)]
+        public virtual List<string> Name { get; set; }
+
+        [Index(1)]
+        public virtual Dictionary<string, Column> ColumnPool { get; set; }
+
+        [Index(2)]
+        public virtual int SizeInBytes { get; set; }
 
         public TableMetaInf() { }
+
         public string GetFullName()
         {
             var sb = new StringBuilder();
@@ -165,9 +173,11 @@ namespace DataBaseType
         public TableMetaInf(List<string> name) => Name = name;
     }
 
+    [Serializable]
     public class Table
     {
         public IEnumerable<Field[]> TableData { get; set; }
+
         public TableMetaInf TableMetaInf { get; set; }
 
         public Table()
@@ -186,13 +196,13 @@ namespace DataBaseType
         public OperationResult<Table> AddColumn(Column column)
         {
             TableMetaInf.ColumnPool ??= new Dictionary<string, Column>();
-            if (!TableMetaInf.ColumnPool.ContainsKey(column.Name.ToString()))
+            if (!TableMetaInf.ColumnPool.ContainsKey(column?.Name.ToString()))
             {
                 TableMetaInf.ColumnPool.Add(column.Name.ToString(), column);
             }
             else
             {
-                return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnAlreadyExistExeption(column.Name.ToString(), TableMetaInf.Name.ToString()));
+                return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnAlreadyExistException(column.Name.ToString(), TableMetaInf.Name.ToString()));
             }
 
             return new OperationResult<Table>(OperationExecutionState.performed, this);
@@ -207,8 +217,9 @@ namespace DataBaseType
             }
             else
             {
-                return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnNotExistExeption(ColumName, TableMetaInf.Name.ToString()));
+                return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnNotExistException(ColumName, TableMetaInf.Name.ToString()));
             }
+
             return new OperationResult<Table>(OperationExecutionState.performed, this);
         }
 
@@ -241,8 +252,14 @@ namespace DataBaseType
         }
         public OperationResult<Field[]> CreateRowFormStr(string[] strs)
         {
+            if (strs is null)
+            {
+                throw new ArgumentNullException(nameof(strs));
+            }
+
             var row = new Field[TableMetaInf.ColumnPool.Count];
-            int i = 0;
+            var i = 0;
+
             foreach (var col in TableMetaInf.ColumnPool)
             {
                 var result = col.Value.CreateField(strs[i]);
@@ -253,12 +270,14 @@ namespace DataBaseType
                 row[i] = result.Result;
                 i++;
             }
+
             return new OperationResult<Field[]>(OperationExecutionState.performed, row);
         }
         public OperationResult<Field[]> CreateDefaultRow()
         {
             var row = new Field[TableMetaInf.ColumnPool.Count];
-            int i = 0;
+            var i = 0;
+
             foreach (var col in TableMetaInf.ColumnPool)
             {
                 row[i] = col.Value.CreateField("0").Result;
@@ -266,6 +285,7 @@ namespace DataBaseType
             }
             return new OperationResult<Field[]>(OperationExecutionState.performed, row);
         }
+
         public OperationResult<string> ShowCreateTable()
         {
             using var sw = new StringWriter();

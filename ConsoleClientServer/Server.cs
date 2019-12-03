@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using SunflowerDB;
 
 namespace ConsoleClientServer
 {
@@ -25,11 +24,15 @@ namespace ConsoleClientServer
 
         public void AddConnection(Listener clientObject)
         {
+            if (clientObject is null)
+            {
+                throw new ArgumentNullException(nameof(clientObject));
+            }
+
             Console.WriteLine($"{clientObject.Id} conection established");
             _clients.Add(clientObject);
         }
 
-        //ToDO : исправить формат строк
         public void RemoveConnection(string id)
         {
             Console.WriteLine($"{id} conection lost");
@@ -62,7 +65,7 @@ namespace ConsoleClientServer
             }
         }
 
-        protected internal void SereverConsoleReader()
+        protected internal static void SereverConsoleReader()
         {
             while (true)
             {
@@ -74,7 +77,7 @@ namespace ConsoleClientServer
         }
 
         // трансляция сообщения всем подключенным клиентам на случай чего
-        protected internal void BroadcastMessage(string message, string id)
+        protected internal void BroadcastMessage(string message)
         {
             var data = Encoding.Unicode.GetBytes(message);
             for (var i = 0; i < _clients.Count; i++)

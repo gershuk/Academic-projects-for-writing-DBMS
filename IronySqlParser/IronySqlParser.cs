@@ -297,24 +297,24 @@ namespace IronySqlParser
     public class SqlSequenceParser
     {
         private readonly SqlGrammar _sqlGrammar;
-        private readonly LanguageData language;
-        private readonly Parser parser;
+        private readonly LanguageData _language;
+        private readonly Parser _parser;
 
         public SqlSequenceParser()
         {
             _sqlGrammar = new SqlGrammar();
-            language = new LanguageData(_sqlGrammar);
-            parser = new Parser(language);
+            _language = new LanguageData(_sqlGrammar);
+            _parser = new Parser(_language);
         }
 
         public bool IsSequenceValid(string sequence)
         {
-            var parseTree = parser.Parse(sequence);
+            var parseTree = _parser.Parse(sequence);
             var root = parseTree.Root;
             return root != null;
         }
 
-        public ParseTree BuildTree(string sequence) => parser.Parse(sequence);
+        public ParseTree BuildTree(string sequence) => _parser.Parse(sequence);
 
         public void ShowLexicalTree(ParseTreeNode node, int level = 0)
         {

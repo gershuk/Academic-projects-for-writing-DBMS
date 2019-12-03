@@ -1,21 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using ConsoleClientServer;
 using DataBaseEngine;
 using TransactionManagement;
 
 namespace SunflowerDB
 {
-    public class SunflowerDBServer : Server , IDisposable
+    public sealed class SunflowerDBServer : Server, IDisposable
     {
-        private DataBase _core = new DataBase(20, new DataBaseEngineMain(), new TransactionScheduler());
-        private bool _disposed=false;
+        private readonly DataBase _core = new DataBase(20, new DataBaseEngineMain(), new TransactionScheduler());
+        private bool _disposed = false;
 
         public void Dispose()
         {
@@ -59,7 +55,7 @@ namespace SunflowerDB
     {
         private static void Main(string[] args)
         {
-            Server _server = default; // сервер
+            SunflowerDBServer _server = default; // сервер
             Thread _listenThread = default; // потока для прослушивания
 
             try
@@ -67,6 +63,7 @@ namespace SunflowerDB
                 _server = new SunflowerDBServer();
                 _listenThread = new Thread(new ThreadStart(_server.Listen));
                 _listenThread.Start(); //старт потока
+                _server.Dispose();
             }
             catch (Exception ex)
             {

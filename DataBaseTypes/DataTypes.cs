@@ -17,6 +17,7 @@ namespace DataBaseType
         Right
     }
 
+    [Serializable]
     public enum OperationExecutionState
     {
         notProcessed,
@@ -32,6 +33,7 @@ namespace DataBaseType
         OperationExecutionState State { get; set; }
     }
 
+    [Serializable]
     public class OperationResult<T> : IOperationResult<T>
     {
         public OperationExecutionState State { get; set; }
@@ -59,6 +61,7 @@ namespace DataBaseType
         Empty
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1720:Идентификатор содержит имя типа", Justification = "<Ожидание>")]
     public enum DataType
     {
         DATETIME,

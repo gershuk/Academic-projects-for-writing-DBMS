@@ -1,20 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-
-using DataBaseEngine;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DataBaseType;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using StorageEngine;
-
-using ZeroFormatter;
 
 namespace DataBaseEngineUnitTest
 {
     [TestClass]
     public class StorageEngineUnitTests
     {
-        DataStorageInFiles dataStorage;
-        const int blockSize = 4096;
+        private DataStorageInFiles _dataStorage;
+        private const int _blockSize = 4096;
         [TestInitialize]
         public void TestInitialize()
         {
@@ -29,13 +25,13 @@ namespace DataBaseEngineUnitTest
         }
         [TestMethod]
         public void AddTableTest()
-        {   
+        {
             const string testPath = "StorageTestAddTableTest";
             if (Directory.Exists(testPath))
             {
                 Directory.Delete(testPath, true);
             }
-            dataStorage = new DataStorageInFiles(testPath, blockSize);
+            _dataStorage = new DataStorageInFiles(testPath, _blockSize);
 
 
             var tableName = new List<string>() { "Table1" };
@@ -46,18 +42,18 @@ namespace DataBaseEngineUnitTest
                 { "Rating",new Column(new List<string>(){"Rating" }, DataType.DOUBLE, 0, new List<string>(), NullSpecOpt.Null) },
                 };
             var table = new Table(new TableMetaInf(tableName) { ColumnPool = columns });
-            var result = dataStorage.AddTable(table);
+            var result = _dataStorage.AddTable(table);
             Assert.AreEqual(result.State, OperationExecutionState.performed);
 
-            var resultCont = dataStorage.ContainsTable(table.TableMetaInf.GetFullName());
+            var resultCont = _dataStorage.ContainsTable(table.TableMetaInf.GetFullName());
             Assert.AreEqual(resultCont.State, OperationExecutionState.performed);
             Assert.AreEqual(resultCont.Result, true);
 
-            resultCont = dataStorage.ContainsTable("radomTable");
+            resultCont = _dataStorage.ContainsTable("radomTable");
             Assert.AreEqual(resultCont.State, OperationExecutionState.failed);
             Assert.AreEqual(resultCont.Result, false);
 
-            var resultTable = dataStorage.LoadTable(table.TableMetaInf.GetFullName());
+            var resultTable = _dataStorage.LoadTable(table.TableMetaInf.GetFullName());
             Assert.AreEqual(resultTable.State, OperationExecutionState.performed);
             Assert.AreEqual(resultTable.Result.TableMetaInf.GetFullName(), table.TableMetaInf.GetFullName());
             foreach (var col in resultTable.Result.TableMetaInf.ColumnPool)
@@ -75,7 +71,7 @@ namespace DataBaseEngineUnitTest
             {
                 Directory.Delete(testPath, true);
             }
-            dataStorage = new DataStorageInFiles(testPath, 805);
+            _dataStorage = new DataStorageInFiles(testPath, 805);
 
             var tableName = new List<string>() { "Table1" };
             var columns = new Dictionary<string, Column> {
@@ -85,7 +81,7 @@ namespace DataBaseEngineUnitTest
                 { "Rating",new Column(new List<string>(){"Rating" }, DataType.DOUBLE, 0, new List<string>(), NullSpecOpt.Null) },
                 };
             var table = new Table(new TableMetaInf(tableName) { ColumnPool = columns });
-            var result = dataStorage.AddTable(table);
+            var result = _dataStorage.AddTable(table);
             Assert.AreEqual(result.State, OperationExecutionState.performed);
 
             //var row1 = table.CreateDefaultRow();
@@ -94,19 +90,18 @@ namespace DataBaseEngineUnitTest
             //    Assert.AreEqual(row1.State, OperationExecutionState.performed);
             //    dataStorage.InsertRow(tableName, row1.Result);
             //}
-            int count = 0;
+            var count = 0;
             var row2 = table.CreateRowFormStr(new string[] { "Ivan", "IvanovIvanovIvanov", "23", "44.345" });
-            for (int i = 0; i < 10; ++i)
-            { 
+            for (var i = 0; i < 10; ++i)
+            {
                 Assert.AreEqual(row2.State, OperationExecutionState.performed);
-                dataStorage.InsertRow(tableName[0], row2.Result);
+                _dataStorage.InsertRow(tableName[0], row2.Result);
                 count++;
             }
 
-            var resultTable = dataStorage.LoadTable(table.TableMetaInf.GetFullName());
+            var resultTable = _dataStorage.LoadTable(table.TableMetaInf.GetFullName());
             Assert.AreEqual(resultTable.State, OperationExecutionState.performed);
 
-            var rowEnumerator = resultTable.Result.TableData.GetEnumerator();
             count = 0;
             foreach (var row in resultTable.Result.TableData)
             {
@@ -126,7 +121,7 @@ namespace DataBaseEngineUnitTest
             {
                 Directory.Delete(testPath, true);
             }
-            dataStorage = new DataStorageInFiles(testPath, 805);
+            _dataStorage = new DataStorageInFiles(testPath, 805);
 
             var tableName = new List<string>() { "Table1" };
             var columns = new Dictionary<string, Column> {
@@ -136,18 +131,18 @@ namespace DataBaseEngineUnitTest
                 { "Rating",new Column(new List<string>(){"Rating" }, DataType.DOUBLE, 0, new List<string>(), NullSpecOpt.Null) },
                 };
             var table = new Table(new TableMetaInf(tableName) { ColumnPool = columns });
-            var result = dataStorage.AddTable(table);
+            var result = _dataStorage.AddTable(table);
             Assert.AreEqual(result.State, OperationExecutionState.performed);
 
-            int count = 0;
+            var count = 0;
             var row2 = table.CreateRowFormStr(new string[] { "Ivan", "IvanovIvanovIvanov", "23", "44.345" });
             Assert.AreEqual(row2.State, OperationExecutionState.performed);
             for (var i = 0; i < 10; ++i)
             {
-                Assert.AreEqual(dataStorage.InsertRow(tableName[0], row2.Result).State, OperationExecutionState.performed);
+                Assert.AreEqual(_dataStorage.InsertRow(tableName[0], row2.Result).State, OperationExecutionState.performed);
             }
 
-            var resultTable = dataStorage.LoadTable(table.TableMetaInf.GetFullName());
+            var resultTable = _dataStorage.LoadTable(table.TableMetaInf.GetFullName());
             Assert.AreEqual(resultTable.State, OperationExecutionState.performed);
             count = 0;
             foreach (var row in resultTable.Result.TableData)
@@ -160,10 +155,10 @@ namespace DataBaseEngineUnitTest
             var rowNotChange = table.CreateRowFormStr(new string[] { "Ivan", "IvanovIvanovIvanov", "100500", "44.345" });
             var rowChange = table.CreateRowFormStr(new string[] { "Gvanchik", "IvanovIvanovIvanov", "67", "44.345" });
 
-            Assert.AreEqual(dataStorage.InsertRow(tableName[0], rowNotChange.Result).State, OperationExecutionState.performed);
-            dataStorage.UpdateAllRow(table.TableMetaInf.GetFullName(), rowChange.Result, (Field[] f) => ((FieldChar)(f[0])).Value == ((FieldChar)(row2.Result[0])).Value);
+            Assert.AreEqual(_dataStorage.InsertRow(tableName[0], rowNotChange.Result).State, OperationExecutionState.performed);
+            _dataStorage.UpdateAllRow(table.TableMetaInf.GetFullName(), rowChange.Result, (Field[] f) => ((FieldChar)(f[0])).Value == ((FieldChar)(row2.Result[0])).Value);
 
-            resultTable = dataStorage.LoadTable(table.TableMetaInf.GetFullName());
+            resultTable = _dataStorage.LoadTable(table.TableMetaInf.GetFullName());
             Assert.AreEqual(resultTable.State, OperationExecutionState.performed);
             count = 0;
             foreach (var row in resultTable.Result.TableData)
@@ -190,7 +185,7 @@ namespace DataBaseEngineUnitTest
             {
                 Directory.Delete(testPath, true);
             }
-            dataStorage = new DataStorageInFiles(testPath, 805);
+            _dataStorage = new DataStorageInFiles(testPath, 805);
 
             var tableName = new List<string>() { "Table1" };
             var columns = new Dictionary<string, Column> {
@@ -200,7 +195,7 @@ namespace DataBaseEngineUnitTest
                 { "Rating",new Column(new List<string>(){"Rating" }, DataType.DOUBLE, 0, new List<string>(), NullSpecOpt.Null) },
                 };
             var table = new Table(new TableMetaInf(tableName) { ColumnPool = columns });
-            var result = dataStorage.AddTable(table);
+            var result = _dataStorage.AddTable(table);
             Assert.AreEqual(result.State, OperationExecutionState.performed);
 
             var row1 = table.CreateDefaultRow();
@@ -214,27 +209,27 @@ namespace DataBaseEngineUnitTest
             Assert.AreEqual(row2.State, OperationExecutionState.performed);
             for (var i = 0; i < 10; ++i)
             {
-                Assert.AreEqual(dataStorage.InsertRow(tableName[0], row2.Result).State, OperationExecutionState.performed);
+                Assert.AreEqual(_dataStorage.InsertRow(tableName[0], row2.Result).State, OperationExecutionState.performed);
             }
-            dataStorage.InsertRow(tableName[0], row1.Result);
-            dataStorage.RemoveAllRow(table.TableMetaInf.GetFullName(),(Field[] f)=> ((FieldChar)(f[0])).Value == ((FieldChar)(row2.Result[0])).Value );
-            dataStorage.InsertRow(tableName[0], row1.Result);
+            _dataStorage.InsertRow(tableName[0], row1.Result);
+            _dataStorage.RemoveAllRow(table.TableMetaInf.GetFullName(), (Field[] f) => ((FieldChar)(f[0])).Value == ((FieldChar)(row2.Result[0])).Value);
+            _dataStorage.InsertRow(tableName[0], row1.Result);
 
-            var resultTable = dataStorage.LoadTable(table.TableMetaInf.GetFullName());
+            var resultTable = _dataStorage.LoadTable(table.TableMetaInf.GetFullName());
             Assert.AreEqual(resultTable.State, OperationExecutionState.performed);
-            int count = 0;
+            var count = 0;
             foreach (var row in resultTable.Result.TableData)
             {
                 CheckRow(row, row1.Result);
                 count++;
             }
             Assert.AreEqual(count, 2);
-            for (int i = 0; i < 15; ++i)
+            for (var i = 0; i < 15; ++i)
             {
 
-                Assert.AreEqual(dataStorage.InsertRow(tableName[0], row1.Result).State, OperationExecutionState.performed);
+                Assert.AreEqual(_dataStorage.InsertRow(tableName[0], row1.Result).State, OperationExecutionState.performed);
             }
-            resultTable = dataStorage.LoadTable(table.TableMetaInf.GetFullName());
+            resultTable = _dataStorage.LoadTable(table.TableMetaInf.GetFullName());
             Assert.AreEqual(resultTable.State, OperationExecutionState.performed);
             count = 0;
             foreach (var row in resultTable.Result.TableData)
@@ -244,9 +239,9 @@ namespace DataBaseEngineUnitTest
             }
             Assert.AreEqual(count, 17);
 
-            dataStorage.RemoveAllRow(table.TableMetaInf.GetFullName(), (Field[] f) => ((FieldChar)(f[0])).Value == ((FieldChar)(row1.Result[0])).Value);
+            _dataStorage.RemoveAllRow(table.TableMetaInf.GetFullName(), (Field[] f) => ((FieldChar)(f[0])).Value == ((FieldChar)(row1.Result[0])).Value);
             count = 0;
-            resultTable = dataStorage.LoadTable(table.TableMetaInf.GetFullName());
+            resultTable = _dataStorage.LoadTable(table.TableMetaInf.GetFullName());
             Assert.AreEqual(resultTable.State, OperationExecutionState.performed);
             count = 0;
             foreach (var row in resultTable.Result.TableData)
@@ -257,7 +252,7 @@ namespace DataBaseEngineUnitTest
             Assert.AreEqual(count, 0);
         }
 
-            void CheckRow(Field[] a,Field[] b)
+        private void CheckRow(Field[] a, Field[] b)
         {
             Assert.AreEqual(a.Length, b.Length);
             for (var i = 0; i < b.Length; i++)

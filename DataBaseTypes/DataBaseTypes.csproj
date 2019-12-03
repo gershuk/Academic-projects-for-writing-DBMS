@@ -62,6 +62,7 @@
     <Compile Include="BaseTable.cs" />
     <Compile Include="DataBaseErrors.cs" />
     <Compile Include="DataTypes.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

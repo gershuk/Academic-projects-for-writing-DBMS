@@ -138,28 +138,28 @@ namespace DataBaseType
                     try
                     {
                         var val = Convert.ToInt32(data);
-                        return new OperationResult<Field>(OperationExecutionState.performed, new FieldInt { Value = val });
+                        return new OperationResult<Field>(ExecutionState.performed, new FieldInt { Value = val });
                     }
                     catch(FormatException)
                     {
-                        return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
+                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
                     }
                 case DataType.DOUBLE:
                     try
                     {
                         var val = Convert.ToDouble(data, new NumberFormatInfo { NumberDecimalSeparator = "." });
-                        return new OperationResult<Field>(OperationExecutionState.performed, new FieldDouble { Value = val });
+                        return new OperationResult<Field>(ExecutionState.performed, new FieldDouble { Value = val });
                     }
                     catch(FormatException)
                     {
-                        return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
+                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
                     }
                 case DataType.CHAR:
-                    return new OperationResult<Field>(OperationExecutionState.performed, new FieldChar(data, (int)DataParam));
+                    return new OperationResult<Field>(ExecutionState.performed, new FieldChar(data, (int)DataParam));
 
             }
 
-            return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
+            return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
         }
     }
 
@@ -217,10 +217,10 @@ namespace DataBaseType
             }
             else
             {
-                return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnAlreadyExistException(column.Name.ToString(), TableMetaInf.Name.ToString()));
+                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnAlreadyExistException(column.Name.ToString(), TableMetaInf.Name.ToString()));
             }
 
-            return new OperationResult<Table>(OperationExecutionState.performed, this);
+            return new OperationResult<Table>(ExecutionState.performed, this);
         }
 
         public OperationResult<Table> DeleteColumn(string ColumName)
@@ -232,10 +232,10 @@ namespace DataBaseType
             }
             else
             {
-                return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnNotExistException(ColumName, TableMetaInf.Name.ToString()));
+                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistException(ColumName, TableMetaInf.Name.ToString()));
             }
 
-            return new OperationResult<Table>(OperationExecutionState.performed, this);
+            return new OperationResult<Table>(ExecutionState.performed, this);
         }
 
         public override string ToString() => TableData == null ? ShowCreateTable().Result : ShowDataTable().Result;
@@ -263,7 +263,7 @@ namespace DataBaseType
                 sw.Write("\n");
             }
 
-            return new OperationResult<string>(OperationExecutionState.performed, sw.ToString());
+            return new OperationResult<string>(ExecutionState.performed, sw.ToString());
         }
         public OperationResult<Row> CreateRowFormStr(string[] strs)
         {
@@ -278,15 +278,15 @@ namespace DataBaseType
             foreach (var col in TableMetaInf.ColumnPool)
             {
                 var result = col.Value.CreateField(strs[i]);
-                if (result.State != OperationExecutionState.performed)
+                if (result.State != ExecutionState.performed)
                 {
-                    return new OperationResult<Row>(OperationExecutionState.failed, null, result.OperationError);
+                    return new OperationResult<Row>(ExecutionState.failed, null, result.OperationError);
                 }
                 row[i] = result.Result;
                 i++;
             }
 
-            return new OperationResult<Row>(OperationExecutionState.performed, new Row(row));
+            return new OperationResult<Row>(ExecutionState.performed, new Row(row));
         }
         public OperationResult<Row> CreateDefaultRow()
         {
@@ -298,7 +298,7 @@ namespace DataBaseType
                 row[i] = col.Value.CreateField("0").Result;
                 i++;
             }
-            return new OperationResult<Row>(OperationExecutionState.performed, new Row(row));
+            return new OperationResult<Row>(ExecutionState.performed, new Row(row));
         }
 
         public OperationResult<string> ShowCreateTable()
@@ -324,7 +324,7 @@ namespace DataBaseType
             str = str.TrimEnd(new char[] { ',' });
             str += ");";
 
-            return new OperationResult<string>(OperationExecutionState.performed, str);
+            return new OperationResult<string>(ExecutionState.performed, str);
         }
     }
 }

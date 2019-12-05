@@ -15,8 +15,7 @@ namespace TransactionManagement
     {
         public List<TableLock> TablesLocks { get; }
     }
-
-    [Serializable]
+ 
     public class TransactionLocksInfo : ITransactionLocksInfo
     {
         public List<TableLock> TablesLocks { get; private set; }

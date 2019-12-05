@@ -11,7 +11,6 @@ namespace TransactionManagement
         public List<string> TableName { get; }
     }
 
-    [Serializable]
     public class TableLock : ITableLock
     {
         public LockType LockType { get; private set; }

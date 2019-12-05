@@ -153,7 +153,6 @@ namespace IronySqlParser
 
             var deleteStmt = new NonTerminal("DeleteStmt", typeof(DeleteCommandNode));
 
-
             //BNF Rules
             Root = transactionList;
             transactionName.Rule = id | Empty;

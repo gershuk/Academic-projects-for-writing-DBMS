@@ -146,7 +146,6 @@ namespace DataBaseType
         }
     }
 
-    [Serializable]
     [ZeroFormattable]
     public class TableMetaInf
     {
@@ -173,7 +172,6 @@ namespace DataBaseType
         public TableMetaInf(List<string> name) => Name = name;
     }
 
-    [Serializable]
     public class Table
     {
         public IEnumerable<Field[]> TableData { get; set; }

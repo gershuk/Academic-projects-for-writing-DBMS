@@ -17,7 +17,7 @@ namespace DataBaseType
         Right
     }
 
-    [Serializable]
+    
     public enum OperationExecutionState
     {
         notProcessed,
@@ -28,19 +28,19 @@ namespace DataBaseType
 
     public interface IOperationResult<T>
     {
-        Exception OperationException { get; set; }
+        DBError OperationException { get; set; }
         T Result { get; set; }
         OperationExecutionState State { get; set; }
     }
 
-    [Serializable]
+    
     public class OperationResult<T> : IOperationResult<T>
     {
         public OperationExecutionState State { get; set; }
-        public Exception OperationException { get; set; }
+        public DBError OperationException { get; set; }
         public T Result { get; set; }
 
-        public OperationResult(OperationExecutionState state, T result, Exception opException = null)
+        public OperationResult(OperationExecutionState state, T result, DBError opException = null)
         {
             State = state;
             Result = result;

@@ -10,7 +10,7 @@ namespace SunflowerDB
 {
     public interface IEngineCommander
     {
-        public (OperationExecutionState state, Exception exception) ExecuteCommandList(List<SqlCommandNode> sqlCommand);
+        public (OperationExecutionState state, DBError exception) ExecuteCommandList(List<SqlCommandNode> sqlCommand);
         public void RollBackTransaction(Guid transactionGuid);
         public void CommitTransaction(Guid transactionGuid);
         public OperationResult<Table> GetTableByName(List<string> tableName);
@@ -22,7 +22,7 @@ namespace SunflowerDB
 
         public EngineCommander(IDataBaseEngine engine) => Engine = engine ?? throw new ArgumentNullException(nameof(engine));
 
-        public (OperationExecutionState state, Exception exception) ExecuteCommandList(List<SqlCommandNode> sqlCommands)
+        public (OperationExecutionState state, DBError exception) ExecuteCommandList(List<SqlCommandNode> sqlCommands)
         {
             foreach (var sqlCommand in sqlCommands)
             {

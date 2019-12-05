@@ -3,17 +3,30 @@ using System.Collections.Generic;
 using System.Text;
 
 using TransactionManagement;
+using ZeroFormatter;
 
 namespace DataBaseType
 {
+    [ZeroFormattable]
     public class TransactionInfo
     {
-        public List<string> Name { get; set; }
-        public Guid Guid { get; set; }
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
-        public List<OperationResult<Table>> OperationsResults { get; set; }
-        public TransactionLocksInfo LocksInfo { get; set; }
+        [Index(0)]
+        public virtual List<string> Name { get; set; }
+
+        [Index(1)]
+        public virtual Guid Guid { get; set; }
+
+        [Index(2)]
+        public virtual DateTime StartTime { get; set; }
+
+        [Index(3)]
+        public virtual DateTime EndTime { get; set; }
+
+        [Index(4)]
+        public virtual List<OperationResult<Table>> OperationsResults { get; set; }
+
+        [Index(5)]
+        public virtual TransactionLocksInfo LocksInfo { get; set; }
 
         public TransactionInfo(TransactionLocksInfo transactionLocksInfo) => LocksInfo = transactionLocksInfo
             ?? throw new ArgumentNullException(nameof(transactionLocksInfo));

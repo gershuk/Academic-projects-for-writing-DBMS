@@ -29,7 +29,7 @@ namespace SunflowerDB
                 var result = ExecuteSqlNode(sqlCommand) as OperationResult<Table>;
                 if (result.State != OperationExecutionState.performed)
                 {
-                    return (result.State, result.OperationException);
+                    return (result.State, result.OperationError);
                 }
             }
 

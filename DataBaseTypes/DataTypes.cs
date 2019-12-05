@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using ZeroFormatter;
+
 namespace DataBaseType
 {
     public enum UnionKind
@@ -28,23 +30,35 @@ namespace DataBaseType
 
     public interface IOperationResult<T>
     {
-        DBError OperationException { get; set; }
+        DBError OperationError { get; set; }
         T Result { get; set; }
         OperationExecutionState State { get; set; }
     }
 
-    
+    [ZeroFormattable]
     public class OperationResult<T> : IOperationResult<T>
     {
-        public OperationExecutionState State { get; set; }
-        public DBError OperationException { get; set; }
-        public T Result { get; set; }
+        [Index(0)]
+        public virtual OperationExecutionState State { get; set; }
+
+        [Index(1)]
+        public virtual DBError OperationError { get; set; }
+
+        [Index(2)]
+        public virtual T Result { get; set; }
+
+        public OperationResult()
+        {
+            State = OperationExecutionState.notProcessed;
+            OperationError = default;
+            Result = default;
+        }
 
         public OperationResult(OperationExecutionState state, T result, DBError opException = null)
         {
             State = state;
             Result = result;
-            OperationException = opException;
+            OperationError = opException;
         }
 
         public override string ToString()
@@ -58,11 +72,11 @@ namespace DataBaseType
                     break;
                 case OperationExecutionState.parserError:
                     result += "Parser Error\n";
-                    result += OperationException.Message + "\n";
+                    result += OperationError.Message + "\n";
                     break;
                 case OperationExecutionState.failed:
                     result += "Failed\n";
-                    result += OperationException.Message + "\n";
+                    result += OperationError.Message + "\n";
                     break;
                 case OperationExecutionState.performed:
                     result += "Performed\n";

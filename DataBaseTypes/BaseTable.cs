@@ -263,7 +263,7 @@ namespace DataBaseType
                 var result = col.Value.CreateField(strs[i]);
                 if (result.State != OperationExecutionState.performed)
                 {
-                    return new OperationResult<Field[]>(OperationExecutionState.failed, null, result.OperationException);
+                    return new OperationResult<Field[]>(OperationExecutionState.failed, null, result.OperationError);
                 }
                 row[i] = result.Result;
                 i++;

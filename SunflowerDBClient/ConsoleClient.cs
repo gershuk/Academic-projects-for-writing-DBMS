@@ -22,7 +22,7 @@ namespace SunflowerDBClient
                     case OperationExecutionState.parserError:
                     case OperationExecutionState.failed:
                         result += value.State + "\n";
-                        result += value.OperationException + "\n";
+                        result += value.OperationError + "\n";
                         result += "\n";
                         break;
                     case OperationExecutionState.performed:

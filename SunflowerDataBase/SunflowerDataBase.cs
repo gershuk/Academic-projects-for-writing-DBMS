@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 
 using DataBaseEngine;
@@ -44,6 +45,30 @@ namespace SunflowerDB
 
         public TransactionInfo()
         {
+        }
+
+        public override string ToString()
+        {
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.Append("Name:");
+
+            foreach (var simpleId in Name)
+            {
+                stringBuilder.Append(simpleId);
+                stringBuilder.Append(".");
+            }
+            stringBuilder.Append("\n");
+            stringBuilder.Append($"Guid {Guid}\n");
+            stringBuilder.Append($"Start Time {StartTime}\n");
+            stringBuilder.Append($"End Time {EndTime}\n");
+
+            foreach (var opResult in OperationsResults)
+            {
+                stringBuilder.Append($"{opResult}\n");
+            }
+
+            return stringBuilder.ToString();
         }
     }
 

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
+using System.Text;
 
 using DataBaseType;
 using ZeroFormatter;
@@ -187,10 +187,11 @@ namespace StorageEngine
 
     internal class DataStorageRowsInFiles : IEnumerable<Field[]>
     {
-        private readonly TableFileManager _tManager;
+       // private TableFileManager _tManager;
+        private string _tableFileName;
 
-        public DataStorageRowsInFiles(TableFileManager tManager_) => _tManager = tManager_;
-        public IEnumerator<Field[]> GetEnumerator() => new DataStorageRowsInFilesEnumerator(_tManager);
+        public DataStorageRowsInFiles(string fileName) => _tableFileName = fileName;
+        public IEnumerator<Field[]> GetEnumerator() => new DataStorageRowsInFilesEnumerator(new TableFileManager(new FileStream(_tableFileName,FileMode.Open)));
 
         IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
 
@@ -232,7 +233,10 @@ namespace StorageEngine
             {
                 _tManager.Dispose();
                 _blocks.Dispose();
-                _curRowRecordsEnumarator.Dispose();
+                if (_curRowRecordsEnumarator != null)
+                {
+                    _curRowRecordsEnumarator.Dispose();
+                }
 
             }
 
@@ -325,13 +329,14 @@ namespace StorageEngine
 
     public interface IDataStorage
     {
-        OperationResult<Table> LoadTable(string tableName);
-        OperationResult<bool> ContainsTable(string tableName);
+        OperationResult<Table> LoadTable(List<string> tableName);
+        OperationResult<bool> ContainsTable(List<string> tableName);
         OperationResult<string> AddTable(Table table);
-        OperationResult<string> RemoveTable(string tableName);
-        OperationResult<string> UpdateAllRow(string tableName, Field[] newRow, Predicate<Field[]> match);
-        OperationResult<string> InsertRow(string tableName, Field[] fields);
-        OperationResult<string> RemoveAllRow(string tableName, Predicate<Field[]> match);
+        OperationResult<string> RemoveTable(List<string> tableName);
+
+        OperationResult<string> UpdateAllRow(List<string> tableName, Field[] newRow, Predicate<Field[]> match);
+        OperationResult<string> InsertRow(List<string> tableName, Field[] fields);
+        OperationResult<string> RemoveAllRow(List<string> tableName, Predicate<Field[]> match);
     }
 
     public class DataStorageInFiles : IDataStorage
@@ -350,46 +355,51 @@ namespace StorageEngine
             }
         }
 
-        public OperationResult<Table> LoadTable(string tableName)
+        public OperationResult<Table> LoadTable(List<string> tableName)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistException(tableName));
+                return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistException(FullTableName(tableName)));
             }
-
-            using var tManager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open));
-
-            var table = tManager.LoadTable();
+            Table table;
+            using( var tManager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)) ){ 
+             table = tManager.LoadTable();
+             table.TableData = new DataStorageRowsInFiles(GetTableFileName(tableName));
+            }
 
             return new OperationResult<Table>(OperationExecutionState.performed, table);
         }
+       static private string FullTableName(List<string> tableName)
+        {
+            _ = tableName ?? throw new ArgumentNullException(nameof(tableName));
+            var sb = new StringBuilder();
+            foreach (var n in tableName)
+            {
+                sb.Append(n);
+            }
+            return sb.ToString();
+        }
+        public OperationResult<bool> ContainsTable(List<string> tableName) => File.Exists(GetTableFileName(tableName)) ? new OperationResult<bool>(OperationExecutionState.performed, true)
+                                                                                                                       : new OperationResult<bool>(OperationExecutionState.failed, false, new TableNotExistException(FullTableName(tableName)));
 
-        public OperationResult<bool> ContainsTable(string tableName) => File.Exists(GetTableFileName(tableName))
-                ? new OperationResult<bool>(OperationExecutionState.performed, true)
-                : new OperationResult<bool>(OperationExecutionState.failed, false);
+
 
         public OperationResult<string> AddTable(Table table)
         {
-            if (table is null)
+            _ = table ?? throw new ArgumentNullException(nameof(table));
+            if (File.Exists(GetTableFileName(table.TableMetaInf.Name)))
             {
-                throw new ArgumentNullException(nameof(table));
+                return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistException(FullTableName(table.TableMetaInf.Name)));
             }
-
-            if (File.Exists(GetTableFileName(table.TableMetaInf.GetFullName())))
-            {
-                return new OperationResult<string>(OperationExecutionState.failed, null, new TableAlreadyExistException(table.TableMetaInf.GetFullName()));
-            }
-
-            using var tManager = new TableFileManager(new FileStream(GetTableFileName(table.TableMetaInf.GetFullName()), FileMode.Create), table, _blockSize);
-
+            using var tManager = new TableFileManager(new FileStream(GetTableFileName(table.TableMetaInf.Name), FileMode.Create), table, _blockSize);
             return new OperationResult<string>(OperationExecutionState.performed, "");
         }
 
-        public OperationResult<string> RemoveTable(string tableName)
+        public OperationResult<string> RemoveTable(List<string> tableName)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistException(tableName));
+                return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistException(FullTableName(tableName)));
             }
 
             File.Delete(GetTableFileName(tableName));
@@ -397,11 +407,11 @@ namespace StorageEngine
             return new OperationResult<string>(OperationExecutionState.performed, "");
         }
 
-        public OperationResult<string> UpdateAllRow(string tableName, Field[] newRow, Predicate<Field[]> match)
+        public OperationResult<string> UpdateAllRow(List<string> tableName, Field[] newRow, Predicate<Field[]> match)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistException(tableName));
+                return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistException(FullTableName(tableName)));
             }
 
             using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
@@ -417,11 +427,11 @@ namespace StorageEngine
             return new OperationResult<string>(OperationExecutionState.performed, "");
         }
 
-        public OperationResult<string> InsertRow(string tableName, Field[] fields)
+        public OperationResult<string> InsertRow(List<string> tableName, Field[] fields)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistException(tableName));
+                return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistException(FullTableName(tableName)));
             }
 
             using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
@@ -433,12 +443,12 @@ namespace StorageEngine
             return new OperationResult<string>(OperationExecutionState.performed, "");
         }
 
-        public OperationResult<string> RemoveAllRow(string tableName, Predicate<Field[]> match)
+        public OperationResult<string> RemoveAllRow(List<string> tableName, Predicate<Field[]> match)
         {
 
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistException(tableName));
+                return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistException(FullTableName(tableName)));
             }
 
             using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
@@ -456,7 +466,8 @@ namespace StorageEngine
 
         private void CreateDataStorageFolder(string path) => Directory.CreateDirectory(path);
 
-        private string GetTableFileName(string tableName) => PathToDataBase + "/" + tableName + _fileExtension;
+        private string GetTableFileName(List<string> tableName) => PathToDataBase + "/" + FullTableName(tableName) + _fileExtension;
+
     }
 
     internal class TableFileManagerDataBlockNodeEnumerator : IEnumerator<DataBlockNode>
@@ -748,7 +759,7 @@ namespace StorageEngine
             var rawTable = new byte[metaInfDataStorage.TableMetaInfSize];
             _fileStream.Read(rawTable, 0, rawTable.Length);
             table.TableMetaInf = ZeroFormatterSerializer.Deserialize<TableMetaInf>(rawTable);
-            table.TableData = new DataStorageRowsInFiles(this);
+            //table.TableData = new DataStorageRowsInFiles(this);
             return table;
         }
 

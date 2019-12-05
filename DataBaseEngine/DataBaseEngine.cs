@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-
 using DataBaseType;
+using StorageEngine;
 
 namespace DataBaseEngine
 {
@@ -53,6 +53,12 @@ namespace DataBaseEngine
 
     public class DataBaseEngineMain : IDataBaseEngine
     {
+        private const string _pathDefault = "DataBaseStorage";
+        private const int _blockSizeDefault = 4096;
+        private readonly IDataStorage _dataStorage;
+        public DataBaseEngineMain() => _dataStorage = new DataStorageInFiles(_pathDefault, _blockSizeDefault);
+        public DataBaseEngineMain(string pathDataBaseStorage, int blockSize = _blockSizeDefault) => _dataStorage = new DataStorageInFiles(pathDataBaseStorage, blockSize);
+
         public OperationResult<Table> AddColumnCommand(List<string> tableName, Column column) => throw new NotImplementedException();
         public void CommitTransaction(Guid transactionGuid) => throw new NotImplementedException();
         public OperationResult<Table> CreateTableCommand(List<string> name) => throw new NotImplementedException();

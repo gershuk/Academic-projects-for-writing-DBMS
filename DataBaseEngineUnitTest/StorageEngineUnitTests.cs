@@ -94,9 +94,9 @@ namespace DataBaseEngineUnitTest
             //    Assert.AreEqual(row1.State, OperationExecutionState.performed);
             //    dataStorage.InsertRow(tableName, row1.Result);
             //}
-            int count = 0;
+            var count = 0;
             var row2 = table.CreateRowFormStr(new string[] { "Ivan", "IvanovIvanovIvanov", "23", "44.345" });
-            for (int i = 0; i < 10; ++i)
+            for (var i = 0; i < 10; ++i)
             { 
                 Assert.AreEqual(row2.State, OperationExecutionState.performed);
                 dataStorage.InsertRow(tableName, row2.Result);
@@ -105,8 +105,6 @@ namespace DataBaseEngineUnitTest
 
             var resultTable = dataStorage.LoadTable(table.TableMetaInf.Name);
             Assert.AreEqual(resultTable.State, OperationExecutionState.performed);
-
-            var rowEnumerator = resultTable.Result.TableData.GetEnumerator();
             count = 0;
             foreach (var row in resultTable.Result.TableData)
             {
@@ -139,7 +137,7 @@ namespace DataBaseEngineUnitTest
             var result = dataStorage.AddTable(table);
             Assert.AreEqual(result.State, OperationExecutionState.performed);
 
-            int count = 0;
+            var count = 0;
             var row2 = table.CreateRowFormStr(new string[] { "Ivan", "IvanovIvanovIvanov", "23", "44.345" });
             Assert.AreEqual(row2.State, OperationExecutionState.performed);
             for (var i = 0; i < 10; ++i)
@@ -222,14 +220,14 @@ namespace DataBaseEngineUnitTest
 
             var resultTable = dataStorage.LoadTable(table.TableMetaInf.Name);
             Assert.AreEqual(resultTable.State, OperationExecutionState.performed);
-            int count = 0;
+            var count = 0;
             foreach (var row in resultTable.Result.TableData)
             {
                 CheckRow(row, row1.Result);
                 count++;
             }
             Assert.AreEqual(count, 2);
-            for (int i = 0; i < 15; ++i)
+            for (var i = 0; i < 15; ++i)
             {
 
                 Assert.AreEqual(dataStorage.InsertRow(tableName, row1.Result).State, OperationExecutionState.performed);

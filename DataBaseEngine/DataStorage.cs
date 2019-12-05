@@ -187,10 +187,11 @@ namespace StorageEngine
 
     internal class DataStorageRowsInFiles : IEnumerable<Field[]>
     {
-        private readonly TableFileManager _tManager;
+       // private TableFileManager _tManager;
+        private string _tableFileName;
 
-        public DataStorageRowsInFiles(TableFileManager tManager_) => _tManager = tManager_;
-        public IEnumerator<Field[]> GetEnumerator() => new DataStorageRowsInFilesEnumerator(_tManager);
+        public DataStorageRowsInFiles(string fileName) => _tableFileName = fileName;
+        public IEnumerator<Field[]> GetEnumerator() => new DataStorageRowsInFilesEnumerator(new TableFileManager(new FileStream(_tableFileName,FileMode.Open)));
 
         IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
 
@@ -232,7 +233,10 @@ namespace StorageEngine
             {
                 _tManager.Dispose();
                 _blocks.Dispose();
-                _curRowRecordsEnumarator.Dispose();
+                if (_curRowRecordsEnumarator != null)
+                {
+                    _curRowRecordsEnumarator.Dispose();
+                }
 
             }
 
@@ -357,15 +361,17 @@ namespace StorageEngine
             {
                 return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistException(FullTableName(tableName)));
             }
-
-            using var tManager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open));
-
-            var table = tManager.LoadTable();
+            Table table;
+            using( var tManager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)) ){ 
+             table = tManager.LoadTable();
+             table.TableData = new DataStorageRowsInFiles(GetTableFileName(tableName));
+            }
 
             return new OperationResult<Table>(OperationExecutionState.performed, table);
         }
-        private string FullTableName(List<string> tableName)
+       static private string FullTableName(List<string> tableName)
         {
+            _ = tableName ?? throw new ArgumentNullException(nameof(tableName));
             var sb = new StringBuilder();
             foreach (var n in tableName)
             {
@@ -373,11 +379,14 @@ namespace StorageEngine
             }
             return sb.ToString();
         }
-        public OperationResult<bool> ContainsTable(List<string> tableName) => File.Exists(GetTableFileName(tableName)) ? new OperationResult<bool>(OperationExecutionState.performed, true) 
-                                                                                                                        :throw new ArgumentNullException(nameof(tableName));
+        public OperationResult<bool> ContainsTable(List<string> tableName) => File.Exists(GetTableFileName(tableName)) ? new OperationResult<bool>(OperationExecutionState.performed, true)
+                                                                                                                       : new OperationResult<bool>(OperationExecutionState.failed, false, new TableNotExistException(FullTableName(tableName)));
+
+
 
         public OperationResult<string> AddTable(Table table)
         {
+            _ = table ?? throw new ArgumentNullException(nameof(table));
             if (File.Exists(GetTableFileName(table.TableMetaInf.Name)))
             {
                 return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistException(FullTableName(table.TableMetaInf.Name)));
@@ -750,7 +759,7 @@ namespace StorageEngine
             var rawTable = new byte[metaInfDataStorage.TableMetaInfSize];
             _fileStream.Read(rawTable, 0, rawTable.Length);
             table.TableMetaInf = ZeroFormatterSerializer.Deserialize<TableMetaInf>(rawTable);
-            table.TableData = new DataStorageRowsInFiles(this);
+            //table.TableData = new DataStorageRowsInFiles(this);
             return table;
         }
 

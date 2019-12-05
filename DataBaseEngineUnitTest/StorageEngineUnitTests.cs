@@ -1,16 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using DataBaseType;
+
+using DataBaseEngine;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using DataBaseType;
 using StorageEngine;
+
+using ZeroFormatter;
 
 namespace DataBaseEngineUnitTest
 {
     [TestClass]
     public class StorageEngineUnitTests
     {
-        private DataStorageInFiles dataStorage;
-        private const int blockSize = 4096;
+        DataStorageInFiles dataStorage;
+        const int blockSize = 4096;
         [TestInitialize]
         public void TestInitialize()
         {
@@ -25,7 +29,7 @@ namespace DataBaseEngineUnitTest
         }
         [TestMethod]
         public void AddTableTest()
-        {
+        {   
             const string testPath = "StorageTestAddTableTest";
             if (Directory.Exists(testPath))
             {
@@ -93,7 +97,7 @@ namespace DataBaseEngineUnitTest
             var count = 0;
             var row2 = table.CreateRowFormStr(new string[] { "Ivan", "IvanovIvanovIvanov", "23", "44.345" });
             for (var i = 0; i < 10; ++i)
-            {
+            { 
                 Assert.AreEqual(row2.State, OperationExecutionState.performed);
                 dataStorage.InsertRow(tableName, row2.Result);
                 count++;
@@ -101,8 +105,6 @@ namespace DataBaseEngineUnitTest
 
             var resultTable = dataStorage.LoadTable(table.TableMetaInf.Name);
             Assert.AreEqual(resultTable.State, OperationExecutionState.performed);
-
-            var rowEnumerator = resultTable.Result.TableData.GetEnumerator();
             count = 0;
             foreach (var row in resultTable.Result.TableData)
             {
@@ -213,7 +215,7 @@ namespace DataBaseEngineUnitTest
                 Assert.AreEqual(dataStorage.InsertRow(tableName, row2.Result).State, OperationExecutionState.performed);
             }
             dataStorage.InsertRow(tableName, row1.Result);
-            dataStorage.RemoveAllRow(table.TableMetaInf.Name, (Field[] f) => ((FieldChar)(f[0])).Value == ((FieldChar)(row2.Result[0])).Value);
+            dataStorage.RemoveAllRow(table.TableMetaInf.Name,(Field[] f)=> ((FieldChar)(f[0])).Value == ((FieldChar)(row2.Result[0])).Value );
             dataStorage.InsertRow(tableName, row1.Result);
 
             var resultTable = dataStorage.LoadTable(table.TableMetaInf.Name);
@@ -253,7 +255,7 @@ namespace DataBaseEngineUnitTest
             Assert.AreEqual(count, 0);
         }
 
-        private void CheckRow(Field[] a, Field[] b)
+            void CheckRow(Field[] a,Field[] b)
         {
             Assert.AreEqual(a.Length, b.Length);
             for (var i = 0; i < b.Length; i++)

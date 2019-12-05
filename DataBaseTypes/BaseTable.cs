@@ -123,7 +123,7 @@ namespace DataBaseType
                         var val = Convert.ToInt32(data);
                         return new OperationResult<Field>(OperationExecutionState.performed, new FieldInt { Value = val });
                     }
-                    catch
+                    catch(FormatException)
                     {
                         return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
                     }
@@ -133,7 +133,7 @@ namespace DataBaseType
                         var val = Convert.ToDouble(data, new NumberFormatInfo { NumberDecimalSeparator = "." });
                         return new OperationResult<Field>(OperationExecutionState.performed, new FieldDouble { Value = val });
                     }
-                    catch
+                    catch(FormatException)
                     {
                         return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
                     }

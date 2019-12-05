@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-
-using StorageEngine;
 using DataBaseType;
+using StorageEngine;
 
 namespace DataBaseEngine
 {
@@ -57,15 +55,9 @@ namespace DataBaseEngine
     {
         private const string _pathDefault = "DataBaseStorage";
         private const int _blockSizeDefault = 4096;
-        private IDataStorage _dataStorage;
-        public DataBaseEngineMain()
-        {
-            _dataStorage = new DataStorageInFiles(_pathDefault, _blockSizeDefault);
-        }
-        public DataBaseEngineMain(string pathDataBaseStorage, int blockSize = _blockSizeDefault)
-        {
-            _dataStorage = new DataStorageInFiles(pathDataBaseStorage, blockSize);
-        }
+        private readonly IDataStorage _dataStorage;
+        public DataBaseEngineMain() => _dataStorage = new DataStorageInFiles(_pathDefault, _blockSizeDefault);
+        public DataBaseEngineMain(string pathDataBaseStorage, int blockSize = _blockSizeDefault) => _dataStorage = new DataStorageInFiles(pathDataBaseStorage, blockSize);
 
         public OperationResult<Table> AddColumnCommand(List<string> tableName, Column column) => throw new NotImplementedException();
         public void CommitTransaction(Guid transactionGuid) => throw new NotImplementedException();

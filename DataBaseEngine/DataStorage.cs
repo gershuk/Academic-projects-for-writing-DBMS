@@ -373,8 +373,8 @@ namespace StorageEngine
             }
             return sb.ToString();
         }
-        public OperationResult<bool> ContainsTable(List<string> tableName) => File.Exists(GetTableFileName(tableName)) ? new OperationResult<bool>(OperationExecutionState.performed, true) 
-                                                                                                                        :throw new ArgumentNullException(nameof(tableName));
+        public OperationResult<bool> ContainsTable(List<string> tableName) => File.Exists(GetTableFileName(tableName)) ? new OperationResult<bool>(OperationExecutionState.performed, true)
+                                                                                                                        : throw new ArgumentNullException(nameof(tableName));
 
         public OperationResult<string> AddTable(Table table)
         {

@@ -70,7 +70,7 @@ namespace DataBaseType
                     break;
             }
 
-            result+= "---------------------------------------\n";
+            result += "---------------------------------------\n";
 
             return result;
         }

@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
+using DataBaseType;
+using SunflowerDB;
+using ZeroFormatter;
 
 namespace ConsoleClientServer
 {
@@ -65,15 +70,41 @@ namespace ConsoleClientServer
             }
         }
 
-        protected internal static void SereverConsoleReader()
+        protected internal void SereverConsoleReader()
         {
             while (true)
             {
                 var comand = Console.ReadLine();
-                //Отправка команды в бд
-                var result = comand;
-                Console.WriteLine(result);
+                var result = ExecuteQuery(comand);
+                var formatter = new BinaryFormatter();
+                using var binaryData = new MemoryStream(result);
+                var value = ZeroFormatterSerializer.Deserialize<OperationResult<SqlSequenceResult>>(binaryData);
+                Console.WriteLine(ConvertMessageToString(value));
             }
+        }
+
+        internal protected static string ConvertMessageToString(OperationResult<SqlSequenceResult> messege)
+        {
+            var result = "";
+            switch (messege.State)
+            {
+                case OperationExecutionState.notProcessed:
+                    break;
+                case OperationExecutionState.parserError:
+                case OperationExecutionState.failed:
+                    Console.Error.WriteLine(messege.State + "\n");
+                    Console.Error.WriteLine(messege.OperationException.Message + "\n");
+                    Console.Error.WriteLine("\n");
+                    break;
+                case OperationExecutionState.performed:
+                    foreach (var info in messege.Result.Answer)
+                    {
+                        result += info.ToString() + "\n";
+                        result += "\n";
+                    }
+                    break;
+            }
+            return result;
         }
 
         // трансляция сообщения всем подключенным клиентам на случай чего

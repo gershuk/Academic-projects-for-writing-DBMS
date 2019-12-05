@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
+using ZeroFormatter;
 
 namespace ConsoleClientServer
 {
@@ -96,11 +97,8 @@ namespace ConsoleClientServer
                             bytes = _stream.Read(data, 0, data.Length);
                             binaryData.Write(data, 0, bytes);
                         }
-                        while (_stream.DataAvailable);
-
-                        var formatter = new BinaryFormatter();
-                        var value = (T)formatter.Deserialize(binaryData);
-                        var result = ConvertMessageToString<T>(value);
+                        while (_stream.DataAvailable);          
+                        var result = ConvertMessageToString<T>(ZeroFormatterSerializer.Deserialize<T>(binaryData.ToArray()));
                         Console.WriteLine(result);//вывод сообщения
                     }
                 }

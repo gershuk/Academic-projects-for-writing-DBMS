@@ -2,9 +2,12 @@
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using System.Threading.Tasks;
 using ConsoleClientServer;
 using DataBaseEngine;
+using DataBaseType;
 using TransactionManagement;
+using ZeroFormatter;
 
 namespace SunflowerDB
 {
@@ -46,8 +49,7 @@ namespace SunflowerDB
             var formatter = new BinaryFormatter();
             using (var fs = new MemoryStream())
             {
-                formatter.Serialize(fs, _core.ExecuteSqlSequence(query));
-                return fs.ToArray();
+                return ZeroFormatterSerializer.Serialize( _core.ExecuteSqlSequence(query));
             }
         }
     }
@@ -61,14 +63,16 @@ namespace SunflowerDB
             try
             {
                 _server = new SunflowerDBServer();
-                _listenThread = new Thread(new ThreadStart(_server.Listen));
-                _listenThread.Start(); //старт потока
-                _server.Dispose();
+                _server.Listen();
             }
             catch (Exception ex)
             {
                 _server?.Disconnect();
                 Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                _server.Dispose();
             }
         }
     }

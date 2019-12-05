@@ -37,8 +37,8 @@ namespace SunflowerDBClient
                 return result.ToString();
             }
             throw new NotImplementedException();
-
         }
+
         internal class ConsoleClient
         {
             private static void Main(string[] args)

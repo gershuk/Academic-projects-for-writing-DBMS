@@ -72,7 +72,7 @@ namespace SunflowerDB
         }
     }
 
-    [Serializable]
+    [ZeroFormattable]
     public class SqlSequenceResult
     {
         public List<TransactionInfo> Answer { get; private set; }

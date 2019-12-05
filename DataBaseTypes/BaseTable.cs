@@ -51,7 +51,6 @@ namespace DataBaseType
         public override DataType Type => DataType.CHAR;
 
         [Index(0)]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1819:Свойства не должны возвращать массивы", Justification = "<Ожидание>")]
         public virtual byte[] ValueBytes { get; set; }
 
         [IgnoreFormat]
@@ -77,6 +76,24 @@ namespace DataBaseType
         }
 
         public override string ToString() => Value.ToString();
+    }
+
+    [ZeroFormattable]
+    public class Row
+    {
+        [Index(0)] public virtual Field[] Fields { get; set; }
+        [Index(1)] public virtual int TrStart { get; set; }
+        [Index(2)] public virtual int TrEnd { get; set; }
+        public Row ()
+        {
+
+        }
+        public Row (Field[] fields)
+        {
+            Fields = fields;
+            TrStart = 0;
+            TrEnd = 0;
+        }
     }
 
     [ZeroFormattable]
@@ -174,7 +191,7 @@ namespace DataBaseType
 
     public class Table
     {
-        public IEnumerable<Field[]> TableData { get; set; }
+        public IEnumerable<Row> TableData { get; set; }
 
         public TableMetaInf TableMetaInf { get; set; }
 
@@ -185,7 +202,7 @@ namespace DataBaseType
 
         public Table(TableMetaInf tableMetaInf) => TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
 
-        public Table(IEnumerable<Field[]> tableData, TableMetaInf tableMetaInf)
+        public Table(IEnumerable<Row> tableData, TableMetaInf tableMetaInf)
         {
             TableData = tableData ?? throw new ArgumentNullException(nameof(tableData));
             TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
@@ -239,7 +256,7 @@ namespace DataBaseType
 
             foreach (var row in TableData)
             {
-                foreach (var field in row)
+                foreach (var field in row.Fields)
                 {
                     sw.Write("{0} ", field.ToString());
                 }
@@ -248,7 +265,7 @@ namespace DataBaseType
 
             return new OperationResult<string>(OperationExecutionState.performed, sw.ToString());
         }
-        public OperationResult<Field[]> CreateRowFormStr(string[] strs)
+        public OperationResult<Row> CreateRowFormStr(string[] strs)
         {
             if (strs is null)
             {
@@ -263,15 +280,15 @@ namespace DataBaseType
                 var result = col.Value.CreateField(strs[i]);
                 if (result.State != OperationExecutionState.performed)
                 {
-                    return new OperationResult<Field[]>(OperationExecutionState.failed, null, result.OperationError);
+                    return new OperationResult<Row>(OperationExecutionState.failed, null, result.OperationError);
                 }
                 row[i] = result.Result;
                 i++;
             }
 
-            return new OperationResult<Field[]>(OperationExecutionState.performed, row);
+            return new OperationResult<Row>(OperationExecutionState.performed, new Row(row));
         }
-        public OperationResult<Field[]> CreateDefaultRow()
+        public OperationResult<Row> CreateDefaultRow()
         {
             var row = new Field[TableMetaInf.ColumnPool.Count];
             var i = 0;
@@ -281,7 +298,7 @@ namespace DataBaseType
                 row[i] = col.Value.CreateField("0").Result;
                 i++;
             }
-            return new OperationResult<Field[]>(OperationExecutionState.performed, row);
+            return new OperationResult<Row>(OperationExecutionState.performed, new Row(row));
         }
 
         public OperationResult<string> ShowCreateTable()

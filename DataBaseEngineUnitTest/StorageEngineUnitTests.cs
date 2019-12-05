@@ -159,14 +159,14 @@ namespace DataBaseEngineUnitTest
             var rowChange = table.CreateRowFormStr(new string[] { "Gvanchik", "IvanovIvanovIvanov", "67", "44.345" });
 
             Assert.AreEqual(dataStorage.InsertRow(tableName, rowNotChange.Result).State, OperationExecutionState.performed);
-            dataStorage.UpdateAllRow(table.TableMetaInf.Name, rowChange.Result, (Field[] f) => ((FieldChar)(f[0])).Value == ((FieldChar)(row2.Result[0])).Value);
+            dataStorage.UpdateAllRow(table.TableMetaInf.Name, rowChange.Result, (Row f) => ((FieldChar)(f.Fields[0])).Value == ((FieldChar)(row2.Result.Fields[0])).Value);
 
             resultTable = dataStorage.LoadTable(table.TableMetaInf.Name);
             Assert.AreEqual(resultTable.State, OperationExecutionState.performed);
             count = 0;
             foreach (var row in resultTable.Result.TableData)
             {
-                if (((FieldChar)(row[0])).Value == ((FieldChar)(rowNotChange.Result[0])).Value)
+                if (((FieldChar)(row.Fields[0])).Value == ((FieldChar)(rowNotChange.Result.Fields[0])).Value)
                 {
                     CheckRow(row, rowNotChange.Result);
                 }
@@ -215,7 +215,7 @@ namespace DataBaseEngineUnitTest
                 Assert.AreEqual(dataStorage.InsertRow(tableName, row2.Result).State, OperationExecutionState.performed);
             }
             dataStorage.InsertRow(tableName, row1.Result);
-            dataStorage.RemoveAllRow(table.TableMetaInf.Name,(Field[] f)=> ((FieldChar)(f[0])).Value == ((FieldChar)(row2.Result[0])).Value );
+            dataStorage.RemoveAllRow(table.TableMetaInf.Name,(Row f)=> ((FieldChar)(f.Fields[0])).Value == ((FieldChar)(row2.Result.Fields[0])).Value );
             dataStorage.InsertRow(tableName, row1.Result);
 
             var resultTable = dataStorage.LoadTable(table.TableMetaInf.Name);
@@ -242,7 +242,7 @@ namespace DataBaseEngineUnitTest
             }
             Assert.AreEqual(count, 17);
 
-            dataStorage.RemoveAllRow(table.TableMetaInf.Name, (Field[] f) => ((FieldChar)(f[0])).Value == ((FieldChar)(row1.Result[0])).Value);
+            dataStorage.RemoveAllRow(table.TableMetaInf.Name, (Row f) => ((FieldChar)(f.Fields[0])).Value == ((FieldChar)(row1.Result.Fields[0])).Value);
             count = 0;
             resultTable = dataStorage.LoadTable(table.TableMetaInf.Name);
             Assert.AreEqual(resultTable.State, OperationExecutionState.performed);
@@ -255,16 +255,16 @@ namespace DataBaseEngineUnitTest
             Assert.AreEqual(count, 0);
         }
 
-            void CheckRow(Field[] a,Field[] b)
+            void CheckRow(Row a,Row b)
         {
-            Assert.AreEqual(a.Length, b.Length);
-            for (var i = 0; i < b.Length; i++)
+            Assert.AreEqual(a.Fields.Length, b.Fields.Length);
+            for (var i = 0; i < b.Fields.Length; i++)
             {
-                switch (b[i].Type)
+                switch (b.Fields[i].Type)
                 {
-                    case DataType.CHAR: Assert.AreEqual(((FieldChar)(a[i])).Value, ((FieldChar)(b[i])).Value); break;
-                    case DataType.INT: Assert.AreEqual(((FieldInt)(a[i])).Value, ((FieldInt)(b[i])).Value); break;
-                    case DataType.DOUBLE: Assert.AreEqual(((FieldDouble)(a[i])).Value, ((FieldDouble)(b[i])).Value); break;
+                    case DataType.CHAR: Assert.AreEqual(((FieldChar)(a.Fields[i])).Value, ((FieldChar)(b.Fields[i])).Value); break;
+                    case DataType.INT: Assert.AreEqual(((FieldInt)(a.Fields[i])).Value, ((FieldInt)(b.Fields[i])).Value); break;
+                    case DataType.DOUBLE: Assert.AreEqual(((FieldDouble)(a.Fields[i])).Value, ((FieldDouble)(b.Fields[i])).Value); break;
                 }
 
             }

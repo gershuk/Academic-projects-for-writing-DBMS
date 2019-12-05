@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using DataBaseType;
 using StorageEngine;
+using ZeroFormatter;
 
 namespace DataBaseEngine
 {
@@ -128,5 +129,30 @@ namespace DataBaseEngine
         public OperationResult<Table> ShowTableCommand (Guid transactionGuid, List<string> tableName) => throw new NotImplementedException();
         public OperationResult<Table> UnionCommand (Guid transactionGuid, List<string> leftId, List<string> rightId, UnionKind unionKind) => throw new NotImplementedException();
         public OperationResult<Table> UpdateCommand (Guid transactionGuid, List<string> tableName, List<Assigment> assigmentList, ExpressionFunction expressionFunction) => throw new NotImplementedException();
+    }
+
+    public enum TransactionState
+    {
+        COMITED,
+        RUNNING,
+        FAILED
+    }
+    [ZeroFormattable]
+    public class Transaction
+    {
+        [Index(0)] public virtual Guid GuidTr { get; protected set; }
+        [Index(1)] public virtual long Id { get; protected set; }
+        [Index(2)] public virtual long PrevVerId { get; protected set; }
+        [Index(3)] public virtual TransactionState State { get; set; }
+        public Transaction ()
+        {
+
+        }
+        public Transaction (Guid guidTr, long id, long prevVerId)
+        {
+            GuidTr = guidTr;
+            Id = id;
+            PrevVerId = prevVerId;
+        }
     }
 }

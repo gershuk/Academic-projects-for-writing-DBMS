@@ -22,11 +22,11 @@ namespace DataBaseType
         [Index(0)]
         public virtual int Value { get; set; }
 
-        public FieldInt ()
+        public FieldInt()
         {
         }
 
-        public override string ToString () => Value.ToString();
+        public override string ToString() => Value.ToString();
     }
 
     [ZeroFormattable]
@@ -37,12 +37,12 @@ namespace DataBaseType
         [Index(0)]
         public virtual double Value { get; set; }
 
-        public FieldDouble ()
+        public FieldDouble()
         {
 
         }
 
-        public override string ToString () => Value.ToString();
+        public override string ToString() => Value.ToString();
     }
 
     [ZeroFormattable]
@@ -51,17 +51,16 @@ namespace DataBaseType
         public override DataType Type => DataType.CHAR;
 
         [Index(0)]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1819:Свойства не должны возвращать массивы", Justification = "<Ожидание>")]
         public virtual byte[] ValueBytes { get; set; }
 
         [IgnoreFormat]
         public string Value => Encoding.UTF8.GetString(ValueBytes, 0, ValueBytes.Length);
 
-        public FieldChar ()
+        public FieldChar()
         {
         }
 
-        public FieldChar (string val, int size)
+        public FieldChar(string val, int size)
         {
             ValueBytes = new byte[size];
             var buf = System.Text.Encoding.UTF8.GetBytes(val);
@@ -76,7 +75,25 @@ namespace DataBaseType
             }
         }
 
-        public override string ToString () => Value.ToString();
+        public override string ToString() => Value.ToString();
+    }
+
+    [ZeroFormattable]
+    public class Row
+    {
+        [Index(0)] public virtual Field[] Fields { get; set; }
+        [Index(1)] public virtual int TrStart { get; set; }
+        [Index(2)] public virtual int TrEnd { get; set; }
+        public Row ()
+        {
+
+        }
+        public Row (Field[] fields)
+        {
+            Fields = fields;
+            TrStart = 0;
+            TrEnd = 0;
+        }
     }
 
     [ZeroFormattable]
@@ -100,11 +117,11 @@ namespace DataBaseType
         [Index(5)]
         public virtual NullSpecOpt TypeState { get; set; }
 
-        public Column () { }
+        public Column() { }
 
-        public Column (List<string> name) => Name = name;
+        public Column(List<string> name) => Name = name;
 
-        public Column (List<string> name, DataType dataType, double? dataParam, List<string> constrains, NullSpecOpt typeState)
+        public Column(List<string> name, DataType dataType, double? dataParam, List<string> constrains, NullSpecOpt typeState)
         {
             Name = name;
             DataType = dataType;
@@ -113,7 +130,7 @@ namespace DataBaseType
             TypeState = typeState;
         }
 
-        public OperationResult<Field> CreateField (string data)
+        public OperationResult<Field> CreateField(string data)
         {
             switch (DataType)
             {
@@ -121,28 +138,28 @@ namespace DataBaseType
                     try
                     {
                         var val = Convert.ToInt32(data);
-                        return new OperationResult<Field>(ExecutionState.performed, new FieldInt { Value = val });
+                        return new OperationResult<Field>(OperationExecutionState.performed, new FieldInt { Value = val });
                     }
-                    catch (FormatException)
+                    catch(FormatException)
                     {
-                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
+                        return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
                     }
                 case DataType.DOUBLE:
                     try
                     {
                         var val = Convert.ToDouble(data, new NumberFormatInfo { NumberDecimalSeparator = "." });
-                        return new OperationResult<Field>(ExecutionState.performed, new FieldDouble { Value = val });
+                        return new OperationResult<Field>(OperationExecutionState.performed, new FieldDouble { Value = val });
                     }
-                    catch (FormatException)
+                    catch(FormatException)
                     {
-                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
+                        return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
                     }
                 case DataType.CHAR:
-                    return new OperationResult<Field>(ExecutionState.performed, new FieldChar(data, (int)DataParam));
+                    return new OperationResult<Field>(OperationExecutionState.performed, new FieldChar(data, (int)DataParam));
 
             }
 
-            return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
+            return new OperationResult<Field>(OperationExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
         }
     }
 
@@ -158,9 +175,9 @@ namespace DataBaseType
         [Index(2)]
         public virtual int SizeInBytes { get; set; }
 
-        public TableMetaInf () { }
+        public TableMetaInf() { }
 
-        public string GetFullName ()
+        public string GetFullName()
         {
             var sb = new StringBuilder();
             foreach (var n in Name)
@@ -169,29 +186,29 @@ namespace DataBaseType
             }
             return sb.ToString();
         }
-        public TableMetaInf (List<string> name) => Name = name;
+        public TableMetaInf(List<string> name) => Name = name;
     }
 
     public class Table
     {
-        public IEnumerable<Field[]> TableData { get; set; }
+        public IEnumerable<Row> TableData { get; set; }
 
         public TableMetaInf TableMetaInf { get; set; }
 
-        public Table ()
+        public Table()
         { }
 
-        public Table (List<string> name) => TableMetaInf = new TableMetaInf(name);
+        public Table(List<string> name) => TableMetaInf = new TableMetaInf(name);
 
-        public Table (TableMetaInf tableMetaInf) => TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
+        public Table(TableMetaInf tableMetaInf) => TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
 
-        public Table (IEnumerable<Field[]> tableData, TableMetaInf tableMetaInf)
+        public Table(IEnumerable<Row> tableData, TableMetaInf tableMetaInf)
         {
             TableData = tableData ?? throw new ArgumentNullException(nameof(tableData));
             TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
         }
 
-        public OperationResult<Table> AddColumn (Column column)
+        public OperationResult<Table> AddColumn(Column column)
         {
             TableMetaInf.ColumnPool ??= new Dictionary<string, Column>();
             if (!TableMetaInf.ColumnPool.ContainsKey(column?.Name.ToString()))
@@ -200,13 +217,13 @@ namespace DataBaseType
             }
             else
             {
-                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnAlreadyExistException(column.Name.ToString(), TableMetaInf.Name.ToString()));
+                return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnAlreadyExistException(column.Name.ToString(), TableMetaInf.Name.ToString()));
             }
 
-            return new OperationResult<Table>(ExecutionState.performed, this);
+            return new OperationResult<Table>(OperationExecutionState.performed, this);
         }
 
-        public OperationResult<Table> DeleteColumn (string ColumName)
+        public OperationResult<Table> DeleteColumn(string ColumName)
         {
             TableMetaInf.ColumnPool ??= new Dictionary<string, Column>();
             if (TableMetaInf.ColumnPool.ContainsKey(ColumName))
@@ -215,15 +232,15 @@ namespace DataBaseType
             }
             else
             {
-                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistException(ColumName, TableMetaInf.Name.ToString()));
+                return new OperationResult<Table>(OperationExecutionState.failed, null, new ColumnNotExistException(ColumName, TableMetaInf.Name.ToString()));
             }
 
-            return new OperationResult<Table>(ExecutionState.performed, this);
+            return new OperationResult<Table>(OperationExecutionState.performed, this);
         }
 
-        public override string ToString () => TableData == null ? ShowCreateTable().Result : ShowDataTable().Result;
+        public override string ToString() => TableData == null ? ShowCreateTable().Result : ShowDataTable().Result;
 
-        public OperationResult<string> ShowDataTable ()
+        public OperationResult<string> ShowDataTable()
         {
             using var sw = new StringWriter();
 
@@ -239,16 +256,16 @@ namespace DataBaseType
 
             foreach (var row in TableData)
             {
-                foreach (var field in row)
+                foreach (var field in row.Fields)
                 {
                     sw.Write("{0} ", field.ToString());
                 }
                 sw.Write("\n");
             }
 
-            return new OperationResult<string>(ExecutionState.performed, sw.ToString());
+            return new OperationResult<string>(OperationExecutionState.performed, sw.ToString());
         }
-        public OperationResult<Field[]> CreateRowFormStr (string[] strs)
+        public OperationResult<Row> CreateRowFormStr(string[] strs)
         {
             if (strs is null)
             {
@@ -261,17 +278,17 @@ namespace DataBaseType
             foreach (var col in TableMetaInf.ColumnPool)
             {
                 var result = col.Value.CreateField(strs[i]);
-                if (result.State != ExecutionState.performed)
+                if (result.State != OperationExecutionState.performed)
                 {
-                    return new OperationResult<Field[]>(ExecutionState.failed, null, result.OperationError);
+                    return new OperationResult<Row>(OperationExecutionState.failed, null, result.OperationError);
                 }
                 row[i] = result.Result;
                 i++;
             }
 
-            return new OperationResult<Field[]>(ExecutionState.performed, row);
+            return new OperationResult<Row>(OperationExecutionState.performed, new Row(row));
         }
-        public OperationResult<Field[]> CreateDefaultRow ()
+        public OperationResult<Row> CreateDefaultRow()
         {
             var row = new Field[TableMetaInf.ColumnPool.Count];
             var i = 0;
@@ -281,10 +298,10 @@ namespace DataBaseType
                 row[i] = col.Value.CreateField("0").Result;
                 i++;
             }
-            return new OperationResult<Field[]>(ExecutionState.performed, row);
+            return new OperationResult<Row>(OperationExecutionState.performed, new Row(row));
         }
 
-        public OperationResult<string> ShowCreateTable ()
+        public OperationResult<string> ShowCreateTable()
         {
             using var sw = new StringWriter();
 
@@ -307,7 +324,7 @@ namespace DataBaseType
             str = str.TrimEnd(new char[] { ',' });
             str += ");";
 
-            return new OperationResult<string>(ExecutionState.performed, str);
+            return new OperationResult<string>(OperationExecutionState.performed, str);
         }
     }
 }

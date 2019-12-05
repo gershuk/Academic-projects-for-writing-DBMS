@@ -82,8 +82,8 @@ namespace DataBaseType
     public class Row
     {
         [Index(0)] public virtual Field[] Fields { get; set; }
-        [Index(1)] public virtual int TrStart { get; set; }
-        [Index(2)] public virtual int TrEnd { get; set; }
+        [Index(1)] public virtual long TrStart { get; set; }
+        [Index(2)] public virtual long TrEnd { get; set; }
         public Row ()
         {
 

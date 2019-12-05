@@ -25,7 +25,7 @@ namespace TransactionManagement
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2235:Mark all non-serializable fields", Justification = "<Ожидание>")]
         public ManualResetEvent Notify { get; private set; }
 
-        public TableLock(LockType lockType, List<string> name, ManualResetEvent notify)
+        public TableLock (LockType lockType, List<string> name, ManualResetEvent notify)
         {
             LockType = lockType;
             TableName = name ?? throw new ArgumentNullException(nameof(name));

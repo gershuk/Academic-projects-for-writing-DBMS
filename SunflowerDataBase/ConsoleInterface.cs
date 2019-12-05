@@ -9,7 +9,7 @@ namespace SunflowerDB
     public static class ConsoleInterface
     {
 
-        public static void Main()
+        public static void Main ()
         {
             using var core = new DataBase(20, new DataBaseEngineMain(), new TransactionScheduler());
             var exitState = true;

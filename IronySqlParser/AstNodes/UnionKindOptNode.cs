@@ -8,7 +8,7 @@ namespace IronySqlParser.AstNodes
     {
         public UnionKind UnionKindOpt { set; get; } = UnionKind.Empty;
 
-        public override void CollectInfoFromChild()
+        public override void CollectInfoFromChild ()
         {
             if (ChildNodes.Count() > 0)
             {

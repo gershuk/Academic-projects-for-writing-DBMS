@@ -13,7 +13,7 @@ namespace SunflowerDB
         private readonly DataBase _core = new DataBase(20, new DataBaseEngineMain(), new TransactionScheduler());
         private bool _disposed = false;
 
-        public void Dispose()
+        public void Dispose ()
         {
             // Dispose of unmanaged resources.
             Dispose(true);
@@ -21,7 +21,7 @@ namespace SunflowerDB
             GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool disposing)
+        private void Dispose (bool disposing)
         {
             if (_disposed)
             {
@@ -36,12 +36,12 @@ namespace SunflowerDB
             _disposed = true;
         }
 
-        ~SunflowerDBServer()
+        ~SunflowerDBServer ()
         {
             Dispose(false);
         }
 
-        public override byte[] ExecuteQuery(string query)
+        public override byte[] ExecuteQuery (string query)
         {
             var formatter = new BinaryFormatter();
             using (var fs = new MemoryStream())
@@ -53,7 +53,7 @@ namespace SunflowerDB
     }
     public class ConsoleServer
     {
-        private static void Main(string[] args)
+        private static void Main (string[] args)
         {
             SunflowerDBServer _server = default; // сервер
             Thread _listenThread = default; // потока для прослушивания

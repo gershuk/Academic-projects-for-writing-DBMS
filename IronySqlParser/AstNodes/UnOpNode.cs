@@ -14,7 +14,7 @@ namespace IronySqlParser.AstNodes
     {
         public UnOp UnOp { get; set; }
 
-        public override void CollectInfoFromChild()
+        public override void CollectInfoFromChild ()
         {
             switch ((ChildNodes.First<ISqlNode>() as SqlKeyNode).Text.ToUpper())
             {

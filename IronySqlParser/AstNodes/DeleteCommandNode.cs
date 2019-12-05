@@ -8,12 +8,12 @@ namespace IronySqlParser.AstNodes
         public List<string> TableName { get; set; }
         public WhereClauseNode WhereClauseNode { get; set; }
 
-        public override void CollectInfoFromChild()
+        public override void CollectInfoFromChild ()
         {
             TableName = FindFirstChildNodeByType<IdNode>().Id;
             WhereClauseNode = FindFirstChildNodeByType<WhereClauseNode>();
         }
 
-        public override List<TableLock> GetTableLocks() => new List<TableLock>() { new TableLock(LockType.Update, TableName, new System.Threading.ManualResetEvent(false)) };
+        public override List<TableLock> GetTableLocks () => new List<TableLock>() { new TableLock(LockType.Update, TableName, new System.Threading.ManualResetEvent(false)) };
     }
 }

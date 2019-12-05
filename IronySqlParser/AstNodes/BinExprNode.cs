@@ -11,7 +11,7 @@ namespace IronySqlParser.AstNodes
         private ExpressionNode _leftOperand;
         private ExpressionNode _rightOperand;
 
-        public override dynamic Calc() =>
+        public override dynamic Calc () =>
 
              _binOp switch
              {
@@ -51,7 +51,7 @@ namespace IronySqlParser.AstNodes
              };
 
 
-        public override void CollectInfoFromChild()
+        public override void CollectInfoFromChild ()
         {
             _binOp = FindFirstChildNodeByType<BinOpNode>().BinOp;
             var childNodes = ChildNodes.ToArray();

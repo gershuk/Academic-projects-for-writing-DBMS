@@ -15,18 +15,18 @@ namespace TransactionManagement
     {
         public List<TableLock> TablesLocks { get; }
     }
- 
+
     [ZeroFormattable]
     public class TransactionLocksInfo : ITransactionLocksInfo
     {
         [Index(0)]
         public virtual List<TableLock> TablesLocks { get; private set; }
 
-        public TransactionLocksInfo()
+        public TransactionLocksInfo ()
         {
         }
 
-        public TransactionLocksInfo(List<TableLock> tablesLocks)
+        public TransactionLocksInfo (List<TableLock> tablesLocks)
         {
             tablesLocks = new List<TableLock>();
             TablesLocks.AddRange(tablesLocks);

@@ -4,6 +4,6 @@
     {
         public InsertDataListNode InsertDataListNode { get; set; }
 
-        public override void CollectInfoFromChild() => InsertDataListNode = FindFirstChildNodeByType<InsertDataListNode>();
+        public override void CollectInfoFromChild () => InsertDataListNode = FindFirstChildNodeByType<InsertDataListNode>();
     }
 }

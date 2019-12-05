@@ -6,26 +6,26 @@ namespace SunflowerDBClient
 {
     public class SunflowerDBClient : Client
     {
-        public SunflowerDBClient(string host, int port) : base(host, port)
+        public SunflowerDBClient (string host, int port) : base(host, port)
         {
         }
 
-        public override string ConvertMessageToString<T>(T messege)
+        public override string ConvertMessageToString<T> (T messege)
         {
             if (messege is OperationResult<SqlSequenceResult> value)
             {
                 var result = "";
                 switch (value.State)
                 {
-                    case OperationExecutionState.notProcessed:
+                    case ExecutionState.notProcessed:
                         break;
-                    case OperationExecutionState.parserError:
-                    case OperationExecutionState.failed:
+                    case ExecutionState.parserError:
+                    case ExecutionState.failed:
                         result += value.State + "\n";
                         result += value.OperationError + "\n";
                         result += "\n";
                         break;
-                    case OperationExecutionState.performed:
+                    case ExecutionState.performed:
                         foreach (var info in value.Result.Answer)
                         {
                             result += info.ToString() + "\n";
@@ -40,7 +40,7 @@ namespace SunflowerDBClient
         }
         internal class ConsoleClient
         {
-            private static void Main(string[] args)
+            private static void Main (string[] args)
             {
                 var BaseHost = "127.0.0.1";
                 var BasePort = 8888;

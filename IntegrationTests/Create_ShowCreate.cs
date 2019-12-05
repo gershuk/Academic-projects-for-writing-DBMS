@@ -6,7 +6,7 @@ namespace IntegrationTests
     public class Create_ShowCreate
     {
         [TestMethod]
-        public void TestCreateCommandSynax()
+        public void TestCreateCommandSynax ()
         {
 
         }

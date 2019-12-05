@@ -28,10 +28,10 @@ namespace DataBaseType
         [Index(5)]
         public virtual TransactionLocksInfo LocksInfo { get; set; }
 
-        public TransactionInfo(TransactionLocksInfo transactionLocksInfo) => LocksInfo = transactionLocksInfo
+        public TransactionInfo (TransactionLocksInfo transactionLocksInfo) => LocksInfo = transactionLocksInfo
             ?? throw new ArgumentNullException(nameof(transactionLocksInfo));
 
-        public TransactionInfo(List<string> name,
+        public TransactionInfo (List<string> name,
                                Guid guid,
                                DateTime startTime,
                                DateTime endTime,
@@ -46,11 +46,11 @@ namespace DataBaseType
             LocksInfo = locksInfo ?? throw new ArgumentNullException(nameof(locksInfo));
         }
 
-        public TransactionInfo()
+        public TransactionInfo ()
         {
         }
 
-        public override string ToString()
+        public override string ToString ()
         {
             var stringBuilder = new StringBuilder();
 
@@ -79,7 +79,7 @@ namespace DataBaseType
     {
         public List<TransactionInfo> Answer { get; private set; }
 
-        public override string ToString()
+        public override string ToString ()
         {
             var stringBuilder = new StringBuilder();
 

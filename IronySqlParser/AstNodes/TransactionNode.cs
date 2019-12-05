@@ -7,7 +7,7 @@
         public StmtListNode StmtListNode { get; set; }
         public SqlCommandNode SqlCommandNode { get; set; }
 
-        public override void CollectInfoFromChild()
+        public override void CollectInfoFromChild ()
         {
             TransactionBeginOptNode = FindFirstChildNodeByType<TransactionBeginOptNode>();
             TransactionEndOptNode = FindFirstChildNodeByType<TransactionEndOptNode>()

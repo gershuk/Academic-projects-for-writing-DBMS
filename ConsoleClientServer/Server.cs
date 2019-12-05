@@ -9,11 +9,11 @@ namespace ConsoleClientServer
 {
     public interface IServer
     {
-        void AddConnection(Listener clientObject);
-        void Disconnect();
-        void Listen();
-        void RemoveConnection(string id);
-        byte[] ExecuteQuery(string query);
+        void AddConnection (Listener clientObject);
+        void Disconnect ();
+        void Listen ();
+        void RemoveConnection (string id);
+        byte[] ExecuteQuery (string query);
     }
 
     public abstract class Server : IServer
@@ -22,7 +22,7 @@ namespace ConsoleClientServer
         private readonly List<Listener> _clients = new List<Listener>(); // все подключения
         private Thread _comandsThread;
 
-        public void AddConnection(Listener clientObject)
+        public void AddConnection (Listener clientObject)
         {
             if (clientObject is null)
             {
@@ -33,14 +33,14 @@ namespace ConsoleClientServer
             _clients.Add(clientObject);
         }
 
-        public void RemoveConnection(string id)
+        public void RemoveConnection (string id)
         {
             Console.WriteLine($"{id} conection lost");
             _clients.RemoveAll(client => client.Id == id);
         }
 
         // прослушивание входящих подключений
-        public void Listen()
+        public void Listen ()
         {
             try
             {
@@ -65,7 +65,7 @@ namespace ConsoleClientServer
             }
         }
 
-        protected internal static void SereverConsoleReader()
+        protected internal static void SereverConsoleReader ()
         {
             while (true)
             {
@@ -77,7 +77,7 @@ namespace ConsoleClientServer
         }
 
         // трансляция сообщения всем подключенным клиентам на случай чего
-        protected internal void BroadcastMessage(string message)
+        protected internal void BroadcastMessage (string message)
         {
             var data = Encoding.Unicode.GetBytes(message);
             for (var i = 0; i < _clients.Count; i++)
@@ -87,7 +87,7 @@ namespace ConsoleClientServer
         }
 
         // отключение всех клиентов
-        public void Disconnect()
+        public void Disconnect ()
         {
             _tcpListener.Stop(); //остановка сервера
 
@@ -99,6 +99,6 @@ namespace ConsoleClientServer
             Environment.Exit(0); //завершение процесса
         }
 
-        public abstract byte[] ExecuteQuery(string query);
+        public abstract byte[] ExecuteQuery (string query);
     }
 }

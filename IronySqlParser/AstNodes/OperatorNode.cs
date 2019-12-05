@@ -8,6 +8,6 @@ namespace IronySqlParser.AstNodes
         public Dictionary<List<string>, Variable> Variables { get; set; }
         public Variable Value { get; set; }
 
-        public abstract dynamic Calc();
+        public abstract dynamic Calc ();
     }
 }

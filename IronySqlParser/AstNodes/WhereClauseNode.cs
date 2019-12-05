@@ -4,7 +4,7 @@
     {
         public ExpressionNode Expression { get; set; }
 
-        public override void CollectInfoFromChild() => Expression = FindFirstChildNodeByType<ExpressionNode>();
+        public override void CollectInfoFromChild () => Expression = FindFirstChildNodeByType<ExpressionNode>();
     }
 }
 

@@ -6,7 +6,7 @@ namespace ConsoleClientServer
 {
     public interface IListener
     {
-        void Process();
+        void Process ();
     }
 
     public class Listener : IListener
@@ -17,7 +17,7 @@ namespace ConsoleClientServer
         private readonly TcpClient _client;
         private readonly Server _server; // объект сервера
 
-        public Listener(TcpClient tcpClient, Server serverObject)
+        public Listener (TcpClient tcpClient, Server serverObject)
         {
             Id = Guid.NewGuid().ToString();
             _client = tcpClient;
@@ -25,7 +25,7 @@ namespace ConsoleClientServer
             serverObject?.AddConnection(this);
         }
 
-        public void Process()
+        public void Process ()
         {
             try
             {
@@ -54,7 +54,7 @@ namespace ConsoleClientServer
             }
         }
 
-        private string GetMessage()
+        private string GetMessage ()
         {
             var data = new byte[128];
             var builder = new StringBuilder();
@@ -70,7 +70,7 @@ namespace ConsoleClientServer
         }
 
         // закрытие подключения
-        protected internal void Close()
+        protected internal void Close ()
         {
             if (Stream != null)
             {

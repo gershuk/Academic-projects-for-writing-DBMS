@@ -5,9 +5,9 @@ namespace TransactionManagement
 {
     public interface ITransactionScheduler
     {
-        public Guid RegisterTransaction(TransactionLocksInfo transactionInfo);
-        public void RemoveTransactionResourcesLocks(Guid transactionGuid);
-        public void WaitTransactionResourceLock(Guid transactionGuid);
+        public Guid RegisterTransaction (TransactionLocksInfo transactionInfo);
+        public void RemoveTransactionResourcesLocks (Guid transactionGuid);
+        public void WaitTransactionResourceLock (Guid transactionGuid);
     }
 
     public class TransactionScheduler : ITransactionScheduler
@@ -16,14 +16,14 @@ namespace TransactionManagement
         private readonly Dictionary<List<string>, TableLockQueue> _tablesLockInfo;
         private readonly object _addingLocker;
 
-        public TransactionScheduler()
+        public TransactionScheduler ()
         {
             _transactions = new Dictionary<Guid, TransactionLocksInfo>();
             _tablesLockInfo = new Dictionary<List<string>, TableLockQueue>();
             _addingLocker = new object();
         }
 
-        public Guid RegisterTransaction(TransactionLocksInfo transactionInfo)
+        public Guid RegisterTransaction (TransactionLocksInfo transactionInfo)
         {
             lock (_addingLocker)
             {
@@ -41,7 +41,7 @@ namespace TransactionManagement
             return Guid.NewGuid();
         }
 
-        public void WaitTransactionResourceLock(Guid transactionGuid)
+        public void WaitTransactionResourceLock (Guid transactionGuid)
         {
             if (!_transactions.TryGetValue(transactionGuid, out var transaction))
             {
@@ -54,7 +54,7 @@ namespace TransactionManagement
             }
         }
 
-        public void RemoveTransactionResourcesLocks(Guid transactionGuid)
+        public void RemoveTransactionResourcesLocks (Guid transactionGuid)
         {
             if (!_transactions.TryGetValue(transactionGuid, out var transaction))
             {

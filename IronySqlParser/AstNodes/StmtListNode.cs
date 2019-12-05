@@ -6,6 +6,6 @@ namespace IronySqlParser.AstNodes
     {
         public List<StmtLineNode> StmtList { get; set; }
 
-        public override void CollectInfoFromChild() => StmtList = FindAllChildNodesByType<StmtLineNode>();
+        public override void CollectInfoFromChild () => StmtList = FindAllChildNodesByType<StmtLineNode>();
     }
 }

@@ -7,7 +7,7 @@ namespace IronySqlParser.AstNodes
         public List<string> Id { get; set; }
         public ExpressionNode Expression { get; set; }
 
-        public override void CollectInfoFromChild()
+        public override void CollectInfoFromChild ()
         {
             Id = FindFirstChildNodeByType<IdNode>()?.Id;
             Expression = FindFirstChildNodeByType<ExpressionNode>();

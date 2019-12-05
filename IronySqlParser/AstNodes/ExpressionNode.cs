@@ -7,9 +7,9 @@ namespace IronySqlParser.AstNodes
     {
         private OperatorNode _childOperator;
 
-        public override dynamic Calc() => _childOperator == null ? Value.Data : _childOperator.Calc();
+        public override dynamic Calc () => _childOperator == null ? Value.Data : _childOperator.Calc();
 
-        public override void CollectInfoFromChild()
+        public override void CollectInfoFromChild ()
         {
             Variables = new Dictionary<List<string>, Variable>();
 

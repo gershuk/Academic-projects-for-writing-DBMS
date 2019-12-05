@@ -5,8 +5,8 @@ namespace TransactionManagement
 {
     public interface ITableLockInfo
     {
-        public void AddLock(TableLock tableLock);
-        public void RemoveLock(TableLock tableLock);
+        public void AddLock (TableLock tableLock);
+        public void RemoveLock (TableLock tableLock);
     }
 
     public class TableLockQueue : ITableLockInfo
@@ -15,14 +15,14 @@ namespace TransactionManagement
         private readonly Queue<TableLock> _tableLocksQueue;
         private readonly object _changeLocker;
 
-        public TableLockQueue()
+        public TableLockQueue ()
         {
             _currentLock = (LockType.Non, 0);
             _tableLocksQueue = new Queue<TableLock>();
             _changeLocker = new object();
         }
 
-        public void AddLock(TableLock tableLock)
+        public void AddLock (TableLock tableLock)
         {
             lock (_changeLocker)
             {
@@ -39,7 +39,7 @@ namespace TransactionManagement
             }
         }
 
-        public void RemoveLock(TableLock tableLock)
+        public void RemoveLock (TableLock tableLock)
         {
             lock (_changeLocker)
             {

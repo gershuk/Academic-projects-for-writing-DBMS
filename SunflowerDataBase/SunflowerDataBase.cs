@@ -78,10 +78,12 @@ namespace SunflowerDB
 
                 var transaction = new TransactionInfo()
                 {
-                    Name = transactionNode.TransactionBeginOptNode.TransactionName,
+                    Name = transactionNode.TransactionBeginOptNode?.TransactionName,
                     Guid = _transactionScheduler.RegisterTransaction(transactionLocksInfo),
                     LocksInfo = transactionLocksInfo
                 };
+
+                transaction.Name ??= new List<string>() { transaction.Guid.ToString() };
 
                 _transactionScheduler.WaitTransactionResourceLock(transaction.Guid);
 

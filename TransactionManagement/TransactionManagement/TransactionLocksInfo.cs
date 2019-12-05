@@ -24,11 +24,12 @@ namespace TransactionManagement
 
         public TransactionLocksInfo ()
         {
+            TablesLocks = new List<TableLock>();
         }
 
         public TransactionLocksInfo (List<TableLock> tablesLocks)
         {
-            tablesLocks = new List<TableLock>();
+            TablesLocks = new List<TableLock>();
             TablesLocks.AddRange(tablesLocks);
         }
     }

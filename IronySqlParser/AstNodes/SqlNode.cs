@@ -34,7 +34,7 @@ namespace IronySqlParser.AstNodes
         IEnumerable<ISqlNode> ChildNodes { get; }
         IEnumerable<Token> Tokens { get; }
 
-        public object Accept (Guid id, ISqlNodeExecutor sqlNodeVisitor);
+        //public object Accept (Guid id, ISqlNodeExecutor sqlNodeVisitor);
     }
 
     public interface ISqlChildNode : ISqlNode
@@ -44,7 +44,7 @@ namespace IronySqlParser.AstNodes
 
     public interface ISqlNodeExecutor
     {
-        public object ExecuteSqlNode (Guid guid, SqlNode node);
+        //public object ExecuteSqlNode (Guid guid, SqlNode node);
         public object ExecuteSqlNode (Guid guid, CreateTableCommandNode node);
         public object ExecuteSqlNode (Guid guid, DropTableCommandNode node);
         public object ExecuteSqlNode (Guid guid, ShowTableCommandNode node);
@@ -212,7 +212,7 @@ namespace IronySqlParser.AstNodes
             }
         }
 
-        public object Accept (Guid id, ISqlNodeExecutor sqlNodeVisitor) => sqlNodeVisitor.ExecuteSqlNode(id, this);
+        //public object Accept (Guid id, ISqlNodeExecutor sqlNodeVisitor) => sqlNodeVisitor.ExecuteSqlNode(id, this);
     }
 
     public abstract class SqlCommandNode : SqlNode

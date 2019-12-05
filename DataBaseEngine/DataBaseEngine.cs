@@ -79,6 +79,14 @@ namespace DataBaseEngine
             }
         }
 
+        public DataBaseEngineMain ()
+        {
+            _dataStorage = new DataStorageInFiles(_pathDefault, _blockSizeDefault);
+            _lastId = 0;
+            _idLocker = new object();
+            _transactions = new Dictionary<Guid, TransactionTempInfo>();
+        }
+
         public DataBaseEngineMain (IDataStorage dataStorage, long lastId)
         {
             _dataStorage = dataStorage ?? throw new ArgumentNullException(nameof(dataStorage));
@@ -103,7 +111,6 @@ namespace DataBaseEngine
 
         public void CommitTransaction (Guid transactionGuid) => CloseTransaction(transactionGuid);
 
-        public DataBaseEngineMain () => _dataStorage = new DataStorageInFiles(_pathDefault, _blockSizeDefault);
         public DataBaseEngineMain (string pathDataBaseStorage, int blockSize = _blockSizeDefault) => _dataStorage = new DataStorageInFiles(pathDataBaseStorage, blockSize);
 
         public OperationResult<Table> AddColumnCommand (Guid transactionGuid, List<string> tableName, Column column) => throw new NotImplementedException();

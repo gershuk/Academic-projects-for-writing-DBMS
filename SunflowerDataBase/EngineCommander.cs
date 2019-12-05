@@ -25,9 +25,9 @@ namespace SunflowerDB
 
         public (ExecutionState state, DBError exception) ExecuteCommands (Guid transactionGuid, List<SqlCommandNode> sqlCommands)
         {
-            foreach (var sqlCommand in sqlCommands)
+            foreach (dynamic command in sqlCommands)
             {
-                var result = ExecuteSqlNode(transactionGuid, sqlCommand) as OperationResult<Table>;
+                var result = ExecuteSqlNode(transactionGuid, command) as OperationResult<Table>;
                 if (result.State != ExecutionState.performed)
                 {
                     return (result.State, result.OperationError);
@@ -37,7 +37,7 @@ namespace SunflowerDB
             return (ExecutionState.performed, null);
         }
 
-        public object ExecuteSqlNode (Guid id, SqlNode node) => node.Accept(id, this);
+        //public object ExecuteSqlNode (Guid id, SqlNode node) => node.Accept(id, this);
 
         public object ExecuteSqlNode (Guid id, CreateTableCommandNode node)
         {

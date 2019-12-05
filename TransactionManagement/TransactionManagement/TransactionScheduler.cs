@@ -38,7 +38,11 @@ namespace TransactionManagement
                 }
             }
 
-            return Guid.NewGuid();
+            var guid = Guid.NewGuid();
+
+            _transactions.Add(guid, transactionInfo);
+
+            return guid;
         }
 
         public void WaitTransactionResourceLock (Guid transactionGuid)

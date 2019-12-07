@@ -1,14 +1,23 @@
 ﻿using System.Collections.Generic;
 
-using ZeroFormatter;
+using ProtoBuf;
 
 namespace DataBaseType
 {
-    [ZeroFormattable]
+    [ProtoContract]
+    [ProtoInclude(2, typeof(FileNotExistError))]
+    [ProtoInclude(3, typeof(DataBaseIsCorruptError))]
+    [ProtoInclude(4, typeof(FileMarkNotExistError))]
+    [ProtoInclude(5, typeof(TableNotExistError))]
+    [ProtoInclude(6, typeof(TableAlreadyExistError))]
+    [ProtoInclude(7, typeof(ColumnAlreadyExistError))]
+    [ProtoInclude(8, typeof(ColumnNotExistError))]
+    [ProtoInclude(9, typeof(CastFieldError))]
+    [ProtoInclude(10, typeof(ParsingRequestError))]
     public abstract class DBError
     {
-        [Index(0)]
-        public virtual string Message { get; set; }
+        [ProtoMember(1)]
+        public string Message { get; set; }
 
         protected DBError ()
         { }
@@ -18,7 +27,7 @@ namespace DataBaseType
         public override string ToString () => Message;
     }
 
-    [ZeroFormattable]
+    [ProtoContract]
     public class FileNotExistError : DBError
     {
         public FileNotExistError ()
@@ -30,7 +39,7 @@ namespace DataBaseType
         { }
     }
 
-    [ZeroFormattable]
+    [ProtoContract]
     public class DataBaseIsCorruptError : DBError
     {
         public DataBaseIsCorruptError ()
@@ -42,7 +51,7 @@ namespace DataBaseType
         { }
     }
 
-    [ZeroFormattable]
+    [ProtoContract]
     public class FileMarkNotExistError : DBError
     {
         public FileMarkNotExistError ()
@@ -54,7 +63,7 @@ namespace DataBaseType
         { }
     }
 
-    [ZeroFormattable]
+    [ProtoContract]
     public class TableNotExistError : DBError
     {
         public TableNotExistError ()
@@ -66,7 +75,7 @@ namespace DataBaseType
         { }
     }
 
-    [ZeroFormattable]
+    [ProtoContract]
     public class TableAlreadyExistError : DBError
     {
         public TableAlreadyExistError ()
@@ -78,7 +87,7 @@ namespace DataBaseType
         { }
     }
 
-    [ZeroFormattable]
+    [ProtoContract]
     public class ColumnAlreadyExistError : DBError
     {
         public ColumnAlreadyExistError ()
@@ -90,7 +99,7 @@ namespace DataBaseType
         { }
     }
 
-    [ZeroFormattable]
+    [ProtoContract]
     public class ColumnNotExistError : DBError
     {
         public ColumnNotExistError ()
@@ -102,7 +111,7 @@ namespace DataBaseType
         { }
     }
 
-    [ZeroFormattable]
+    [ProtoContract]
     public class CastFieldError : DBError
     {
         public CastFieldError ()
@@ -114,7 +123,7 @@ namespace DataBaseType
         { }
     }
 
-    [ZeroFormattable]
+    [ProtoContract]
     public class ParsingRequestError : DBError
     {
         public ParsingRequestError ()

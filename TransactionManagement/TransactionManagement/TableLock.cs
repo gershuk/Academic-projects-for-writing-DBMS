@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 
-using ZeroFormatter;
+using ProtoBuf;
 
 namespace TransactionManagement
 {
@@ -13,14 +13,14 @@ namespace TransactionManagement
         public List<string> TableName { get; }
     }
 
-    [ZeroFormattable]
+    [ProtoContract]
     public class TableLock : ITableLock
     {
-        [Index(0)]
-        public virtual LockType LockType { get; private set; }
+        [ProtoMember(1)]
+        public LockType LockType { get; private set; }
 
-        [Index(1)]
-        public virtual List<string> TableName { get; private set; }
+        [ProtoMember(2)]
+        public List<string> TableName { get; private set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2235:Mark all non-serializable fields", Justification = "<Ожидание>")]
         public ManualResetEvent Notify { get; private set; }

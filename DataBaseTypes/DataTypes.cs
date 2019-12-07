@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using ZeroFormatter;
+using ProtoBuf;
 
 namespace DataBaseType
 {
@@ -35,17 +35,17 @@ namespace DataBaseType
         ExecutionState State { get; set; }
     }
 
-    [ZeroFormattable]
+    [ProtoContract]
     public class OperationResult<T> : IOperationResult<T>
     {
-        [Index(0)]
-        public virtual ExecutionState State { get; set; }
+        [ProtoMember(1)]
+        public ExecutionState State { get; set; }
 
-        [Index(1)]
-        public virtual DBError OperationError { get; set; }
+        [ProtoMember(2)]
+        public DBError OperationError { get; set; }
 
-        [Index(2)]
-        public virtual T Result { get; set; }
+        [ProtoMember(3)]
+        public T Result { get; set; }
 
         public OperationResult ()
         {

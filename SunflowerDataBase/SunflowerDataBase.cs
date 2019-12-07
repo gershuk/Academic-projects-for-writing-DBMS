@@ -58,7 +58,7 @@ namespace SunflowerDB
             if (parseTree.Root == null)
             {
                 var message = parseTree.ParserMessages[0];
-                var error = new ParsingRequestException(message.Message, message.Location.ToString());
+                var error = new ParsingRequestError(message.Message, message.Location.ToString());
                 return new OperationResult<SqlSequenceResult>(ExecutionState.parserError, null, error);
             }
 

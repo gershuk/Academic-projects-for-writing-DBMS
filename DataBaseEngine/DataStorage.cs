@@ -359,7 +359,7 @@ namespace StorageEngine
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistException(FullTableName(tableName)));
+                return new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
             }
             Table table;
             using( var tManager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)) ){ 
@@ -380,7 +380,7 @@ namespace StorageEngine
             return sb.ToString();
         }
         public OperationResult<bool> ContainsTable(List<string> tableName) => File.Exists(GetTableFileName(tableName)) ? new OperationResult<bool>(ExecutionState.performed, true)
-                                                                                                                       : new OperationResult<bool>(ExecutionState.failed, false, new TableNotExistException(FullTableName(tableName)));
+                                                                                                                       : new OperationResult<bool>(ExecutionState.failed, false, new TableNotExistError(FullTableName(tableName)));
 
 
 
@@ -389,7 +389,7 @@ namespace StorageEngine
             _ = table ?? throw new ArgumentNullException(nameof(table));
             if (File.Exists(GetTableFileName(table.TableMetaInf.Name)))
             {
-                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistException(FullTableName(table.TableMetaInf.Name)));
+                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistError(FullTableName(table.TableMetaInf.Name)));
             }
             using var tManager = new TableFileManager(new FileStream(GetTableFileName(table.TableMetaInf.Name), FileMode.Create), table, _blockSize);
             return new OperationResult<string>(ExecutionState.performed, "");
@@ -399,7 +399,7 @@ namespace StorageEngine
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistException(FullTableName(tableName)));
+                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
             }
 
             File.Delete(GetTableFileName(tableName));
@@ -411,7 +411,7 @@ namespace StorageEngine
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistException(FullTableName(tableName)));
+                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
             }
 
             using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
@@ -431,7 +431,7 @@ namespace StorageEngine
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistException(FullTableName(tableName)));
+                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
             }
 
             using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
@@ -448,7 +448,7 @@ namespace StorageEngine
 
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistException(FullTableName(tableName)));
+                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
             }
 
             using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))

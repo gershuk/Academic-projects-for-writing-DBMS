@@ -19,109 +19,109 @@ namespace DataBaseType
     }
 
     [ZeroFormattable]
-    public class FileNotExistException : DBError
+    public class FileNotExistError : DBError
     {
-        public FileNotExistException ()
+        public FileNotExistError ()
         {
         }
 
-        public FileNotExistException (string path)
+        public FileNotExistError (string path)
             : base($"Error, File named {path} doesn't exist ")
         { }
     }
 
     [ZeroFormattable]
-    public class DataBaseIsCorruptException : DBError
+    public class DataBaseIsCorruptError : DBError
     {
-        public DataBaseIsCorruptException ()
+        public DataBaseIsCorruptError ()
         {
         }
 
-        public DataBaseIsCorruptException (string path)
+        public DataBaseIsCorruptError (string path)
             : base($"Error, DataBase named {path} is corrupt")
         { }
     }
 
     [ZeroFormattable]
-    public class FileMarkNotExistException : DBError
+    public class FileMarkNotExistError : DBError
     {
-        public FileMarkNotExistException ()
+        public FileMarkNotExistError ()
         {
         }
 
-        public FileMarkNotExistException (string path, string fileMark)
+        public FileMarkNotExistError (string path, string fileMark)
             : base($"Error, File named {path} doesn't contain 'file mark' '{fileMark}'")
         { }
     }
 
     [ZeroFormattable]
-    public class TableNotExistException : DBError
+    public class TableNotExistError : DBError
     {
-        public TableNotExistException ()
+        public TableNotExistError ()
         {
         }
 
-        public TableNotExistException (string tableName)
+        public TableNotExistError (string tableName)
             : base($"Error, Table named {tableName} doesn't exist")
         { }
     }
 
     [ZeroFormattable]
-    public class TableAlreadyExistException : DBError
+    public class TableAlreadyExistError : DBError
     {
-        public TableAlreadyExistException ()
+        public TableAlreadyExistError ()
         {
         }
 
-        public TableAlreadyExistException (string tableName)
+        public TableAlreadyExistError (string tableName)
             : base($"Error, Table with name {tableName} already exist.")
         { }
     }
 
     [ZeroFormattable]
-    public class ColumnAlreadyExistException : DBError
+    public class ColumnAlreadyExistError : DBError
     {
-        public ColumnAlreadyExistException ()
+        public ColumnAlreadyExistError ()
         {
         }
 
-        public ColumnAlreadyExistException (string columnName, string tableName)
+        public ColumnAlreadyExistError (string columnName, string tableName)
             : base($"Error, Column with name {columnName} alredy exist in Table {tableName}")
         { }
     }
 
     [ZeroFormattable]
-    public class ColumnNotExistException : DBError
+    public class ColumnNotExistError : DBError
     {
-        public ColumnNotExistException ()
+        public ColumnNotExistError ()
         {
         }
 
-        public ColumnNotExistException (string columnName, string tableName)
+        public ColumnNotExistError (string columnName, string tableName)
             : base($"Error, Column with name {columnName} not exist in Table {tableName}")
         { }
     }
 
     [ZeroFormattable]
-    public class CastFieldException : DBError
+    public class CastFieldError : DBError
     {
-        public CastFieldException ()
+        public CastFieldError ()
         {
         }
 
-        public CastFieldException (List<string> columnName, string type, string member)
+        public CastFieldError (List<string> columnName, string type, string member)
             : base($"Error cast field, Column with name {columnName} and type {type} with member {member}")
         { }
     }
 
     [ZeroFormattable]
-    public class ParsingRequestException : DBError
+    public class ParsingRequestError : DBError
     {
-        public ParsingRequestException ()
+        public ParsingRequestError ()
         {
         }
 
-        public ParsingRequestException (string message, string errorLocation)
+        public ParsingRequestError (string message, string errorLocation)
             : base($"{message} {errorLocation}")
         { }
     }

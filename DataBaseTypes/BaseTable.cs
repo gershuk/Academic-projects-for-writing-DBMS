@@ -142,7 +142,7 @@ namespace DataBaseType
                     }
                     catch(FormatException)
                     {
-                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
+                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name, DataType.ToString(), data));
                     }
                 case DataType.DOUBLE:
                     try
@@ -152,14 +152,14 @@ namespace DataBaseType
                     }
                     catch(FormatException)
                     {
-                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
+                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name, DataType.ToString(), data));
                     }
                 case DataType.CHAR:
                     return new OperationResult<Field>(ExecutionState.performed, new FieldChar(data, (int)DataParam));
 
             }
 
-            return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldException(Name, DataType.ToString(), data));
+            return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name, DataType.ToString(), data));
         }
     }
 
@@ -217,7 +217,7 @@ namespace DataBaseType
             }
             else
             {
-                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnAlreadyExistException(column.Name.ToString(), TableMetaInf.Name.ToString()));
+                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnAlreadyExistError(column.Name.ToString(), TableMetaInf.Name.ToString()));
             }
 
             return new OperationResult<Table>(ExecutionState.performed, this);
@@ -232,7 +232,7 @@ namespace DataBaseType
             }
             else
             {
-                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistException(ColumName, TableMetaInf.Name.ToString()));
+                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(ColumName, TableMetaInf.Name.ToString()));
             }
 
             return new OperationResult<Table>(ExecutionState.performed, this);

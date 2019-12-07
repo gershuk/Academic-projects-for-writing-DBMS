@@ -9,10 +9,10 @@ namespace ConsoleClientServer
 {
     public interface IClient
     {
-        bool Connect(int tries);
-        void Dispose();
-        void SendResieveMessage();
-        string ConvertMessageToString(byte[] value);
+        bool Connect (int tries);
+        void Dispose ();
+        void SendResieveMessage ();
+        string ConvertMessageToString (byte[] value);
     }
 
     public abstract class Client : IDisposable, IClient
@@ -30,7 +30,7 @@ namespace ConsoleClientServer
             _port = port;
             _client = new TcpClient();
         }
-        public bool Connect(int tries)
+        public bool Connect (int tries)
         {
             var connected = false;
 
@@ -68,9 +68,9 @@ namespace ConsoleClientServer
         }
 
         // отправка сообщений
-        public abstract string ConvertMessageToString(byte[] value);
+        public abstract string ConvertMessageToString (byte[] value);
 
-        public void SendResieveMessage()
+        public void SendResieveMessage ()
         {
             if (_stream == null)
             {
@@ -82,7 +82,18 @@ namespace ConsoleClientServer
                 try
                 {
                     {
-                        var message = Console.ReadLine();
+                        var message = "";
+                        var line = Console.ReadLine();
+                        while (line != null)
+                        {
+                            message += line;
+                            line = Console.ReadLine();
+                        }
+                        if (message == "test")
+                        {
+                            Console.WriteLine("test");
+                            continue;
+                        }
                         var data = Encoding.Unicode.GetBytes(message);
                         _stream.Write(data, 0, data.Length);
                     }
@@ -95,7 +106,7 @@ namespace ConsoleClientServer
                             bytes = _stream.Read(data, 0, data.Length);
                             binaryData.Write(data, 0, bytes);
                         }
-                        while (_stream.DataAvailable);          
+                        while (_stream.DataAvailable);
                         var result = ConvertMessageToString(binaryData.ToArray());
                         Console.WriteLine(result);//вывод сообщения
                     }

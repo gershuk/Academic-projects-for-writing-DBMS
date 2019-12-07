@@ -52,6 +52,7 @@
     <Compile Include="Create_ShowCreate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestClient.cs" />
+    <Compile Include="TestExeptions.cs" />
     <Compile Include="TestServer.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -8,7 +8,7 @@ namespace IronySqlParser
 {
     public class SqlGrammar : Irony.Interpreter.InterpretedLanguageGrammar
     {
-        public SqlGrammar() : base(false)
+        public SqlGrammar () : base(false)
         {
             var comment = new CommentTerminal("comment", "/*", "*/");
             var lineComment = new CommentTerminal("line_comment", "--", "\n", "\r\n");
@@ -152,7 +152,6 @@ namespace IronySqlParser
             var exceptChainOpt = new NonTerminal("exceptChainOpt", typeof(ExceptChainOptNode));
 
             var deleteStmt = new NonTerminal("DeleteStmt", typeof(DeleteCommandNode));
-
 
             //BNF Rules
             Root = transactionList;
@@ -300,23 +299,23 @@ namespace IronySqlParser
         private readonly LanguageData _language;
         private readonly Parser _parser;
 
-        public SqlSequenceParser()
+        public SqlSequenceParser ()
         {
             _sqlGrammar = new SqlGrammar();
             _language = new LanguageData(_sqlGrammar);
             _parser = new Parser(_language);
         }
 
-        public bool IsSequenceValid(string sequence)
+        public bool IsSequenceValid (string sequence)
         {
             var parseTree = _parser.Parse(sequence);
             var root = parseTree.Root;
             return root != null;
         }
 
-        public ParseTree BuildTree(string sequence) => _parser.Parse(sequence);
+        public ParseTree BuildTree (string sequence) => _parser.Parse(sequence);
 
-        public void ShowLexicalTree(ParseTreeNode node, int level = 0)
+        public void ShowLexicalTree (ParseTreeNode node, int level = 0)
         {
             if (node != null)
             {

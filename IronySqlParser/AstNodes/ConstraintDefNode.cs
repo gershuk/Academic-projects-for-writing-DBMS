@@ -4,7 +4,7 @@
     {
         public string ConstraintState { get; set; }
 
-        public override void CollectInfoFromChild()
+        public override void CollectInfoFromChild ()
         {
             ConstraintState = "";
 

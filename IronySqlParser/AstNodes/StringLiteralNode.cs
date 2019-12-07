@@ -4,7 +4,7 @@
     {
         public string StringLiteral { get; set; }
 
-        public override void CollectInfoFromChild()
+        public override void CollectInfoFromChild ()
         {
             foreach (var token in Tokens)
             {

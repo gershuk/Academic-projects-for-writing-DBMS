@@ -1,19 +1,19 @@
 ﻿using System;
+using System.Text;
 using ConsoleClientServer;
 using DataBaseType;
-using SunflowerDB;
 
 namespace SunflowerDBClient
 {
     public class SunflowerDBClient : Client
     {
-        public SunflowerDBClient(string host, int port) : base(host, port)
+        public SunflowerDBClient (string host, int port) : base(host, port)
         {
         }
 
         public override string ConvertMessageToString(byte[] value)
         {
-            return value.ToString();
+            return Encoding.ASCII.GetString(value);
             throw new NotImplementedException();/*
             var value = //ToDo
             var result = "";
@@ -41,7 +41,7 @@ namespace SunflowerDBClient
 
         internal class ConsoleClient
         {
-            private static void Main(string[] args)
+            private static void Main (string[] args)
             {
                 var BaseHost = "127.0.0.1";
                 var BasePort = 8888;

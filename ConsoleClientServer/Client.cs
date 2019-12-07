@@ -24,7 +24,7 @@ namespace ConsoleClientServer
         private bool _disposed = false;
         private bool _stopworking = false;
 
-        public Client(string host, int port)
+        public Client (string host, int port)
         {
             _host = host;
             _port = port;
@@ -111,7 +111,7 @@ namespace ConsoleClientServer
 
         // получение сообщений
 
-        private void Disconnect()
+        private void Disconnect ()
         {
             if (_stream != null)
             {
@@ -126,14 +126,14 @@ namespace ConsoleClientServer
             Dispose();
         }
 
-        public void Dispose()
+        public void Dispose ()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
         // Protected implementation of Dispose pattern.
-        protected virtual void Dispose(bool disposing)
+        protected virtual void Dispose (bool disposing)
         {
             _stopworking = true;
 
@@ -151,7 +151,7 @@ namespace ConsoleClientServer
             _disposed = true;
         }
 
-        ~Client()
+        ~Client ()
         {
             Dispose(false);
         }

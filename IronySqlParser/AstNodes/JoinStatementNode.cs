@@ -8,7 +8,7 @@ namespace IronySqlParser.AstNodes
         public List<string> LeftId { get; set; }
         public List<string> RightId { get; set; }
 
-        public override void CollectInfoFromChild()
+        public override void CollectInfoFromChild ()
         {
             var childNodes = ChildNodes.ToArray();
             LeftId = (childNodes[0] as IdNode).Id;

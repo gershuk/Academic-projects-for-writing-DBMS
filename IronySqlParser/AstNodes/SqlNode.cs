@@ -16,7 +16,7 @@ namespace IronySqlParser.AstNodes
         public string Text { get; private set; }
         public object Value { get; private set; }
 
-        public Token(int column, int line, string text, object value)
+        public Token (int column, int line, string text, object value)
         {
             Text = text;
             Value = value;
@@ -24,7 +24,7 @@ namespace IronySqlParser.AstNodes
             Column = column;
         }
 
-        public override string ToString() => Text;
+        public override string ToString () => Text;
     }
 
     public interface ISqlNode
@@ -34,28 +34,28 @@ namespace IronySqlParser.AstNodes
         IEnumerable<ISqlNode> ChildNodes { get; }
         IEnumerable<Token> Tokens { get; }
 
-        public object Accept(ISqlNodeExecutor sqlNodeVisitor);
+        //public object Accept (Guid id, ISqlNodeExecutor sqlNodeVisitor);
     }
 
     public interface ISqlChildNode : ISqlNode
     {
-        void SetParent(ISqlNode node);
+        void SetParent (ISqlNode node);
     }
 
     public interface ISqlNodeExecutor
     {
-        public object ExecuteSqlNode(SqlNode node);
-        public object ExecuteSqlNode(CreateTableCommandNode node);
-        public object ExecuteSqlNode(DropTableCommandNode node);
-        public object ExecuteSqlNode(ShowTableCommandNode node);
-        public object ExecuteSqlNode(InsertCommandNode node);
-        public object ExecuteSqlNode(DeleteCommandNode node);
-        public object ExecuteSqlNode(SelectCommandNode node);
-        public object ExecuteSqlNode(UpdateCommandNode node);
-        public object ExecuteSqlNode(JoinChainOptNode node);
-        public object ExecuteSqlNode(UnionChainOptNode node);
-        public object ExecuteSqlNode(IntersectChainOptNode node);
-        public object ExecuteSqlNode(ExceptChainOptNode node);
+        //public object ExecuteSqlNode (Guid guid, SqlNode node);
+        public object ExecuteSqlNode (Guid guid, CreateTableCommandNode node);
+        public object ExecuteSqlNode (Guid guid, DropTableCommandNode node);
+        public object ExecuteSqlNode (Guid guid, ShowTableCommandNode node);
+        public object ExecuteSqlNode (Guid guid, InsertCommandNode node);
+        public object ExecuteSqlNode (Guid guid, DeleteCommandNode node);
+        public object ExecuteSqlNode (Guid guid, SelectCommandNode node);
+        public object ExecuteSqlNode (Guid guid, UpdateCommandNode node);
+        public object ExecuteSqlNode (Guid guid, JoinChainOptNode node);
+        public object ExecuteSqlNode (Guid guid, UnionChainOptNode node);
+        public object ExecuteSqlNode (Guid guid, IntersectChainOptNode node);
+        public object ExecuteSqlNode (Guid guid, ExceptChainOptNode node);
     }
 
     public class SqlKeyNode : ISqlChildNode
@@ -63,7 +63,7 @@ namespace IronySqlParser.AstNodes
         private readonly Token _token;
         private ISqlNode _parent;
 
-        public SqlKeyNode(Token token)
+        public SqlKeyNode (Token token)
         {
             _token = token;
             Text = token.Text;
@@ -73,24 +73,24 @@ namespace IronySqlParser.AstNodes
         ISqlNode ISqlNode.Parent => _parent;
         IEnumerable<ISqlNode> ISqlNode.ChildNodes => new ISqlNode[0];
         IEnumerable<Token> ISqlNode.Tokens => new Token[] { _token };
-        void ISqlChildNode.SetParent(ISqlNode node) => _parent = node;
+        void ISqlChildNode.SetParent (ISqlNode node) => _parent = node;
         public string Text { get; private set; }
-        public object Accept(ISqlNodeExecutor sqlNodeVisitor) => null;
+        public object Accept (Guid id, ISqlNodeExecutor sqlNodeVisitor) => null;
     }
 
     public class SqlNode : ISqlNode, IAstNodeInit
     {
         public IEnumerable<Token> Tokens { get; private set; }
-        public List<SqlCommandNode> ExecuteCommnadsForNode { get; private set; }
+        public List<SqlCommandNode> CommnadsForNode { get; private set; }
 
         protected ISqlNode Parent { get; private set; }
         protected string NodeName { get; private set; }
         protected IEnumerable<ISqlNode> ChildNodes { get; private set; }
 
-        public virtual void CollectInfoFromChild()
+        public virtual void CollectInfoFromChild ()
         { }
 
-        protected virtual List<T> FindAllChildNodesByType<T>()
+        protected virtual List<T> FindAllChildNodesByType<T> ()
         {
             var children = new List<T>();
 
@@ -105,13 +105,13 @@ namespace IronySqlParser.AstNodes
             return children;
         }
 
-        public SqlNode()
+        public SqlNode ()
         {
             ChildNodes = new ReadOnlyCollection<ISqlNode>(new ISqlNode[0]);
             Tokens = new ReadOnlyCollection<Token>(new Token[0]);
         }
 
-        void IAstNodeInit.Init(AstContext context, ParseTreeNode parseNode)
+        void IAstNodeInit.Init (AstContext context, ParseTreeNode parseNode)
         {
             NodeName = parseNode.Term == null ? GetType().Name : parseNode.Term.Name;
 
@@ -170,15 +170,15 @@ namespace IronySqlParser.AstNodes
 
         IEnumerable<Token> ISqlNode.Tokens => Tokens;
 
-        protected virtual void OnNodeInit()
+        protected virtual void OnNodeInit ()
         { }
 
-        protected virtual ISqlNode OnChildNode(ISqlNode node) => node;
+        protected virtual ISqlNode OnChildNode (ISqlNode node) => node;
 
-        protected static T ParseEnum<T>(string value) => (T)Enum.Parse(typeof(T), value, true);
+        protected static T ParseEnum<T> (string value) => (T)Enum.Parse(typeof(T), value, true);
 
 
-        protected virtual T FindFirstChildNodeByType<T>()
+        protected virtual T FindFirstChildNodeByType<T> ()
         {
             foreach (var child in ChildNodes)
             {
@@ -191,9 +191,9 @@ namespace IronySqlParser.AstNodes
             return default;
         }
 
-        protected void CollectAllCommands()
+        protected void CollectAllCommands ()
         {
-            ExecuteCommnadsForNode = new List<SqlCommandNode>();
+            CommnadsForNode = new List<SqlCommandNode>();
 
             if (ChildNodes != null)
             {
@@ -201,26 +201,26 @@ namespace IronySqlParser.AstNodes
                 {
                     if (child is SqlNode sqlNode)
                     {
-                        ExecuteCommnadsForNode.AddRange(sqlNode.ExecuteCommnadsForNode);
+                        CommnadsForNode.AddRange(sqlNode.CommnadsForNode);
                     }
                 }
             }
 
             if (this is SqlCommandNode thisCommand)
             {
-                ExecuteCommnadsForNode.Add(thisCommand);
+                CommnadsForNode.Add(thisCommand);
             }
         }
 
-        public object Accept(ISqlNodeExecutor sqlNodeVisitor) => sqlNodeVisitor.ExecuteSqlNode(this);
+        //public object Accept (Guid id, ISqlNodeExecutor sqlNodeVisitor) => sqlNodeVisitor.ExecuteSqlNode(id, this);
     }
 
     public abstract class SqlCommandNode : SqlNode
     {
         public List<string> ReturnedTableName { get; private set; } = new List<string>();
 
-        public abstract List<TableLock> GetTableLocks();
+        public abstract List<TableLock> GetTableLocks ();
 
-        public void SetReturnedTableName(List<string> name) => ReturnedTableName.AddRange(name);
+        public void SetReturnedTableName (List<string> name) => ReturnedTableName.AddRange(name);
     }
 }

@@ -14,7 +14,7 @@ namespace IronySqlParser.AstNodes
         public List<string> RightId { get; set; }
         public JoinStatementNode JoinStatementNode { get; set; }
 
-        public override void CollectInfoFromChild()
+        public override void CollectInfoFromChild ()
         {
             var childNodes = ChildNodes.ToArray();
             JoinKind = FindFirstChildNodeByType<JoinKindOptNode>().JoinKindOpt;
@@ -23,7 +23,7 @@ namespace IronySqlParser.AstNodes
             JoinStatementNode = FindFirstChildNodeByType<JoinStatementNode>();
         }
 
-        public override List<TableLock> GetTableLocks() => new List<TableLock>() { new TableLock(LockType.Read, LeftId, new System.Threading.ManualResetEvent(false)),
+        public override List<TableLock> GetTableLocks () => new List<TableLock>() { new TableLock(LockType.Read, LeftId, new System.Threading.ManualResetEvent(false)),
             new TableLock(LockType.Read, RightId, new System.Threading.ManualResetEvent(false)) };
     }
 }

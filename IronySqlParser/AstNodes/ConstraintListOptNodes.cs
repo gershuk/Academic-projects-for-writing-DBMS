@@ -6,7 +6,7 @@ namespace IronySqlParser.AstNodes
     {
         public List<string> ConstraintList { get; set; }
 
-        public override void CollectInfoFromChild()
+        public override void CollectInfoFromChild ()
         {
             ConstraintList = new List<string>();
             var constraintDefNodes = FindAllChildNodesByType<ConstraintDefNode>();

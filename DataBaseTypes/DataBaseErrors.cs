@@ -1,97 +1,128 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+
+using ZeroFormatter;
 
 namespace DataBaseType
 {
-    [Serializable]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2229:Implement serialization constructors", Justification = "<Ожидание>")]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1032:Реализуйте стандартные конструкторы исключения", Justification = "<Ожидание>")]
-    public class FileNotExistException : Exception
+    [ZeroFormattable]
+    public abstract class DBError
     {
-        public FileNotExistException(string path)
+        [Index(0)]
+        public virtual string Message { get; set; }
+
+        protected DBError ()
+        { }
+
+        public DBError (string message) => Message = message;
+
+        public override string ToString () => Message;
+    }
+
+    [ZeroFormattable]
+    public class FileNotExistError : DBError
+    {
+        public FileNotExistError ()
+        {
+        }
+
+        public FileNotExistError (string path)
             : base($"Error, File named {path} doesn't exist ")
         { }
     }
 
-    [Serializable]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2229:Implement serialization constructors", Justification = "<Ожидание>")]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1032:Реализуйте стандартные конструкторы исключения", Justification = "<Ожидание>")]
-    public class DataBaseIsCorruptException : Exception
+    [ZeroFormattable]
+    public class DataBaseIsCorruptError : DBError
     {
-        public DataBaseIsCorruptException(string path)
+        public DataBaseIsCorruptError ()
+        {
+        }
+
+        public DataBaseIsCorruptError (string path)
             : base($"Error, DataBase named {path} is corrupt")
         { }
     }
 
-    [Serializable]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2229:Implement serialization constructors", Justification = "<Ожидание>")]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1032:Реализуйте стандартные конструкторы исключения", Justification = "<Ожидание>")]
-    public class FileMarkNotExistException : Exception
+    [ZeroFormattable]
+    public class FileMarkNotExistError : DBError
     {
-        public FileMarkNotExistException(string path, string fileMark)
+        public FileMarkNotExistError ()
+        {
+        }
+
+        public FileMarkNotExistError (string path, string fileMark)
             : base($"Error, File named {path} doesn't contain 'file mark' '{fileMark}'")
         { }
     }
 
-    [Serializable]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2229:Implement serialization constructors", Justification = "<Ожидание>")]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1032:Реализуйте стандартные конструкторы исключения", Justification = "<Ожидание>")]
-    public class TableNotExistException : Exception
+    [ZeroFormattable]
+    public class TableNotExistError : DBError
     {
-        public TableNotExistException(string tableName)
+        public TableNotExistError ()
+        {
+        }
+
+        public TableNotExistError (string tableName)
             : base($"Error, Table named {tableName} doesn't exist")
         { }
     }
 
-    [Serializable]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2229:Implement serialization constructors", Justification = "<Ожидание>")]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1032:Реализуйте стандартные конструкторы исключения", Justification = "<Ожидание>")]
-    public class TableAlreadyExistException : Exception
+    [ZeroFormattable]
+    public class TableAlreadyExistError : DBError
     {
-        public TableAlreadyExistException(string tableName)
+        public TableAlreadyExistError ()
+        {
+        }
+
+        public TableAlreadyExistError (string tableName)
             : base($"Error, Table with name {tableName} already exist.")
         { }
     }
 
-    [Serializable]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2229:Implement serialization constructors", Justification = "<Ожидание>")]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1032:Реализуйте стандартные конструкторы исключения", Justification = "<Ожидание>")]
-    public class ColumnAlreadyExistException : Exception
+    [ZeroFormattable]
+    public class ColumnAlreadyExistError : DBError
     {
-        public ColumnAlreadyExistException(string columnName, string tableName)
+        public ColumnAlreadyExistError ()
+        {
+        }
+
+        public ColumnAlreadyExistError (string columnName, string tableName)
             : base($"Error, Column with name {columnName} alredy exist in Table {tableName}")
         { }
     }
 
-    [Serializable]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2229:Implement serialization constructors", Justification = "<Ожидание>")]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1032:Реализуйте стандартные конструкторы исключения", Justification = "<Ожидание>")]
-    public class ColumnNotExistException : Exception
+    [ZeroFormattable]
+    public class ColumnNotExistError : DBError
     {
-        public ColumnNotExistException(string columnName, string tableName)
+        public ColumnNotExistError ()
+        {
+        }
+
+        public ColumnNotExistError (string columnName, string tableName)
             : base($"Error, Column with name {columnName} not exist in Table {tableName}")
         { }
     }
 
-    [Serializable]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2229:Implement serialization constructors", Justification = "<Ожидание>")]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1032:Реализуйте стандартные конструкторы исключения", Justification = "<Ожидание>")]
-    public class CastFieldException : Exception
+    [ZeroFormattable]
+    public class CastFieldError : DBError
     {
-        public CastFieldException(List<string> columnName, string type, string member)
+        public CastFieldError ()
+        {
+        }
+
+        public CastFieldError (List<string> columnName, string type, string member)
             : base($"Error cast field, Column with name {columnName} and type {type} with member {member}")
         { }
     }
 
-    [Serializable]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2229:Implement serialization constructors", Justification = "<Ожидание>")]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1032:Реализуйте стандартные конструкторы исключения", Justification = "<Ожидание>")]
-    public class ParsingRequestException : Exception
+    [ZeroFormattable]
+    public class ParsingRequestError : DBError
     {
-        public ParsingRequestException(string message, string errorLocation)
+        public ParsingRequestError ()
+        {
+        }
+
+        public ParsingRequestError (string message, string errorLocation)
             : base($"{message} {errorLocation}")
         { }
-
-        public override string ToString() => Message;
     }
 }

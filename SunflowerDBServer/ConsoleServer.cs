@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ConsoleClientServer;
@@ -16,7 +17,7 @@ namespace SunflowerDB
         private readonly DataBase _core = new DataBase(20, new DataBaseEngineMain(), new TransactionScheduler());
         private bool _disposed = false;
 
-        public void Dispose()
+        public void Dispose ()
         {
             // Dispose of unmanaged resources.
             Dispose(true);
@@ -24,7 +25,7 @@ namespace SunflowerDB
             GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool disposing)
+        private void Dispose (bool disposing)
         {
             if (_disposed)
             {
@@ -39,23 +40,20 @@ namespace SunflowerDB
             _disposed = true;
         }
 
-        ~SunflowerDBServer()
+        ~SunflowerDBServer ()
         {
             Dispose(false);
         }
 
-        public override byte[] ExecuteQuery(string query)
+        public override byte[] ExecuteQuery (string query)
         {
-            var formatter = new BinaryFormatter();
-            using (var fs = new MemoryStream())
-            {
-                return ZeroFormatterSerializer.Serialize( _core.ExecuteSqlSequence(query));
-            }
+            var a = Encoding.ASCII.GetBytes(query);
+            return Encoding.ASCII.GetBytes(query);
         }
 
-        public override string ConvertMessageToString(byte[] messege)
+        public override string ConvertMessageToString (byte[] messege)
         {
-            return messege.ToString();
+            return Encoding.ASCII.GetString(messege);
             throw new NotImplementedException();
             /*
             var value = //ToDo
@@ -84,7 +82,7 @@ namespace SunflowerDB
     }
     public class ConsoleServer
     {
-        private static void Main(string[] args)
+        private static void Main (string[] args)
         {
             SunflowerDBServer _server = default; // сервер
             Thread _listenThread = default; // потока для прослушивания

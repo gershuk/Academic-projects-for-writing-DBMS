@@ -10,39 +10,40 @@ namespace SunflowerDB
 {
     public interface IEngineCommander
     {
-        public (OperationExecutionState state, Exception exception) ExecuteCommandList(List<SqlCommandNode> sqlCommand);
-        public void RollBackTransaction(Guid transactionGuid);
-        public void CommitTransaction(Guid transactionGuid);
-        public OperationResult<Table> GetTableByName(List<string> tableName);
+        public (ExecutionState state, DBError exception) ExecuteCommands (Guid transactionGuid, List<SqlCommandNode> sqlCommand);
+        public void RollBackTransaction (Guid transactionGuid);
+        public void CommitTransaction (Guid transactionGuid);
+        public OperationResult<Table> GetTableByName (Guid transactionGuid, List<string> tableName);
+        public void StartTransaction (Guid transactionGuid);
     }
 
     public class EngineCommander : IEngineCommander, ISqlNodeExecutor
     {
         public IDataBaseEngine Engine { get; private set; }
 
-        public EngineCommander(IDataBaseEngine engine) => Engine = engine ?? throw new ArgumentNullException(nameof(engine));
+        public EngineCommander (IDataBaseEngine engine) => Engine = engine ?? throw new ArgumentNullException(nameof(engine));
 
-        public (OperationExecutionState state, Exception exception) ExecuteCommandList(List<SqlCommandNode> sqlCommands)
+        public (ExecutionState state, DBError exception) ExecuteCommands (Guid transactionGuid, List<SqlCommandNode> sqlCommands)
         {
-            foreach (var sqlCommand in sqlCommands)
+            foreach (dynamic command in sqlCommands)
             {
-                var result = ExecuteSqlNode(sqlCommand) as OperationResult<Table>;
-                if (result.State != OperationExecutionState.performed)
+                var result = ExecuteSqlNode(transactionGuid, command) as OperationResult<Table>;
+                if (result.State != ExecutionState.performed)
                 {
-                    return (result.State, result.OperationException);
+                    return (result.State, result.OperationError);
                 }
             }
 
-            return (OperationExecutionState.performed, null);
+            return (ExecutionState.performed, null);
         }
 
-        public object ExecuteSqlNode(SqlNode node) => node.Accept(this);
+        //public object ExecuteSqlNode (Guid id, SqlNode node) => node.Accept(id, this);
 
-        public object ExecuteSqlNode(CreateTableCommandNode node)
+        public object ExecuteSqlNode (Guid id, CreateTableCommandNode node)
         {
-            var createResult = Engine.CreateTableCommand(node.TableName);
+            var createResult = Engine.CreateTableCommand(id, node.TableName);
 
-            if (createResult.State != OperationExecutionState.performed)
+            if (createResult.State != ExecutionState.performed)
             {
                 return createResult;
             }
@@ -50,9 +51,9 @@ namespace SunflowerDB
             foreach (var def in node.FieldDefList)
             {
                 var column = new Column(def.Id, def.FieldType, def.TypeParamOpt, def.ConstaraintList, def.NullSpecOpt);
-                var addResult = Engine.AddColumnCommand(node.TableName, column);
+                var addResult = Engine.AddColumnCommand(id, node.TableName, column);
 
-                if (addResult.State != OperationExecutionState.performed)
+                if (addResult.State != ExecutionState.performed)
                 {
                     return addResult;
                 }
@@ -63,11 +64,11 @@ namespace SunflowerDB
             return createResult;
         }
 
-        public object ExecuteSqlNode(DropTableCommandNode node)
+        public object ExecuteSqlNode (Guid id, DropTableCommandNode node)
         {
-            var dropResult = Engine.DropTableCommand(node.TableName);
+            var dropResult = Engine.DropTableCommand(id, node.TableName);
 
-            if (dropResult.State == OperationExecutionState.performed)
+            if (dropResult.State == ExecutionState.performed)
             {
                 node.SetReturnedTableName(dropResult.Result.TableMetaInf.Name);
             }
@@ -75,11 +76,11 @@ namespace SunflowerDB
             return dropResult;
         }
 
-        public object ExecuteSqlNode(ShowTableCommandNode node)
+        public object ExecuteSqlNode (Guid id, ShowTableCommandNode node)
         {
-            var showResult = Engine.ShowTableCommand(node.TableName);
+            var showResult = Engine.ShowTableCommand(id, node.TableName);
 
-            if (showResult.State == OperationExecutionState.performed)
+            if (showResult.State == ExecutionState.performed)
             {
                 node.SetReturnedTableName(showResult.Result.TableMetaInf.Name);
             }
@@ -87,7 +88,7 @@ namespace SunflowerDB
             return showResult;
         }
 
-        public object ExecuteSqlNode(InsertCommandNode node)
+        public object ExecuteSqlNode (Guid id, InsertCommandNode node)
         {
             foreach (var insertObject in node.InsertDataNode.InsertDataListNode.InsertObjects)
             {
@@ -98,9 +99,9 @@ namespace SunflowerDB
                     parmsList.Add(new ExpressionFunction(param.Calc, param.Variables));
                 }
 
-                var insertResult = Engine.InsertCommand(node.TableName, node.ColumnNames.IdListNode.IdList, parmsList);
+                var insertResult = Engine.InsertCommand(id, node.TableName, node.ColumnNames.IdListNode.IdList, parmsList);
 
-                if (insertResult.State != OperationExecutionState.performed)
+                if (insertResult.State != ExecutionState.performed)
                 {
                     return insertResult;
                 }
@@ -108,10 +109,10 @@ namespace SunflowerDB
                 node.SetReturnedTableName(insertResult.Result.TableMetaInf.Name);
             }
 
-            return new OperationResult<Table>(OperationExecutionState.performed, null);
+            return new OperationResult<Table>(ExecutionState.performed, null);
         }
 
-        public object ExecuteSqlNode(DeleteCommandNode node)
+        public object ExecuteSqlNode (Guid id, DeleteCommandNode node)
         {
             var expression = new ExpressionFunction()
             {
@@ -119,9 +120,9 @@ namespace SunflowerDB
                 Variables = node.WhereClauseNode.Expression.Variables
             };
 
-            var deleteResult = Engine.DeleteCommand(node.TableName, expression);
+            var deleteResult = Engine.DeleteCommand(id, node.TableName, expression);
 
-            if (deleteResult.State == OperationExecutionState.performed)
+            if (deleteResult.State == ExecutionState.performed)
             {
                 node.SetReturnedTableName(deleteResult.Result.TableMetaInf.Name);
             }
@@ -129,7 +130,7 @@ namespace SunflowerDB
             return deleteResult;
         }
 
-        public object ExecuteSqlNode(SelectCommandNode node)
+        public object ExecuteSqlNode (Guid id, SelectCommandNode node)
         {
             var expression = new ExpressionFunction()
             {
@@ -137,9 +138,9 @@ namespace SunflowerDB
                 Variables = node.WhereExpression.Variables
             };
 
-            var selectResult = Engine.SelectCommand(node.TableName, node.ColumnIdList, expression);
+            var selectResult = Engine.SelectCommand(id, node.TableName, node.ColumnIdList, expression);
 
-            if (selectResult.State == OperationExecutionState.performed)
+            if (selectResult.State == ExecutionState.performed)
             {
                 node.SetReturnedTableName(selectResult.Result.TableMetaInf.Name);
             }
@@ -147,7 +148,7 @@ namespace SunflowerDB
             return selectResult;
         }
 
-        public object ExecuteSqlNode(UpdateCommandNode node)
+        public object ExecuteSqlNode (Guid id, UpdateCommandNode node)
         {
             var assignmentsList = new List<Assigment>();
 
@@ -170,9 +171,9 @@ namespace SunflowerDB
                 CalcFunc = node.WhereExpression.Calc
             };
 
-            var updateResult = Engine.UpdateCommand(node.TableName, assignmentsList, expression);
+            var updateResult = Engine.UpdateCommand(id, node.TableName, assignmentsList, expression);
 
-            if (updateResult.State == OperationExecutionState.performed)
+            if (updateResult.State == ExecutionState.performed)
             {
                 node.SetReturnedTableName(updateResult.Result.TableMetaInf.Name);
             }
@@ -180,15 +181,16 @@ namespace SunflowerDB
             return updateResult;
         }
 
-        public object ExecuteSqlNode(JoinChainOptNode node)
+        public object ExecuteSqlNode (Guid id, JoinChainOptNode node)
         {
-            var joinResult = Engine.JoinCommand(node.LeftId,
-                                         node.RightId,
-                                         node.JoinKind,
-                                         node.JoinStatementNode.LeftId,
-                                         node.JoinStatementNode.RightId);
+            var joinResult = Engine.JoinCommand(id,
+                                                node.LeftId,
+                                                node.RightId,
+                                                node.JoinKind,
+                                                node.JoinStatementNode.LeftId,
+                                                node.JoinStatementNode.RightId);
 
-            if (joinResult.State == OperationExecutionState.performed)
+            if (joinResult.State == ExecutionState.performed)
             {
                 node.SetReturnedTableName(joinResult.Result.TableMetaInf.Name);
             }
@@ -196,11 +198,11 @@ namespace SunflowerDB
             return joinResult;
         }
 
-        public object ExecuteSqlNode(UnionChainOptNode node)
+        public object ExecuteSqlNode (Guid id, UnionChainOptNode node)
         {
-            var unionResult = Engine.UnionCommand(node.LeftId, node.RightId, node.UnionKind);
+            var unionResult = Engine.UnionCommand(id, node.LeftId, node.RightId, node.UnionKind);
 
-            if (unionResult.State == OperationExecutionState.performed)
+            if (unionResult.State == ExecutionState.performed)
             {
                 node.SetReturnedTableName(unionResult.Result.TableMetaInf.Name);
             }
@@ -208,11 +210,11 @@ namespace SunflowerDB
             return unionResult;
         }
 
-        public object ExecuteSqlNode(IntersectChainOptNode node)
+        public object ExecuteSqlNode (Guid id, IntersectChainOptNode node)
         {
-            var intersectResult = Engine.IntersectCommand(node.LeftId, node.RightId);
+            var intersectResult = Engine.IntersectCommand(id, node.LeftId, node.RightId);
 
-            if (intersectResult.State == OperationExecutionState.performed)
+            if (intersectResult.State == ExecutionState.performed)
             {
                 node.SetReturnedTableName(intersectResult.Result.TableMetaInf.Name);
             }
@@ -220,11 +222,11 @@ namespace SunflowerDB
             return intersectResult;
         }
 
-        public object ExecuteSqlNode(ExceptChainOptNode node)
+        public object ExecuteSqlNode (Guid id, ExceptChainOptNode node)
         {
-            var exceptResult = Engine.ExceptCommand(node.LeftId, node.RightId);
+            var exceptResult = Engine.ExceptCommand(id, node.LeftId, node.RightId);
 
-            if (exceptResult.State == OperationExecutionState.performed)
+            if (exceptResult.State == ExecutionState.performed)
             {
                 node.SetReturnedTableName(exceptResult.Result.TableMetaInf.Name);
             }
@@ -232,8 +234,10 @@ namespace SunflowerDB
             return exceptResult;
         }
 
-        public void RollBackTransaction(Guid transactionGuid) => Engine.RollBackTransaction(transactionGuid);
-        public void CommitTransaction(Guid transactionGuid) => Engine.CommitTransaction(transactionGuid);
-        public OperationResult<Table> GetTableByName(List<string> tableName) => Engine.GetTableCommand(tableName);
+        public OperationResult<Table> GetTableByName (Guid id, List<string> tableName) => Engine.GetTableCommand(id, tableName);
+
+        public void RollBackTransaction (Guid transactionGuid) => Engine.RollBackTransaction(transactionGuid);
+        public void CommitTransaction (Guid transactionGuid) => Engine.CommitTransaction(transactionGuid);
+        public void StartTransaction (Guid transactionGuid) => Engine.StartTransaction(transactionGuid);
     }
 }

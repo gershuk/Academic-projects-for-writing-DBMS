@@ -64,8 +64,10 @@
     <Compile Include="DataTypes.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TransactionInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="package.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -82,7 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TransactionManagement\TransactionManagement\TransactionManagement.csproj">
-      <Project>{34e97b73-a6e8-49c5-a7ed-00b540b29551}</Project>
+      <Project>{34E97B73-A6E8-49C5-A7ED-00B540B29551}</Project>
       <Name>TransactionManagement</Name>
     </ProjectReference>
   </ItemGroup>

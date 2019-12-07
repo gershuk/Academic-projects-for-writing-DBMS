@@ -6,6 +6,6 @@ namespace IronySqlParser.AstNodes
     {
         public List<FieldDefNode> FieldDefList { get; set; }
 
-        public override void CollectInfoFromChild() => FieldDefList = FindAllChildNodesByType<FieldDefNode>();
+        public override void CollectInfoFromChild () => FieldDefList = FindAllChildNodesByType<FieldDefNode>();
     }
 }

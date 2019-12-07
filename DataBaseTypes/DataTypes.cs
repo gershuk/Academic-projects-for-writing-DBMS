@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using ZeroFormatter;
+
 namespace DataBaseType
 {
     public enum UnionKind
@@ -17,8 +19,8 @@ namespace DataBaseType
         Right
     }
 
-    [Serializable]
-    public enum OperationExecutionState
+
+    public enum ExecutionState
     {
         notProcessed,
         parserError,
@@ -28,43 +30,55 @@ namespace DataBaseType
 
     public interface IOperationResult<T>
     {
-        Exception OperationException { get; set; }
+        DBError OperationError { get; set; }
         T Result { get; set; }
-        OperationExecutionState State { get; set; }
+        ExecutionState State { get; set; }
     }
 
-    [Serializable]
+    [ZeroFormattable]
     public class OperationResult<T> : IOperationResult<T>
     {
-        public OperationExecutionState State { get; set; }
-        public Exception OperationException { get; set; }
-        public T Result { get; set; }
+        [Index(0)]
+        public virtual ExecutionState State { get; set; }
 
-        public OperationResult(OperationExecutionState state, T result, Exception opException = null)
+        [Index(1)]
+        public virtual DBError OperationError { get; set; }
+
+        [Index(2)]
+        public virtual T Result { get; set; }
+
+        public OperationResult ()
+        {
+            State = ExecutionState.notProcessed;
+            OperationError = default;
+            Result = default;
+        }
+
+        public OperationResult (ExecutionState state, T result, DBError opException = null)
         {
             State = state;
             Result = result;
-            OperationException = opException;
+            OperationError = opException;
         }
 
-        public override string ToString()
+        public override string ToString ()
         {
             var result = "---------------------------------------\n";
 
             switch (State)
             {
-                case OperationExecutionState.notProcessed:
+                case ExecutionState.notProcessed:
                     result += "Not Processed\n";
                     break;
-                case OperationExecutionState.parserError:
+                case ExecutionState.parserError:
                     result += "Parser Error\n";
-                    result += OperationException.Message + "\n";
+                    result += OperationError.Message + "\n";
                     break;
-                case OperationExecutionState.failed:
+                case ExecutionState.failed:
                     result += "Failed\n";
-                    result += OperationException.Message + "\n";
+                    result += OperationError.Message + "\n";
                     break;
-                case OperationExecutionState.performed:
+                case ExecutionState.performed:
                     result += "Performed\n";
                     result += Result?.ToString() + "\n";
                     break;
@@ -115,11 +129,11 @@ namespace DataBaseType
         public Func<dynamic> CalcFunc { get; set; }
         public Dictionary<List<string>, Variable> Variables { get; set; }
 
-        public ExpressionFunction()
+        public ExpressionFunction ()
         {
         }
 
-        public ExpressionFunction(Func<dynamic> calcFunc, Dictionary<List<string>, Variable> variables)
+        public ExpressionFunction (Func<dynamic> calcFunc, Dictionary<List<string>, Variable> variables)
         {
             CalcFunc = calcFunc ?? throw new ArgumentNullException(nameof(calcFunc));
             Variables = variables ?? throw new ArgumentNullException(nameof(variables));
@@ -131,11 +145,11 @@ namespace DataBaseType
         public List<string> Id { get; set; }
         public ExpressionFunction EpressionFunction { get; set; }
 
-        public Assigment()
+        public Assigment ()
         {
         }
 
-        public Assigment(List<string> id, ExpressionFunction epressionFunction)
+        public Assigment (List<string> id, ExpressionFunction epressionFunction)
         {
             Id = id ?? throw new ArgumentNullException(nameof(id));
             EpressionFunction = epressionFunction ?? throw new ArgumentNullException(nameof(epressionFunction));

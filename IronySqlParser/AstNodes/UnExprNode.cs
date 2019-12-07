@@ -9,7 +9,7 @@ namespace IronySqlParser.AstNodes
         private OperatorNode _childOperator;
         private UnOp _unOp;
 
-        public override dynamic Calc() =>
+        public override dynamic Calc () =>
             _unOp switch
             {
                 UnOp.Plus => _childOperator == null ? +Value.Data() : +_childOperator.Calc(),
@@ -20,7 +20,7 @@ namespace IronySqlParser.AstNodes
             };
 
 
-        public override void CollectInfoFromChild()
+        public override void CollectInfoFromChild ()
         {
             Variables = new Dictionary<List<string>, Variable>();
 

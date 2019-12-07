@@ -117,14 +117,14 @@ namespace StorageEngine
 
         [Index(1)]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1819:Properties should not return arrays", Justification = "<Ожидание>")]
-        public virtual Field[] Fields { get; set; }
+        public virtual Row Fields { get; set; }
 
         public RowRecord()
         {
 
         }
 
-        public RowRecord(Field[] fields)
+        public RowRecord(Row fields)
         {
             Fields = fields;
             IsDeleted = false;
@@ -185,21 +185,21 @@ namespace StorageEngine
         public void Reset() => _curPos = -1;
     }
 
-    internal class DataStorageRowsInFiles : IEnumerable<Field[]>
+    internal class DataStorageRowsInFiles : IEnumerable<Row>
     {
        // private TableFileManager _tManager;
         private string _tableFileName;
 
         public DataStorageRowsInFiles(string fileName) => _tableFileName = fileName;
-        public IEnumerator<Field[]> GetEnumerator() => new DataStorageRowsInFilesEnumerator(new TableFileManager(new FileStream(_tableFileName,FileMode.Open)));
+        public IEnumerator<Row> GetEnumerator() => new DataStorageRowsInFilesEnumerator(new TableFileManager(new FileStream(_tableFileName,FileMode.Open)));
 
         IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
 
     }
 
-    internal class DataStorageRowsInFilesEnumerator : IEnumerator<Field[]>
+    internal class DataStorageRowsInFilesEnumerator : IEnumerator<Row>
     {
-        public Field[] Current { get; private set; }
+        public Row Current { get; private set; }
         object IEnumerator.Current => throw new NotImplementedException();
 
         private readonly TableFileManager _tManager;
@@ -243,7 +243,7 @@ namespace StorageEngine
             _disposed = true;
         }
 
-        public bool UpdateCurrentRow(Field[] newRow)
+        public bool UpdateCurrentRow(Row newRow)
         {
             _curRowRecordsEnumarator.UpdateCurRow(new RowRecord(newRow));
             _tManager.SaveDataBlock(_blocks.Current, _blocks.CurrentOffset);
@@ -334,9 +334,9 @@ namespace StorageEngine
         OperationResult<string> AddTable(Table table);
         OperationResult<string> RemoveTable(List<string> tableName);
 
-        OperationResult<string> UpdateAllRow(List<string> tableName, Field[] newRow, Predicate<Field[]> match);
-        OperationResult<string> InsertRow(List<string> tableName, Field[] fields);
-        OperationResult<string> RemoveAllRow(List<string> tableName, Predicate<Field[]> match);
+        OperationResult<string> UpdateAllRow(List<string> tableName, Row newRow, Predicate<Row> match);
+        OperationResult<string> InsertRow(List<string> tableName, Row fields);
+        OperationResult<string> RemoveAllRow(List<string> tableName, Predicate<Row> match);
     }
 
     public class DataStorageInFiles : IDataStorage
@@ -359,7 +359,7 @@ namespace StorageEngine
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<Table>(OperationExecutionState.failed, null, new TableNotExistException(FullTableName(tableName)));
+                return new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
             }
             Table table;
             using( var tManager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)) ){ 
@@ -367,7 +367,7 @@ namespace StorageEngine
              table.TableData = new DataStorageRowsInFiles(GetTableFileName(tableName));
             }
 
-            return new OperationResult<Table>(OperationExecutionState.performed, table);
+            return new OperationResult<Table>(ExecutionState.performed, table);
         }
        static private string FullTableName(List<string> tableName)
         {
@@ -379,8 +379,8 @@ namespace StorageEngine
             }
             return sb.ToString();
         }
-        public OperationResult<bool> ContainsTable(List<string> tableName) => File.Exists(GetTableFileName(tableName)) ? new OperationResult<bool>(OperationExecutionState.performed, true)
-                                                                                                                       : new OperationResult<bool>(OperationExecutionState.failed, false, new TableNotExistException(FullTableName(tableName)));
+        public OperationResult<bool> ContainsTable(List<string> tableName) => File.Exists(GetTableFileName(tableName)) ? new OperationResult<bool>(ExecutionState.performed, true)
+                                                                                                                       : new OperationResult<bool>(ExecutionState.failed, false, new TableNotExistError(FullTableName(tableName)));
 
 
 
@@ -389,29 +389,29 @@ namespace StorageEngine
             _ = table ?? throw new ArgumentNullException(nameof(table));
             if (File.Exists(GetTableFileName(table.TableMetaInf.Name)))
             {
-                return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistException(FullTableName(table.TableMetaInf.Name)));
+                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistError(FullTableName(table.TableMetaInf.Name)));
             }
             using var tManager = new TableFileManager(new FileStream(GetTableFileName(table.TableMetaInf.Name), FileMode.Create), table, _blockSize);
-            return new OperationResult<string>(OperationExecutionState.performed, "");
+            return new OperationResult<string>(ExecutionState.performed, "");
         }
 
         public OperationResult<string> RemoveTable(List<string> tableName)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistException(FullTableName(tableName)));
+                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
             }
 
             File.Delete(GetTableFileName(tableName));
 
-            return new OperationResult<string>(OperationExecutionState.performed, "");
+            return new OperationResult<string>(ExecutionState.performed, "");
         }
 
-        public OperationResult<string> UpdateAllRow(List<string> tableName, Field[] newRow, Predicate<Field[]> match)
+        public OperationResult<string> UpdateAllRow(List<string> tableName, Row newRow, Predicate<Row> match)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistException(FullTableName(tableName)));
+                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
             }
 
             using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
@@ -424,14 +424,14 @@ namespace StorageEngine
                 }
             }
 
-            return new OperationResult<string>(OperationExecutionState.performed, "");
+            return new OperationResult<string>(ExecutionState.performed, "");
         }
 
-        public OperationResult<string> InsertRow(List<string> tableName, Field[] fields)
+        public OperationResult<string> InsertRow(List<string> tableName, Row fields)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistException(FullTableName(tableName)));
+                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
             }
 
             using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
@@ -440,15 +440,15 @@ namespace StorageEngine
                 manager.InsertRecord(rowRecord);
             }
 
-            return new OperationResult<string>(OperationExecutionState.performed, "");
+            return new OperationResult<string>(ExecutionState.performed, "");
         }
 
-        public OperationResult<string> RemoveAllRow(List<string> tableName, Predicate<Field[]> match)
+        public OperationResult<string> RemoveAllRow(List<string> tableName, Predicate<Row> match)
         {
 
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<string>(OperationExecutionState.failed, null, new TableNotExistException(FullTableName(tableName)));
+                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
             }
 
             using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
@@ -461,7 +461,7 @@ namespace StorageEngine
                 }
             }
 
-            return new OperationResult<string>(OperationExecutionState.performed, "");
+            return new OperationResult<string>(ExecutionState.performed, "");
         }
 
         private void CreateDataStorageFolder(string path) => Directory.CreateDirectory(path);

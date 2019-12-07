@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 
 using DataBaseEngine;
@@ -14,71 +13,9 @@ using IronySqlParser.AstNodes;
 using TransactionManagement;
 namespace SunflowerDB
 {
-    [Serializable]
-    public class TransactionInfo
-    {
-        public List<string> Name { get; set; }
-        public Guid Guid { get; set; }
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
-        public List<OperationResult<Table>> OperationsResults { get; set; }
-        public TransactionLocksInfo LocksInfo { get; set; }
-
-        public TransactionInfo(TransactionLocksInfo transactionLocksInfo) => LocksInfo = transactionLocksInfo
-            ?? throw new ArgumentNullException(nameof(transactionLocksInfo));
-
-        public TransactionInfo(List<string> name,
-                               Guid guid,
-                               DateTime startTime,
-                               DateTime endTime,
-                               List<OperationResult<Table>> operationsResults,
-                               TransactionLocksInfo locksInfo)
-        {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            Guid = guid;
-            StartTime = startTime;
-            EndTime = endTime;
-            OperationsResults = operationsResults ?? throw new ArgumentNullException(nameof(operationsResults));
-            LocksInfo = locksInfo ?? throw new ArgumentNullException(nameof(locksInfo));
-        }
-
-        public TransactionInfo()
-        {
-        }
-
-        public override string ToString()
-        {
-            var stringBuilder = new StringBuilder();
-
-            stringBuilder.Append("Name:");
-
-            foreach (var simpleId in Name)
-            {
-                stringBuilder.Append(simpleId);
-                stringBuilder.Append(".");
-            }
-            stringBuilder.Append("\n");
-            stringBuilder.Append($"Guid {Guid}\n");
-            stringBuilder.Append($"Start Time {StartTime}\n");
-            stringBuilder.Append($"End Time {EndTime}\n");
-
-            foreach (var opResult in OperationsResults)
-            {
-                stringBuilder.Append($"{opResult}\n");
-            }
-
-            return stringBuilder.ToString();
-        }
-    }
-
-    public class SqlSequenceResult
-    {
-        public List<TransactionInfo> Answer { get; private set; }
-    }
-
     public interface IDataBase
     {
-        public OperationResult<SqlSequenceResult> ExecuteSqlSequence(string sqlSequence);
+        public OperationResult<SqlSequenceResult> ExecuteSqlSequence (string sqlSequence);
     }
 
     public sealed class DataBase : IDisposable, IDataBase
@@ -89,7 +26,7 @@ namespace SunflowerDB
         private readonly Semaphore _parsersSemaphore;
         private bool _disposed = false;
 
-        public DataBase(int parsersCount, IDataBaseEngine engine, ITransactionScheduler transactionScheduler)
+        public DataBase (int parsersCount, IDataBaseEngine engine, ITransactionScheduler transactionScheduler)
         {
             _engineCommander = new EngineCommander(engine);
             _transactionScheduler = transactionScheduler;
@@ -103,7 +40,7 @@ namespace SunflowerDB
             }
         }
 
-        public OperationResult<SqlSequenceResult> ExecuteSqlSequence(string sqlSequence)
+        public OperationResult<SqlSequenceResult> ExecuteSqlSequence (string sqlSequence)
         {
 
             var result = new SqlSequenceResult();
@@ -120,8 +57,8 @@ namespace SunflowerDB
             if (parseTree.Root == null)
             {
                 var message = parseTree.ParserMessages[0];
-                var error = new ParsingRequestException(message.Message, message.Location.ToString());
-                return new OperationResult<SqlSequenceResult>(OperationExecutionState.parserError, null, error);
+                var error = new ParsingRequestError(message.Message, message.Location.ToString());
+                return new OperationResult<SqlSequenceResult>(ExecutionState.parserError, null, error);
             }
 
             #region Sequence Executing
@@ -131,32 +68,35 @@ namespace SunflowerDB
             {
                 var tableLocks = new List<TableLock>();
 
-                foreach (var command in transactionNode.ExecuteCommnadsForNode)
+                foreach (var command in transactionNode.CommnadsForNode)
                 {
                     tableLocks.AddRange(command.GetTableLocks());
                 }
 
                 var transactionLocksInfo = new TransactionLocksInfo(tableLocks);
 
-                var currentTransaction = new TransactionInfo()
+                var transaction = new TransactionInfo()
                 {
-                    Name = transactionNode.TransactionBeginOptNode.TransactionName,
+                    Name = transactionNode.TransactionBeginOptNode?.TransactionName,
                     Guid = _transactionScheduler.RegisterTransaction(transactionLocksInfo),
                     LocksInfo = transactionLocksInfo
                 };
 
-                _transactionScheduler.WaitTransactionResourceLock(currentTransaction.Guid);
+                transaction.Name ??= new List<string>() { transaction.Guid.ToString() };
 
-                currentTransaction.StartTime = DateTime.Now;
+                _transactionScheduler.WaitTransactionResourceLock(transaction.Guid);
 
-                var (state, exception) = _engineCommander.ExecuteCommandList(transactionNode.ExecuteCommnadsForNode);
+                transaction.StartTime = DateTime.Now;
+                _engineCommander.StartTransaction(transaction.Guid);
 
-                if (state == OperationExecutionState.performed)
+                var (state, exception) = _engineCommander.ExecuteCommands(transaction.Guid, transactionNode.CommnadsForNode);
+
+                if (state == ExecutionState.performed)
                 {
                     foreach (var stmt in transactionNode.StmtListNode.StmtList)
                     {
-                        var table = _engineCommander.GetTableByName(stmt.SqlCommand.ReturnedTableName);
-                        currentTransaction.OperationsResults.Add(table);
+                        var table = _engineCommander.GetTableByName(transaction.Guid, stmt.SqlCommand.ReturnedTableName);
+                        transaction.OperationsResults.Add(table);
                     }
 
                     var transactionEndNode = (transactionNode as TransactionNode).TransactionEndOptNode;
@@ -164,31 +104,31 @@ namespace SunflowerDB
                     switch (transactionEndNode.TransactionEndType)
                     {
                         case TransactionEndType.Commit:
-                            _engineCommander.CommitTransaction(currentTransaction.Guid);
+                            _engineCommander.CommitTransaction(transaction.Guid);
                             break;
                         case TransactionEndType.Rollback:
-                            _engineCommander.RollBackTransaction(currentTransaction.Guid);
+                            _engineCommander.RollBackTransaction(transaction.Guid);
                             break;
                     }
                 }
                 else
                 {
-                    _engineCommander.RollBackTransaction(currentTransaction.Guid);
-                    currentTransaction.OperationsResults.Add(new OperationResult<Table>(state, null, exception));
+                    _engineCommander.RollBackTransaction(transaction.Guid);
+                    transaction.OperationsResults.Add(new OperationResult<Table>(state, null, exception));
                 }
 
-                currentTransaction.EndTime = DateTime.Now;
+                transaction.EndTime = DateTime.Now;
 
-                _transactionScheduler.RemoveTransactionResourcesLocks(currentTransaction.Guid);
+                _transactionScheduler.RemoveTransactionResourcesLocks(transaction.Guid);
 
-                result.Answer.Add(currentTransaction);
+                result.Answer.Add(transaction);
             }
             #endregion
 
-            return new OperationResult<SqlSequenceResult>(OperationExecutionState.performed, result, null);
+            return new OperationResult<SqlSequenceResult>(ExecutionState.performed, result, null);
         }
 
-        public void Dispose()
+        public void Dispose ()
         {
             // Dispose of unmanaged resources.
             Dispose(true);
@@ -196,7 +136,7 @@ namespace SunflowerDB
             GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool disposing)
+        private void Dispose (bool disposing)
         {
             if (_disposed)
             {
@@ -210,7 +150,7 @@ namespace SunflowerDB
             _disposed = true;
         }
 
-        ~DataBase()
+        ~DataBase ()
         {
             Dispose(false);
         }

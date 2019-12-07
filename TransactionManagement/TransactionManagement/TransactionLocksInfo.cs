@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using ZeroFormatter;
 
 namespace TransactionManagement
 {
@@ -16,14 +16,20 @@ namespace TransactionManagement
         public List<TableLock> TablesLocks { get; }
     }
 
-    [Serializable]
+    [ZeroFormattable]
     public class TransactionLocksInfo : ITransactionLocksInfo
     {
-        public List<TableLock> TablesLocks { get; private set; }
+        [Index(0)]
+        public virtual List<TableLock> TablesLocks { get; private set; }
 
-        public TransactionLocksInfo(List<TableLock> tablesLocks)
+        public TransactionLocksInfo ()
         {
-            tablesLocks = new List<TableLock>();
+            TablesLocks = new List<TableLock>();
+        }
+
+        public TransactionLocksInfo (List<TableLock> tablesLocks)
+        {
+            TablesLocks = new List<TableLock>();
             TablesLocks.AddRange(tablesLocks);
         }
     }

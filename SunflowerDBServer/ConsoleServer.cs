@@ -52,6 +52,35 @@ namespace SunflowerDB
                 return ZeroFormatterSerializer.Serialize( _core.ExecuteSqlSequence(query));
             }
         }
+
+        public override string ConvertMessageToString(byte[] messege)
+        {
+            return messege.ToString();
+            throw new NotImplementedException();
+            /*
+            var value = //ToDo
+            var result = "";
+            switch (value.State)
+            {
+                case OperationExecutionState.notProcessed:
+                    break;
+                case OperationExecutionState.parserError:
+                case OperationExecutionState.failed:
+                    result += value.State + "\n";
+                    result += value.OperationException + "\n";
+                    result += "\n";
+                    break;
+                case OperationExecutionState.performed:
+                    foreach (var info in value.Result.Answer)
+                    {
+                        result += info.ToString() + "\n";
+                        result += "\n";
+                    }
+                    break;
+            }
+            return result.ToString();
+            */
+        }
     }
     public class ConsoleServer
     {

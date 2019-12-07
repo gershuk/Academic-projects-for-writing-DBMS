@@ -11,32 +11,32 @@ namespace SunflowerDBClient
         {
         }
 
-        public override string ConvertMessageToString<T>(T messege)
+        public override string ConvertMessageToString(byte[] value)
         {
-            if (messege is OperationResult<SqlSequenceResult> value)
+            return value.ToString();
+            throw new NotImplementedException();/*
+            var value = //ToDo
+            var result = "";
+            switch (value.State)
             {
-                var result = "";
-                switch (value.State)
-                {
-                    case OperationExecutionState.notProcessed:
-                        break;
-                    case OperationExecutionState.parserError:
-                    case OperationExecutionState.failed:
-                        result += value.State + "\n";
-                        result += value.OperationException + "\n";
+                case OperationExecutionState.notProcessed:
+                    break;
+                case OperationExecutionState.parserError:
+                case OperationExecutionState.failed:
+                    result += value.State + "\n";
+                    result += value.OperationException + "\n";
+                    result += "\n";
+                    break;
+                case OperationExecutionState.performed:
+                    foreach (var info in value.Result.Answer)
+                    {
+                        result += info.ToString() + "\n";
                         result += "\n";
-                        break;
-                    case OperationExecutionState.performed:
-                        foreach (var info in value.Result.Answer)
-                        {
-                            result += info.ToString() + "\n";
-                            result += "\n";
-                        }
-                        break;
-                }
-                return result.ToString();
+                    }
+                    break;
             }
-            throw new NotImplementedException();
+            return result.ToString();
+            */
         }
 
         internal class ConsoleClient
@@ -55,7 +55,7 @@ namespace SunflowerDBClient
 
                 client = new SunflowerDBClient(BaseHost, BasePort);
 
-                client.SendResieveMessage<OperationResult<SqlSequenceResult>>();
+                client.SendResieveMessage();
                 client.Dispose();
             }
         }

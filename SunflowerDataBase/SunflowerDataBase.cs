@@ -12,7 +12,6 @@ using IronySqlParser;
 using IronySqlParser.AstNodes;
 
 using TransactionManagement;
-
 namespace SunflowerDB
 {
     [Serializable]
@@ -72,7 +71,6 @@ namespace SunflowerDB
         }
     }
 
-    [ZeroFormattable]
     public class SqlSequenceResult
     {
         public List<TransactionInfo> Answer { get; private set; }

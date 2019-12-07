@@ -4,16 +4,15 @@ using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
-using ZeroFormatter;
 
 namespace ConsoleClientServer
 {
     public interface IClient
     {
-        void Connect();
+        bool Connect(int tries);
         void Dispose();
-        void SendResieveMessage<T>();
-        string ConvertMessageToString<T>(T value);
+        void SendResieveMessage();
+        string ConvertMessageToString(byte[] value);
     }
 
     public abstract class Client : IDisposable, IClient
@@ -22,7 +21,6 @@ namespace ConsoleClientServer
         private readonly int _port;
         private readonly TcpClient _client;
         private NetworkStream _stream;
-        private readonly Thread _receiveThread;
         private bool _disposed = false;
         private bool _stopworking = false;
 
@@ -32,9 +30,8 @@ namespace ConsoleClientServer
             _port = port;
             _client = new TcpClient();
         }
-        public void Connect()
+        public bool Connect(int tries)
         {
-            var tries = 0;
             var connected = false;
 
             while (!connected)
@@ -46,13 +43,13 @@ namespace ConsoleClientServer
                     connected = true;
                     Console.WriteLine($"Conection to {_host}:{_port} established");
                 }
-                catch (Exception)
+                catch
                 {
 
                     tries++;
                     System.Threading.Thread.Sleep(500);
                     Console.WriteLine($"Conection to {_host}:{_port} failed");
-                    if (tries == 5)
+                    if (tries >= 5)
                     {
                         Console.WriteLine("Try again?(Y/N)");
 
@@ -67,16 +64,17 @@ namespace ConsoleClientServer
                     }
                 }
             }
+            return connected;
         }
 
         // отправка сообщений
-        public abstract string ConvertMessageToString<T>(T value);
+        public abstract string ConvertMessageToString(byte[] value);
 
-        public void SendResieveMessage<T>()
+        public void SendResieveMessage()
         {
             if (_stream == null)
             {
-                Connect();
+                Connect(0);
             }
 
             while (!_stopworking)
@@ -98,7 +96,7 @@ namespace ConsoleClientServer
                             binaryData.Write(data, 0, bytes);
                         }
                         while (_stream.DataAvailable);          
-                        var result = ConvertMessageToString<T>(ZeroFormatterSerializer.Deserialize<T>(binaryData.ToArray()));
+                        var result = ConvertMessageToString(binaryData.ToArray());
                         Console.WriteLine(result);//вывод сообщения
                     }
                 }
@@ -106,7 +104,7 @@ namespace ConsoleClientServer
                 {
                     Console.WriteLine("Подключение прервано!"); //соединение было прервано
                     Console.ReadLine();
-                    Disconnect();
+                    _stopworking = !Connect(5);
                 }
             }
         }
@@ -148,7 +146,6 @@ namespace ConsoleClientServer
             {
                 _client?.Dispose();
                 _stream?.Dispose();
-                _receiveThread?.Join();
             }
 
             _disposed = true;

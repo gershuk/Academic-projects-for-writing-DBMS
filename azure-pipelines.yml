@@ -48,6 +48,14 @@ steps:
     nuGetFeedType: 'internal'
     publishVstsFeed: '06592a8e-dfd8-4dbe-9bcb-b108360313e0/a003456c-2592-4341-a90f-a70e41ab00de'
 
+- task: NuGetCommand@2
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'external'
+    publishFeedCredentials: 'SunflowerDb Git Nuget Packages'
+    verbosityPush: 'Normal'
+
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'

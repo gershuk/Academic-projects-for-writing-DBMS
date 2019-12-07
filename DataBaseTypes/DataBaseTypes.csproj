@@ -67,6 +67,7 @@
     <Compile Include="TransactionInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="package.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

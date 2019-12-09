@@ -34,7 +34,7 @@ namespace IntegrationTests
             _error = _client.StandardError;
 
             {
-                var tries = 5;
+                var tries = 2;
                 var conection_res = "";
                 while (true)
                 {
@@ -64,7 +64,14 @@ namespace IntegrationTests
 
         public string SendQuery(string sqlquery)
         {
-            _input.Write(sqlquery);
+            _input.WriteLine(sqlquery);
+            var res = "";
+            var line = _output.ReadLine();
+            while(line != "*")
+            {
+                res += line;
+                line = _output.ReadLine();
+            }
             return _output.ReadToEnd();
         }
 

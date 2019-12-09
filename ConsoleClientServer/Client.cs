@@ -9,7 +9,7 @@ namespace ConsoleClientServer
 {
     public interface IClient
     {
-        bool Connect (int tries);
+        void Connect ();
         void Dispose ();
         void SendResieveMessage ();
         string ConvertMessageToString (byte[] value);
@@ -19,7 +19,7 @@ namespace ConsoleClientServer
     {
         private readonly string _host;
         private readonly int _port;
-        private readonly TcpClient _client;
+        private TcpClient _client;
         private NetworkStream _stream;
         private bool _disposed = false;
         private bool _stopworking = false;
@@ -30,10 +30,10 @@ namespace ConsoleClientServer
             _port = port;
             _client = new TcpClient();
         }
-        public bool Connect (int tries)
+        public void Connect()
         {
             var connected = false;
-
+            var tries = 0;
             while (!connected)
             {
                 try
@@ -47,7 +47,7 @@ namespace ConsoleClientServer
                 {
 
                     tries++;
-                    System.Threading.Thread.Sleep(500);
+                    System.Threading.Thread.Sleep(200);
                     Console.WriteLine($"Conection to {_host}:{_port} failed");
                     if (tries >= 5)
                     {
@@ -59,12 +59,11 @@ namespace ConsoleClientServer
                         }
                         else
                         {
-                            break;
+                            Disconnect();
                         }
                     }
                 }
             }
-            return connected;
         }
 
         // отправка сообщений
@@ -74,29 +73,27 @@ namespace ConsoleClientServer
         {
             if (_stream == null)
             {
-                Connect(0);
+                Connect();
             }
-
             while (!_stopworking)
             {
                 try
                 {
                     {
-                        var message = "";
-                        var line = Console.ReadLine();
-                        while (line != null)
-                        {
-                            message += line;
-                            line = Console.ReadLine();
-                        }
+                        var message = Console.ReadLine();
                         if (message == "test")
                         {
                             Console.WriteLine("test");
                             continue;
                         }
+                        if (message.Length==0)
+                        {
+                            continue;
+                        }
                         var data = Encoding.Unicode.GetBytes(message);
                         _stream.Write(data, 0, data.Length);
                     }
+                    System.Threading.Thread.Sleep(10);
                     {
                         var data = new byte[64]; // буфер для получаемых данных
                         var bytes = 0;
@@ -108,14 +105,13 @@ namespace ConsoleClientServer
                         }
                         while (_stream.DataAvailable);
                         var result = ConvertMessageToString(binaryData.ToArray());
-                        Console.WriteLine(result);//вывод сообщения
+                        Console.WriteLine(result+"\n*");//вывод сообщения
                     }
                 }
                 catch
                 {
                     Console.WriteLine("Подключение прервано!"); //соединение было прервано
-                    Console.ReadLine();
-                    _stopworking = !Connect(5);
+                    Disconnect();
                 }
             }
         }

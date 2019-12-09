@@ -25,6 +25,7 @@ namespace DataBaseType
 
         public TransactionInfo ()
         {
+            OperationsResults = new List<OperationResult<Table>>();
         }
 
         public TransactionInfo (List<string> name,

@@ -41,9 +41,6 @@ dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:sil
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
 
 # Выражения уровень предпочтения
-csharp_style_deconstructed_variable_declaration = true:suggestion
-csharp_style_inlined_variable_declaration = true:suggestion
-csharp_style_throw_expression = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_collection_initializer = true:warning
 dotnet_style_explicit_tuple_names = true:warning
@@ -98,9 +95,12 @@ csharp_prefer_simple_using_statement = true:warning
 
 # Выражения уровень предпочтения
 csharp_prefer_simple_default_expression = true:suggestion
+csharp_style_deconstructed_variable_declaration = true:suggestion
+csharp_style_inlined_variable_declaration = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
 csharp_style_prefer_index_operator = true:warning
 csharp_style_prefer_range_operator = true:warning
+csharp_style_throw_expression = true:suggestion
 csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 csharp_style_unused_value_expression_statement_preference = discard_variable:silent
 
@@ -216,7 +216,3 @@ dotnet_naming_style.начинается_с__.required_prefix = _
 dotnet_naming_style.начинается_с__.required_suffix = 
 dotnet_naming_style.начинается_с__.word_separator = 
 dotnet_naming_style.начинается_с__.capitalization = camel_case
-
-# CA1819: Свойства не должны возвращать массивы
-dotnet_diagnostic.CA1819.severity = suggestion
-dotnet_diagnostic.CA2227.severity = suggestion

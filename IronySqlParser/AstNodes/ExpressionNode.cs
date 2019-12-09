@@ -48,9 +48,13 @@ namespace IronySqlParser.AstNodes
             if (operatorNode.Count > 0)
             {
                 _childOperator = operatorNode[0];
+
                 foreach (var variable in _childOperator.Variables)
                 {
-                    Variables.Add(variable.Key, variable.Value);
+                    if (!Variables.ContainsKey(variable.Key))
+                    {
+                        Variables.Add(variable.Key, variable.Value);
+                    }                
                 }
             }
         }

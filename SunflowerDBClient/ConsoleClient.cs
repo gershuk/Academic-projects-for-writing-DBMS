@@ -2,6 +2,7 @@
 using System.Text;
 using ConsoleClientServer;
 using DataBaseType;
+using ProtoBuf;
 
 namespace SunflowerDBClient
 {
@@ -11,23 +12,20 @@ namespace SunflowerDBClient
         {
         }
 
-        public override string ConvertMessageToString(byte[] value)
+        public override string ConvertMessageToString (byte[] messege)
         {
-            return Encoding.ASCII.GetString(value);
-            throw new NotImplementedException();/*
-            var value = //ToDo
+            var value = Serializer.Deserialize<OperationResult<SqlSequenceResult>>(messege);
             var result = "";
             switch (value.State)
             {
-                case OperationExecutionState.notProcessed:
+                case ExecutionState.notProcessed:
                     break;
-                case OperationExecutionState.parserError:
-                case OperationExecutionState.failed:
-                    result += value.State + "\n";
-                    result += value.OperationException + "\n";
-                    result += "\n";
+                case ExecutionState.parserError:
+                case ExecutionState.failed:
+                    result += "Error" + "\n";
+                    result += value.OperationError + "\n";
                     break;
-                case OperationExecutionState.performed:
+                case ExecutionState.performed:
                     foreach (var info in value.Result.Answer)
                     {
                         result += info.ToString() + "\n";
@@ -35,8 +33,8 @@ namespace SunflowerDBClient
                     }
                     break;
             }
+            result += "*";
             return result.ToString();
-            */
         }
 
         internal class ConsoleClient

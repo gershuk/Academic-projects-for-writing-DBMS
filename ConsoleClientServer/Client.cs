@@ -105,7 +105,7 @@ namespace ConsoleClientServer
                         }
                         while (_stream.DataAvailable);
                         var result = ConvertMessageToString(binaryData.ToArray());
-                        Console.WriteLine(result+"\n*");//вывод сообщения
+                        Console.WriteLine(result);//вывод сообщения
                     }
                 }
                 catch

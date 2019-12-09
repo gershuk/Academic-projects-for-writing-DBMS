@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ConsoleClientServer;
 using DataBaseEngine;
 using DataBaseType;
+using ProtoBuf;
 using TransactionManagement;
 using ZeroFormatter;
 
@@ -47,28 +48,37 @@ namespace SunflowerDB
 
         public override byte[] ExecuteQuery (string query)
         {
-            var a = Encoding.ASCII.GetBytes(query);
-            return Encoding.ASCII.GetBytes(query);
+            using (var binaryData = new MemoryStream())
+            {
+                try
+                {
+                    Serializer.Serialize(binaryData, _core.ExecuteSqlSequence(query));
+                }catch(Exception ex)
+                {
+                    var res = new OperationResult<SqlSequenceResult>();
+                    res.State = ExecutionState.failed;
+                    res.OperationError = new DataBaseIsCorruptError("\b\b\b\b\b\bNot implemented");
+                    Serializer.Serialize(binaryData, res);
+                }
+                return binaryData.ToArray();
+            }
         }
 
         public override string ConvertMessageToString (byte[] messege)
         {
-            return Encoding.ASCII.GetString(messege);
-            throw new NotImplementedException();
-            /*
-            var value = //ToDo
+
+            var value = Serializer.Deserialize<OperationResult<SqlSequenceResult>>(messege);
             var result = "";
             switch (value.State)
             {
-                case OperationExecutionState.notProcessed:
+                case ExecutionState.notProcessed:
                     break;
-                case OperationExecutionState.parserError:
-                case OperationExecutionState.failed:
-                    result += value.State + "\n";
-                    result += value.OperationException + "\n";
-                    result += "\n";
+                case ExecutionState.parserError:
+                case ExecutionState.failed:
+                    result += "Error" + "\n";
+                    result += value.OperationError + "\n";
                     break;
-                case OperationExecutionState.performed:
+                case ExecutionState.performed:
                     foreach (var info in value.Result.Answer)
                     {
                         result += info.ToString() + "\n";
@@ -76,8 +86,8 @@ namespace SunflowerDB
                     }
                     break;
             }
+            result += "*";
             return result.ToString();
-            */
         }
     }
     public class ConsoleServer

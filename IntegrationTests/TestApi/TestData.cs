@@ -11,7 +11,7 @@ namespace IntegrationTests
     {
         private readonly List<string> _expected = new List<string>();
         private string _dirr;
-        private int _last_res = -1;
+        private int _last_res = 0;
 
         public TestData (string group, string test)
         {
@@ -31,22 +31,32 @@ namespace IntegrationTests
                 // Read the stream to a string, and write the string to the console.
                 String line = sr.ReadToEnd();
                 if (line.Length > 0)
+                {
                     _expected.AddRange(line.Split(new string[] { "\"\n\"" }, StringSplitOptions.None));
+                }
             }
         }
 
         public string GetResult ()
         {
-            _last_res++;
+            
             if (_expected.Count > _last_res)
             {
                 return _expected[_last_res].Replace("\\\"", "\"");
             }
             else
             {
-                _expected.Add("");
+                while (_expected.Count <= _last_res)
+                {
+                    _expected.Add("");
+                }
                 return _expected[_last_res];
             }
+        }
+
+        public void Next()
+        {
+            _last_res++;
         }
 
         public void FixResult(string newres)

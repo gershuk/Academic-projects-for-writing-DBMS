@@ -72,7 +72,7 @@ namespace IntegrationTests
                 res += line;
                 line = _output.ReadLine();
             }
-            return _output.ReadToEnd();
+            return res;
         }
 
         ~TestClient ()

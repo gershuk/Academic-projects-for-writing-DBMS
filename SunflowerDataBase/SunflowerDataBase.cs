@@ -92,9 +92,17 @@ namespace SunflowerDB
 
                 if (state == ExecutionState.performed)
                 {
-                    foreach (var stmt in transactionNode.StmtListNode.StmtList)
+                    if (transactionNode.StmtListNode!=null)
                     {
-                        var table = _engineCommander.GetTableByName(transaction.Guid, stmt.SqlCommand.ReturnedTableName);
+                        foreach (var stmt in transactionNode.StmtListNode.StmtList)
+                        {
+                            var table = _engineCommander.GetTableByName(transaction.Guid, stmt.SqlCommand.ReturnedTableName);
+                            transaction.OperationsResults.Add(table);
+                        } 
+                    }
+                    else
+                    {
+                        var table = _engineCommander.GetTableByName(transaction.Guid, transactionNode.SqlCommandNode.ReturnedTableName);
                         transaction.OperationsResults.Add(table);
                     }
 

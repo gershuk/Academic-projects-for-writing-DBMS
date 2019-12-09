@@ -41,22 +41,24 @@ namespace SunflowerDB
 
         public object ExecuteSqlNode (Guid id, CreateTableCommandNode node)
         {
-            var createResult = Engine.CreateTableCommand(id, node.TableName);
-
-            if (createResult.State != ExecutionState.performed)
-            {
-                return createResult;
-            }
-
+            var newTable = new Table(node.TableName);
+            
             foreach (var def in node.FieldDefList)
             {
                 var column = new Column(def.Id, def.FieldType, def.TypeParamOpt, def.ConstaraintList, def.NullSpecOpt);
-                var addResult = Engine.AddColumnCommand(id, node.TableName, column);
+                var addResult = newTable.AddColumn(column);
 
                 if (addResult.State != ExecutionState.performed)
                 {
                     return addResult;
                 }
+            }
+
+            var createResult = Engine.CreateTableCommand(id, newTable);
+
+            if (createResult.State != ExecutionState.performed)
+            {
+                return createResult;
             }
 
             node.SetReturnedTableName(createResult.Result.TableMetaInf.Name);

@@ -262,20 +262,6 @@ namespace DataBaseType
             return new OperationResult<Table>(ExecutionState.performed, this);
         }
 
-        public OperationResult<Table> DeleteColumn(string ColumName)
-        {
-            TableMetaInf.ColumnPool ??= new Dictionary<string, Column>();
-            if (TableMetaInf.ColumnPool.ContainsKey(ColumName))
-            {
-                TableMetaInf.ColumnPool.Remove(ColumName);
-            }
-            else
-            {
-                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(ColumName, TableMetaInf.Name.ToString()));
-            }
-
-            return new OperationResult<Table>(ExecutionState.performed, this);
-        }
 
         public override string ToString() => TableData == null ? ShowCreateTable().Result : ShowDataTable().Result;
 

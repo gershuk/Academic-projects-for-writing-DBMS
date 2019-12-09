@@ -40,6 +40,18 @@ namespace DataBaseType
     }
 
     [ProtoContract]
+    public class NullError : DBError
+    {
+        public NullError ()
+        {
+        }
+
+        public NullError (string mess)
+            : base($"{mess} is null")
+        { }
+    }
+
+    [ProtoContract]
     public class DataBaseIsCorruptError : DBError
     {
         public DataBaseIsCorruptError ()
@@ -82,8 +94,8 @@ namespace DataBaseType
         {
         }
 
-        public TableAlreadyExistError (string tableName)
-            : base($"Error, Table with name {tableName} already exist.")
+        public TableAlreadyExistError (List <string> tableName)
+            : base($"Error, Table with name {(tableName != null ? tableName[0]: "null")} already exist.")
         { }
     }
 

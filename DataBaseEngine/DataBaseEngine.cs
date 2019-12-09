@@ -61,7 +61,7 @@ namespace DataBaseEngine
     {
 
 
-        
+
 
         private const string _pathDefault = "DataBaseStorage";
         private const int _blockSizeDefault = 4096;
@@ -99,7 +99,7 @@ namespace DataBaseEngine
             {
                 foreach (var tran in metaInf.Transactions)
                 {
-                   //To do //RollBackTransaction(tran.Key);
+                    //To do //RollBackTransaction(tran.Key);
                 }
             }
             return new DbEngineMetaInf(metaInf);
@@ -203,8 +203,8 @@ namespace DataBaseEngine
             }
             var table = res.Result;
             var tr = _dbEngineMetaInf.Transactions[transactionGuid];
-            
-            if(columnNames == null)
+
+            if (columnNames == null)
             {
                 return new OperationResult<Table>(ExecutionState.failed, null, new NullError(nameof(columnNames)));
             }
@@ -241,12 +241,28 @@ namespace DataBaseEngine
             table.AddColumn(column);
             return new OperationResult<Table>(ExecutionState.performed, table);
         }
+        public OperationResult<Table> GetTableCommand (Guid transactionGuid, List<string> name)
+        {
+            var state = _dataStorage.ContainsTable(name);
+            var tr = _dbEngineMetaInf.Transactions[transactionGuid];
+
+            if (!state.Result)
+            {
+                if (tr.TempTables.ContainsKey(GetFullName(name)))
+                {
+
+                    return new OperationResult<Table>(ExecutionState.performed, tr.TempTables[GetFullName(name)]);
+                }
+                return new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(GetFullName(name)));
+            }
+            return new OperationResult<Table>(ExecutionState.performed, _dataStorage.LoadTable(name).Result);
+        }
 
         public OperationResult<Table> DeleteColumnCommand (Guid transactionGuid, List<string> tableName, string ColumnName) => throw new NotImplementedException();
         public OperationResult<Table> DeleteCommand (Guid transactionGuid, List<string> tableName, ExpressionFunction expression) => throw new NotImplementedException();
         public OperationResult<Table> DropTableCommand (Guid transactionGuid, List<string> name) => throw new NotImplementedException();
         public OperationResult<Table> ExceptCommand (Guid transactionGuid, List<string> leftId, List<string> rightId) => throw new NotImplementedException();
-        public OperationResult<Table> GetTableCommand (Guid transactionGuid, List<string> name) => throw new NotImplementedException();
+       
         public OperationResult<TableMetaInf> GetTableMetaInfCommand (Guid transactionGuid, List<string> name) => throw new NotImplementedException();
 
         public OperationResult<Table> IntersectCommand (Guid transactionGuid, List<string> leftId, List<string> rightId) => throw new NotImplementedException();
@@ -274,6 +290,7 @@ namespace DataBaseEngine
         }
         public DbEngineMetaInf (DbEngineMetaInf metaInf)
         {
+
             LastId = metaInf.LastId;
             Transactions = new Dictionary<Guid, TransactionTempInfo>();
         }

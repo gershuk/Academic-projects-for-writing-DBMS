@@ -73,17 +73,15 @@ namespace SunflowerDB
                 {
                     tableLocks.AddRange(command.GetTableLocks());
                 }
-
                 var transactionLocksInfo = new TransactionLocksInfo(tableLocks);
+
+                var trGuid = _transactionScheduler.RegisterTransaction(transactionLocksInfo);
 
                 var transaction = new TransactionInfo()
                 {
-                    Name = transactionNode.TransactionBeginOptNode?.TransactionName,
-                    Guid = _transactionScheduler.RegisterTransaction(transactionLocksInfo),
-                    LocksInfo = transactionLocksInfo
+                    Name = transactionNode.TransactionBeginOptNode?.TransactionName ?? new List<string>() { trGuid.ToString() },
+                    Guid = trGuid
                 };
-
-                transaction.Name ??= new List<string>() { transaction.Guid.ToString() };
 
                 _transactionScheduler.WaitTransactionResourceLock(transaction.Guid);
 

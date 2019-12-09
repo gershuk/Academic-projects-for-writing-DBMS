@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using ZeroFormatter;
 using ProtoBuf;
+using ZeroFormatter;
 
 namespace DataBaseType
 {
@@ -31,11 +31,11 @@ namespace DataBaseType
         [Index(0)]
         public virtual int Value { get; set; }
 
-        public FieldInt()
+        public FieldInt ()
         {
         }
 
-        public override string ToString() => Value.ToString();
+        public override string ToString () => Value.ToString();
     }
 
     [ProtoContract]
@@ -49,12 +49,12 @@ namespace DataBaseType
         [Index(0)]
         public virtual double Value { get; set; }
 
-        public FieldDouble()
+        public FieldDouble ()
         {
 
         }
 
-        public override string ToString() => Value.ToString();
+        public override string ToString () => Value.ToString();
     }
 
     [ProtoContract]
@@ -72,11 +72,11 @@ namespace DataBaseType
         [IgnoreFormat]
         public string Value => Encoding.UTF8.GetString(ValueBytes, 0, ValueBytes.Length);
 
-        public FieldChar()
+        public FieldChar ()
         {
         }
 
-        public FieldChar(string val, int size)
+        public FieldChar (string val, int size)
         {
             ValueBytes = new byte[size];
             var buf = System.Text.Encoding.UTF8.GetBytes(val);
@@ -91,7 +91,7 @@ namespace DataBaseType
             }
         }
 
-        public override string ToString() => Value.ToString();
+        public override string ToString () => Value.ToString();
     }
 
     [ProtoContract]
@@ -99,15 +99,15 @@ namespace DataBaseType
     public class Row
     {
         [ProtoMember(1)]
-        [Index(0)] 
+        [Index(0)]
         public virtual Field[] Fields { get; set; }
 
         [ProtoMember(2)]
-        [Index(1)] 
+        [Index(1)]
         public virtual long TrStart { get; set; }
 
         [ProtoMember(3)]
-        [Index(2)] 
+        [Index(2)]
         public virtual long TrEnd { get; set; }
         public Row ()
         {
@@ -149,11 +149,11 @@ namespace DataBaseType
         [Index(5)]
         public virtual NullSpecOpt TypeState { get; set; }
 
-        public Column() { }
+        public Column () { }
 
-        public Column(List<string> name) => Name = name;
+        public Column (List<string> name) => Name = name;
 
-        public Column(List<string> name, DataType dataType, double? dataParam, List<string> constrains, NullSpecOpt typeState)
+        public Column (List<string> name, DataType dataType, double? dataParam, List<string> constrains, NullSpecOpt typeState)
         {
             Name = name;
             DataType = dataType;
@@ -162,7 +162,7 @@ namespace DataBaseType
             TypeState = typeState;
         }
 
-        public OperationResult<Field> CreateField(string data)
+        public OperationResult<Field> CreateField (string data)
         {
             switch (DataType)
             {
@@ -172,7 +172,7 @@ namespace DataBaseType
                         var val = Convert.ToInt32(data);
                         return new OperationResult<Field>(ExecutionState.performed, new FieldInt { Value = val });
                     }
-                    catch(FormatException)
+                    catch (FormatException)
                     {
                         return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name, DataType.ToString(), data));
                     }
@@ -182,7 +182,7 @@ namespace DataBaseType
                         var val = Convert.ToDouble(data, new NumberFormatInfo { NumberDecimalSeparator = "." });
                         return new OperationResult<Field>(ExecutionState.performed, new FieldDouble { Value = val });
                     }
-                    catch(FormatException)
+                    catch (FormatException)
                     {
                         return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name, DataType.ToString(), data));
                     }
@@ -211,9 +211,9 @@ namespace DataBaseType
         [Index(2)]
         public virtual int SizeInBytes { get; set; }
 
-        public TableMetaInf() { }
+        public TableMetaInf () { }
 
-        public string GetFullName()
+        public string GetFullName ()
         {
             var sb = new StringBuilder();
             foreach (var n in Name)
@@ -222,7 +222,7 @@ namespace DataBaseType
             }
             return sb.ToString();
         }
-        public TableMetaInf(List<string> name) => Name = name;
+        public TableMetaInf (List<string> name) => Name = name;
     }
 
     [ProtoContract]
@@ -234,20 +234,20 @@ namespace DataBaseType
         [ProtoMember(2)]
         public TableMetaInf TableMetaInf { get; set; }
 
-        public Table()
+        public Table ()
         { }
 
-        public Table(List<string> name) => TableMetaInf = new TableMetaInf(name);
+        public Table (List<string> name) => TableMetaInf = new TableMetaInf(name);
 
-        public Table(TableMetaInf tableMetaInf) => TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
+        public Table (TableMetaInf tableMetaInf) => TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
 
-        public Table(IEnumerable<Row> tableData, TableMetaInf tableMetaInf)
+        public Table (IEnumerable<Row> tableData, TableMetaInf tableMetaInf)
         {
             TableData = tableData ?? throw new ArgumentNullException(nameof(tableData));
             TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
         }
 
-        public OperationResult<Table> AddColumn(Column column)
+        public OperationResult<Table> AddColumn (Column column)
         {
             TableMetaInf.ColumnPool ??= new Dictionary<string, Column>();
             if (!TableMetaInf.ColumnPool.ContainsKey(column?.Name.ToString()))
@@ -262,10 +262,24 @@ namespace DataBaseType
             return new OperationResult<Table>(ExecutionState.performed, this);
         }
 
+        public OperationResult<Table> DeleteColumn (string ColumName)
+        {
+            TableMetaInf.ColumnPool ??= new Dictionary<string, Column>();
+            if (TableMetaInf.ColumnPool.ContainsKey(ColumName))
+            {
+                TableMetaInf.ColumnPool.Remove(ColumName);
+            }
+            else
+            {
+                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(ColumName, TableMetaInf.Name.ToString()));
+            }
 
-        public override string ToString() => TableData == null ? ShowCreateTable().Result : ShowDataTable().Result;
+            return new OperationResult<Table>(ExecutionState.performed, this);
+        }
 
-        public OperationResult<string> ShowDataTable()
+        public override string ToString () => TableData == null ? ShowCreateTable().Result : ShowDataTable().Result;
+
+        public OperationResult<string> ShowDataTable ()
         {
             using var sw = new StringWriter();
 
@@ -290,7 +304,7 @@ namespace DataBaseType
 
             return new OperationResult<string>(ExecutionState.performed, sw.ToString());
         }
-        public OperationResult<Row> CreateRowFormStr(string[] strs)
+        public OperationResult<Row> CreateRowFormStr (string[] strs)
         {
             if (strs is null)
             {
@@ -313,7 +327,7 @@ namespace DataBaseType
 
             return new OperationResult<Row>(ExecutionState.performed, new Row(row));
         }
-        public OperationResult<Row> CreateDefaultRow()
+        public OperationResult<Row> CreateDefaultRow ()
         {
             var row = new Field[TableMetaInf.ColumnPool.Count];
             var i = 0;
@@ -326,7 +340,7 @@ namespace DataBaseType
             return new OperationResult<Row>(ExecutionState.performed, new Row(row));
         }
 
-        public OperationResult<string> ShowCreateTable()
+        public OperationResult<string> ShowCreateTable ()
         {
             using var sw = new StringWriter();
 

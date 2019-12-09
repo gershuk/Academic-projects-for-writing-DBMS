@@ -1,35 +1,31 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-
-using DataBaseEngine;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DataBaseType;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using StorageEngine;
-
-using ZeroFormatter;
 
 namespace DataBaseEngineUnitTest
 {
     [TestClass]
     public class StorageEngineUnitTests
     {
-        DataStorageInFiles _dataStorage;
-        const int _blockSize = 4096;
+        private DataStorageInFiles _dataStorage;
+        private const int _blockSize = 4096;
         [TestInitialize]
-        public void TestInitialize()
+        public void TestInitialize ()
         {
 
 
         }
 
         [TestCleanup]
-        public void TestCleanup()
+        public void TestCleanup ()
         {
 
         }
         [TestMethod]
-        public void AddTableTest()
-        {   
+        public void AddTableTest ()
+        {
             const string testPath = "StorageTestAddTableTest";
             if (Directory.Exists(testPath))
             {
@@ -68,7 +64,7 @@ namespace DataBaseEngineUnitTest
             }
         }
         [TestMethod]
-        public void InsertRowsTest()
+        public void InsertRowsTest ()
         {
             const string testPath = "StorageTestInsertRowsTest";
             if (Directory.Exists(testPath))
@@ -97,7 +93,7 @@ namespace DataBaseEngineUnitTest
             var count = 0;
             var row2 = table.CreateRowFormStr(new string[] { "Ivan", "IvanovIvanovIvanov", "23", "44.345" });
             for (var i = 0; i < 10; ++i)
-            { 
+            {
                 Assert.AreEqual(row2.State, ExecutionState.performed);
                 _dataStorage.InsertRow(tableName, row2.Result);
                 count++;
@@ -117,7 +113,7 @@ namespace DataBaseEngineUnitTest
         }
 
         [TestMethod]
-        public void UpdateRowsTest()
+        public void UpdateRowsTest ()
         {
             const string testPath = "StorageTestUpdateRowsTest";
             if (Directory.Exists(testPath))
@@ -181,7 +177,7 @@ namespace DataBaseEngineUnitTest
         }
 
         [TestMethod]
-        public void DeleteRowsTest()
+        public void DeleteRowsTest ()
         {
             const string testPath = "StorageTestDeleteRowsTest";
             if (Directory.Exists(testPath))
@@ -215,7 +211,7 @@ namespace DataBaseEngineUnitTest
                 Assert.AreEqual(_dataStorage.InsertRow(tableName, row2.Result).State, ExecutionState.performed);
             }
             _dataStorage.InsertRow(tableName, row1.Result);
-            _dataStorage.RemoveAllRow(table.TableMetaInf.Name,(Row f)=> ((FieldChar)(f.Fields[0])).Value == ((FieldChar)(row2.Result.Fields[0])).Value );
+            _dataStorage.RemoveAllRow(table.TableMetaInf.Name, (Row f) => ((FieldChar)(f.Fields[0])).Value == ((FieldChar)(row2.Result.Fields[0])).Value);
             _dataStorage.InsertRow(tableName, row1.Result);
 
             var resultTable = _dataStorage.LoadTable(table.TableMetaInf.Name);
@@ -255,7 +251,7 @@ namespace DataBaseEngineUnitTest
             Assert.AreEqual(count, 0);
         }
 
-            void CheckRow(Row a,Row b)
+        private void CheckRow (Row a, Row b)
         {
             Assert.AreEqual(a.Fields.Length, b.Fields.Length);
             for (var i = 0; i < b.Fields.Length; i++)

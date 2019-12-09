@@ -4,21 +4,30 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using ZeroFormatter;
+using ProtoBuf;
 
 namespace DataBaseType
 {
+    [ProtoContract]
     [Union(typeof(FieldInt), typeof(FieldDouble), typeof(FieldChar))]
     public abstract class Field
     {
+        [ProtoMember(1)]
         [UnionKey]
         public abstract DataType Type { get; }
     }
 
+    [ProtoContract]
+    [ProtoInclude(10, typeof(FieldInt))]
+    [ProtoInclude(11, typeof(FieldDouble))]
+    [ProtoInclude(12, typeof(FieldChar))]
     [ZeroFormattable]
     public class FieldInt : Field
     {
+        [ProtoMember(1)]
         public override DataType Type => DataType.INT;
 
+        [ProtoMember(2)]
         [Index(0)]
         public virtual int Value { get; set; }
 
@@ -29,11 +38,14 @@ namespace DataBaseType
         public override string ToString() => Value.ToString();
     }
 
+    [ProtoContract]
     [ZeroFormattable]
     public class FieldDouble : Field
     {
+        [ProtoMember(1)]
         public override DataType Type => DataType.DOUBLE;
 
+        [ProtoMember(2)]
         [Index(0)]
         public virtual double Value { get; set; }
 
@@ -45,14 +57,18 @@ namespace DataBaseType
         public override string ToString() => Value.ToString();
     }
 
+    [ProtoContract]
     [ZeroFormattable]
     public class FieldChar : Field
     {
+        [ProtoMember(1)]
         public override DataType Type => DataType.CHAR;
 
+        [ProtoMember(2)]
         [Index(0)]
         public virtual byte[] ValueBytes { get; set; }
 
+        [ProtoMember(3)]
         [IgnoreFormat]
         public string Value => Encoding.UTF8.GetString(ValueBytes, 0, ValueBytes.Length);
 
@@ -78,12 +94,21 @@ namespace DataBaseType
         public override string ToString() => Value.ToString();
     }
 
+    [ProtoContract]
     [ZeroFormattable]
     public class Row
     {
-        [Index(0)] public virtual Field[] Fields { get; set; }
-        [Index(1)] public virtual long TrStart { get; set; }
-        [Index(2)] public virtual long TrEnd { get; set; }
+        [ProtoMember(1)]
+        [Index(0)] 
+        public virtual Field[] Fields { get; set; }
+
+        [ProtoMember(2)]
+        [Index(1)] 
+        public virtual long TrStart { get; set; }
+
+        [ProtoMember(3)]
+        [Index(2)] 
+        public virtual long TrEnd { get; set; }
         public Row ()
         {
 
@@ -96,24 +121,31 @@ namespace DataBaseType
         }
     }
 
+    [ProtoContract]
     [ZeroFormattable]
     public class Column
     {
+        [ProtoMember(1)]
         [Index(0)]
         public virtual List<string> Name { get; set; }
 
+        [ProtoMember(2)]
         [Index(1)]
         public virtual DataType DataType { get; set; }
 
+        [ProtoMember(3)]
         [Index(2)]
         public virtual double? DataParam { get; set; }
 
+        [ProtoMember(4)]
         [Index(3)]
         public virtual List<string> Constrains { get; set; }
 
+        [ProtoMember(5)]
         [Index(4)]
         public virtual int Size { get; set; }
 
+        [ProtoMember(6)]
         [Index(5)]
         public virtual NullSpecOpt TypeState { get; set; }
 
@@ -163,15 +195,19 @@ namespace DataBaseType
         }
     }
 
+    [ProtoContract]
     [ZeroFormattable]
     public class TableMetaInf
     {
+        [ProtoMember(1)]
         [Index(0)]
         public virtual List<string> Name { get; set; }
 
+        [ProtoMember(2)]
         [Index(1)]
         public virtual Dictionary<string, Column> ColumnPool { get; set; }
 
+        [ProtoMember(3)]
         [Index(2)]
         public virtual int SizeInBytes { get; set; }
 
@@ -189,10 +225,13 @@ namespace DataBaseType
         public TableMetaInf(List<string> name) => Name = name;
     }
 
+    [ProtoContract]
     public class Table
     {
+        [ProtoMember(1)]
         public IEnumerable<Row> TableData { get; set; }
 
+        [ProtoMember(2)]
         public TableMetaInf TableMetaInf { get; set; }
 
         public Table()

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using ZeroFormatter;
+using ProtoBuf;
 
 namespace TransactionManagement
 {
@@ -16,11 +16,11 @@ namespace TransactionManagement
         public List<TableLock> TablesLocks { get; }
     }
 
-    [ZeroFormattable]
+    [ProtoContract]
     public class TransactionLocksInfo : ITransactionLocksInfo
     {
-        [Index(0)]
-        public virtual List<TableLock> TablesLocks { get; private set; }
+        [ProtoMember(1)]
+        public List<TableLock> TablesLocks { get; private set; }
 
         public TransactionLocksInfo ()
         {

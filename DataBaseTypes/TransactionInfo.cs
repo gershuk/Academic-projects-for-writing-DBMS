@@ -3,29 +3,29 @@ using System.Collections.Generic;
 using System.Text;
 
 using TransactionManagement;
-using ZeroFormatter;
+using ProtoBuf;
 
 namespace DataBaseType
 {
-    [ZeroFormattable]
+    [ProtoContract]
     public class TransactionInfo
     {
-        [Index(0)]
+        [ProtoMember(1)]
         public virtual List<string> Name { get; set; }
 
-        [Index(1)]
+        [ProtoMember(2)]
         public virtual Guid Guid { get; set; }
 
-        [Index(2)]
+        [ProtoMember(3)]
         public virtual DateTime StartTime { get; set; }
 
-        [Index(3)]
+        [ProtoMember(4)]
         public virtual DateTime EndTime { get; set; }
 
-        [Index(4)]
+        [ProtoMember(5)]
         public virtual List<OperationResult<Table>> OperationsResults { get; set; }
 
-        [Index(5)]
+        [ProtoMember(6)]
         public virtual TransactionLocksInfo LocksInfo { get; set; }
 
         public TransactionInfo (TransactionLocksInfo transactionLocksInfo) => LocksInfo = transactionLocksInfo
@@ -75,9 +75,15 @@ namespace DataBaseType
         }
     }
 
+    [ProtoContract]
     public class SqlSequenceResult
     {
+        [ProtoMember(1)]
         public List<TransactionInfo> Answer { get; private set; }
+
+        public SqlSequenceResult () => Answer = new List<TransactionInfo>();
+
+        public SqlSequenceResult (List<TransactionInfo> answer) => Answer = answer ?? throw new ArgumentNullException(nameof(answer));
 
         public override string ToString ()
         {

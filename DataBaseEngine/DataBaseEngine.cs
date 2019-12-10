@@ -110,17 +110,6 @@ namespace DataBaseEngine
             return new DbEngineMetaInf(0);
         }
 
-        static private string GetFullName (List<string> tableName)
-        {
-            _ = tableName ?? throw new ArgumentNullException(nameof(tableName));
-            var sb = new StringBuilder();
-            foreach (var n in tableName)
-            {
-                sb.Append(n);
-            }
-            return sb.ToString();
-        }
-
         private DbEngineMetaInf LoadDbMetaInf ()
         {
             if (!File.Exists(_path + "/" + _fileNameDbMetaInf))
@@ -138,13 +127,13 @@ namespace DataBaseEngine
             ZeroFormatterSerializer.Serialize(fs, dbMetaInf);
         }
 
-        private void AddChangedTable (Guid transactionGuid, List<string> tableName)
+        private void AddChangedTable (Guid transactionGuid, Id tableName)
         {
-            if (!_dbEngineMetaInf.Transactions[transactionGuid].ChangedTables.ContainsKey(GetFullName(tableName)))
+            if (!_dbEngineMetaInf.Transactions[transactionGuid].ChangedTables.ContainsKey(tableName.ToString()))
             {
                 lock (_idLocker)
                 {
-                    _dbEngineMetaInf.Transactions[transactionGuid].ChangedTables.Add(GetFullName(tableName), 0);
+                    _dbEngineMetaInf.Transactions[transactionGuid].ChangedTables.Add(tableName.ToString(), 0);
                     SaveDbMetaInf(_dbEngineMetaInf);
                 }
             }
@@ -177,24 +166,28 @@ namespace DataBaseEngine
                 SaveDbMetaInf(_dbEngineMetaInf);
             }
         }
-        public OperationResult<Table> CreateTableCommand (Guid transactionGuid, List<string> tableName)
+        public OperationResult<Table> CreateTableCommand (Guid transactionGuid, Id name)
         {
-            var state = _dataStorage.ContainsTable(tableName);
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+            var state = _dataStorage.ContainsTable(name);
             var tr = _dbEngineMetaInf.Transactions[transactionGuid];
 
-            if (state.Result == true || tr.TempTables.ContainsKey(GetFullName(tableName)))
+            if (state.Result == true || tr.TempTables.ContainsKey(name.ToString()))
             {
-                return new OperationResult<Table>(ExecutionState.failed, null, new TableAlreadyExistError(tableName));
+                return new OperationResult<Table>(ExecutionState.failed, null, new TableAlreadyExistError(name.ToString()));
             }
 
-            var table = new Table(tableName);
+            var table = new Table(name);
             table.TableMetaInf.CreatedTrId = _dbEngineMetaInf.Transactions[transactionGuid].Id;
-            tr.NewTables.Add(GetFullName(tableName), table);
+            tr.NewTables.Add(name.ToString(), table);
             AddChangedTable(transactionGuid, table.TableMetaInf.Name);
             return new OperationResult<Table>(ExecutionState.performed, table);
         }
 
-        public OperationResult<Table> InsertCommand (Guid transactionGuid, List<string> tableName, List<List<string>> columnNames, List<ExpressionFunction> objectParams)
+        public OperationResult<Table> InsertCommand (Guid transactionGuid, Id tableName, List<Id> columnNames, List<ExpressionFunction> objectParams)
         {
             var res = _dataStorage.LoadTable(tableName);
             if (res.State == ExecutionState.failed)
@@ -218,7 +211,7 @@ namespace DataBaseEngine
             var colPool = table.TableMetaInf.ColumnPool;
             for (var i = 0; i < colPool.Count; ++i)
             {
-               var index = columnNames.FindIndex((List<string> n) => colPool[i].Name == GetFullName(n)); 
+          //     var index = columnNames.FindIndex((List<string> n) => colPool[i].Name == GetFullName(n)); 
                 //if (!table.TableMetaInf.ColumnPool.ContainsKey(GetFullName(columnNames[i])))
                 //{
                 //    return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(GetFullName(columnNames[i]), GetFullName(table.TableMetaInf.Name)));
@@ -231,67 +224,55 @@ namespace DataBaseEngine
             return new OperationResult<Table>(resInsert.State, table, resInsert.OperationError);
         }
 
-        public OperationResult<Table> AddColumnCommand (Guid transactionGuid, List<string> tableName, Column column)
+        public OperationResult<Table> AddColumnCommand (Guid transactionGuid, Id tableName, Column column)
         {
-            var tr = _dbEngineMetaInf.Transactions[transactionGuid];
-            if (!tr.NewTables.ContainsKey(GetFullName(tableName)))
+            if (tableName == null)
             {
-                return new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(GetFullName(tableName)));
+                throw new ArgumentNullException(nameof(tableName));
             }
-            var table = tr.NewTables[GetFullName(tableName)];
+            var tr = _dbEngineMetaInf.Transactions[transactionGuid];
+            if (!tr.NewTables.ContainsKey(tableName.ToString()))
+            {
+                return new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(tableName.ToString()));
+            }
+            var table = tr.NewTables[tableName.ToString()];
             table.AddColumn(column);
             return new OperationResult<Table>(ExecutionState.performed, table);
         }
 
-        public OperationResult<Table> GetTableCommand (Guid transactionGuid, List<string> name)
+        public OperationResult<Table> GetTableCommand (Guid transactionGuid, Id name)
         {
-            
-            var tr = _dbEngineMetaInf.Transactions[transactionGuid];
-            if (tr.TempTables.ContainsKey(GetFullName(name)))
+            if(name == null)
             {
-                return new OperationResult<Table>(ExecutionState.performed, tr.TempTables[GetFullName(name)]);
+                throw new ArgumentNullException(nameof(name));
             }
-            if (tr.NewTables.ContainsKey(GetFullName(name)))
+            var tr = _dbEngineMetaInf.Transactions[transactionGuid];
+            if (tr.TempTables.ContainsKey(name.ToString()))
             {
-                return new OperationResult<Table>(ExecutionState.performed, tr.NewTables[GetFullName(name)]);
+                return new OperationResult<Table>(ExecutionState.performed, tr.TempTables[name.ToString()]);
+            }
+            if (tr.NewTables.ContainsKey(name.ToString()))
+            {
+                return new OperationResult<Table>(ExecutionState.performed, tr.NewTables[name.ToString()]);
             }
             var state = _dataStorage.ContainsTable(name);
-            if (state.Result)
-            {
-                return new OperationResult<Table>(ExecutionState.performed, _dataStorage.LoadTable(name).Result);
-            }
-
-            return new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(GetFullName(name)));
+            return state.Result
+                ? new OperationResult<Table>(ExecutionState.performed, _dataStorage.LoadTable(name).Result)
+                : new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(name.ToString()));
         }
-
-        public OperationResult<Table> DeleteColumnCommand (Guid transactionGuid, List<string> tableName, string ColumnName) => throw new NotImplementedException();
-        public OperationResult<Table> DeleteCommand (Guid transactionGuid, List<string> tableName, ExpressionFunction expression) => throw new NotImplementedException();
-        public OperationResult<Table> DropTableCommand (Guid transactionGuid, List<string> name) => throw new NotImplementedException();
-        public OperationResult<Table> ExceptCommand (Guid transactionGuid, List<string> leftId, List<string> rightId) => throw new NotImplementedException();
-
-        public OperationResult<TableMetaInf> GetTableMetaInfCommand (Guid transactionGuid, List<string> name) => throw new NotImplementedException();
-
-        public OperationResult<Table> IntersectCommand (Guid transactionGuid, List<string> leftId, List<string> rightId) => throw new NotImplementedException();
-        public OperationResult<Table> JoinCommand (Guid transactionGuid, List<string> leftId, List<string> rightId, JoinKind joinKind, List<string> statmentLeftId, List<string> statmentRightId) => throw new NotImplementedException();
-        public OperationResult<Table> SelectCommand (Guid transactionGuid, List<string> tableName, List<List<string>> columnNames, ExpressionFunction expression) => throw new NotImplementedException();
-        public OperationResult<Table> ShowTableCommand (Guid transactionGuid, List<string> tableName) => throw new NotImplementedException();
-        public OperationResult<Table> UnionCommand (Guid transactionGuid, List<string> leftId, List<string> rightId, UnionKind unionKind) => throw new NotImplementedException();
-        public OperationResult<Table> UpdateCommand (Guid transactionGuid, List<string> tableName, List<Assigment> assigmentList, ExpressionFunction expressionFunction) => throw new NotImplementedException();
-        public OperationResult<Table> CreateTableCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
-        public OperationResult<Table> DeleteColumnCommand (Guid transactionGuid, Id tableName, Id ColumnName) => throw new NotImplementedException();
-        public OperationResult<Table> AddColumnCommand (Guid transactionGuid, Id tableName, Column column) => throw new NotImplementedException();
-        public OperationResult<Table> GetTableCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
-        public OperationResult<TableMetaInf> GetTableMetaInfCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
-        public OperationResult<Table> DropTableCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
-        public OperationResult<Table> InsertCommand (Guid transactionGuid, Id tableName, List<Id> columnNames, List<ExpressionFunction> objectParams) => throw new NotImplementedException();
-        public OperationResult<Table> SelectCommand (Guid transactionGuid, Id tableName, List<Id> columnNames, ExpressionFunction expression) => throw new NotImplementedException();
-        public OperationResult<Table> UpdateCommand (Guid transactionGuid, Id tableName, List<Assigment> assigmentList, ExpressionFunction expressionFunction) => throw new NotImplementedException();
         public OperationResult<Table> DeleteCommand (Guid transactionGuid, Id tableName, ExpressionFunction expression) => throw new NotImplementedException();
-        public OperationResult<Table> ShowTableCommand (Guid transactionGuid, Id tableName) => throw new NotImplementedException();
-        public OperationResult<Table> JoinCommand (Guid transactionGuid, Id leftId, Id rightId, JoinKind joinKind, Id statmentLeftId, Id statmentRightId) => throw new NotImplementedException();
-        public OperationResult<Table> UnionCommand (Guid transactionGuid, Id leftId, Id rightId, UnionKind unionKind) => throw new NotImplementedException();
-        public OperationResult<Table> IntersectCommand (Guid transactionGuid, Id leftId, Id rightId) => throw new NotImplementedException();
+        public OperationResult<Table> DropTableCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
         public OperationResult<Table> ExceptCommand (Guid transactionGuid, Id leftId, Id rightId) => throw new NotImplementedException();
+
+        public OperationResult<TableMetaInf> GetTableMetaInfCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
+
+        public OperationResult<Table> IntersectCommand (Guid transactionGuid, Id leftId, Id rightId) => throw new NotImplementedException();
+        public OperationResult<Table> JoinCommand (Guid transactionGuid, Id leftId, Id rightId, JoinKind joinKind, Id statmentLeftId, Id statmentRightId) => throw new NotImplementedException();
+        public OperationResult<Table> SelectCommand (Guid transactionGuid, Id tableName, List<Id> columnNames, ExpressionFunction expression) => throw new NotImplementedException();
+        public OperationResult<Table> ShowTableCommand (Guid transactionGuid, Id tableName) => throw new NotImplementedException();
+        public OperationResult<Table> UnionCommand (Guid transactionGuid, Id leftId, Id rightId, UnionKind unionKind) => throw new NotImplementedException();
+        public OperationResult<Table> UpdateCommand (Guid transactionGuid, Id tableName, List<Assigment> assigmentList, ExpressionFunction expressionFunction) => throw new NotImplementedException();
+        public OperationResult<Table> DeleteColumnCommand (Guid transactionGuid, Id tableName, Id ColumnName) => throw new NotImplementedException();
     }
 
     [ZeroFormattable]
@@ -311,7 +292,10 @@ namespace DataBaseEngine
         }
         public DbEngineMetaInf (DbEngineMetaInf metaInf)
         {
-
+            if(metaInf == null)
+            {
+                throw new ArgumentNullException(nameof(metaInf));
+            }
             LastId = metaInf.LastId;
             Transactions = new Dictionary<Guid, TransactionTempInfo>();
         }

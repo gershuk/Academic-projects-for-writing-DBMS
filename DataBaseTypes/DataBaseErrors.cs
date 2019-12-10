@@ -94,8 +94,8 @@ namespace DataBaseType
         {
         }
 
-        public TableAlreadyExistError (List <string> tableName)
-            : base($"Error, Table with name {(tableName != null ? tableName[0]: "null")} already exist.")
+        public TableAlreadyExistError (string tableName)
+            : base($"Error, Table with name {tableName} already exist.")
         { }
     }
 

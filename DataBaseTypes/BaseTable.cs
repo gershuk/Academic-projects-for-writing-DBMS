@@ -151,11 +151,11 @@ namespace DataBaseType
 
         public Column () { }
 
-        public Column (List<string> name) => Name = GetFullName(name);
+        public Column (Id name) => Name = name.ToString();
 
-        public Column (List<string> name, DataType dataType, double? dataParam, List<string> constrains, NullSpecOpt typeState)
+        public Column (Id name, DataType dataType, double? dataParam, List<string> constrains, NullSpecOpt typeState)
         {
-            Name = GetFullName(name);
+            Name = name.ToString();
             DataType = dataType;
             DataParam = dataParam;
             Constrains = constrains;
@@ -310,7 +310,7 @@ namespace DataBaseType
             }
             else
             {
-                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnAlreadyExistError(column.Name, GetFullName(TableMetaInf.Name)));
+                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnAlreadyExistError(column.Name, TableMetaInf.Name.ToString()));
             }
 
             return new OperationResult<Table>(ExecutionState.performed, this);

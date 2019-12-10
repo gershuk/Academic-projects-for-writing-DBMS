@@ -1,18 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
     public class JoinStatementNode : SqlNode
     {
-        public List<string> LeftId { get; set; }
-        public List<string> RightId { get; set; }
+        public Id LeftId { get; set; }
+        public Id RightId { get; set; }
 
         public override void CollectInfoFromChild ()
         {
             var childNodes = ChildNodes.ToArray();
-            LeftId = (childNodes[0] as IdNode).Id;
-            RightId = (childNodes[2] as IdNode).Id;
+            LeftId = new Id((childNodes[0] as IdNode).Id);
+            RightId = new Id((childNodes[2] as IdNode).Id);
         }
     }
 }

@@ -242,7 +242,7 @@ namespace DataBaseType
     {
         [ProtoMember(1)]
         [Index(0)]
-        public virtual List<string> Name { get; set; }
+        public virtual Id Name { get; set; }
 
         [ProtoMember(2)]
         [Index(1)]
@@ -261,16 +261,9 @@ namespace DataBaseType
 
         public TableMetaInf () { }
 
-        public string GetFullName ()
-        {
-            var sb = new StringBuilder();
-            foreach (var n in Name)
-            {
-                sb.Append(n);
-            }
-            return sb.ToString();
-        }
-        public TableMetaInf (List<string> name) => Name = name;
+        public string GetFullName () => Name.ToString();
+
+        public TableMetaInf (Id name) => Name = name;
     }
 
     [ProtoContract]
@@ -285,7 +278,7 @@ namespace DataBaseType
         public Table ()
         { }
 
-        public Table (List<string> name) => TableMetaInf = new TableMetaInf(name);
+        public Table (Id name) => TableMetaInf = new TableMetaInf(name);
 
         public Table (TableMetaInf tableMetaInf) => TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
 

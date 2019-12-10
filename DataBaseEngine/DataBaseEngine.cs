@@ -15,40 +15,40 @@ namespace DataBaseEngine
 
     public interface IDataBaseEngine
     {
-        OperationResult<Table> CreateTableCommand (Guid transactionGuid, List<string> tableName);
+        OperationResult<Table> CreateTableCommand (Guid transactionGuid, Id name);
 
-        OperationResult<Table> DeleteColumnCommand (Guid transactionGuid, List<string> tableName, string ColumnName);
+        OperationResult<Table> DeleteColumnCommand (Guid transactionGuid, Id tableName, Id ColumnName);
 
-        OperationResult<Table> AddColumnCommand (Guid transactionGuid, List<string> tableName, Column column);
+        OperationResult<Table> AddColumnCommand (Guid transactionGuid, Id tableName, Column column);
 
-        OperationResult<Table> GetTableCommand (Guid transactionGuid, List<string> name);
+        OperationResult<Table> GetTableCommand (Guid transactionGuid, Id name);
 
-        OperationResult<TableMetaInf> GetTableMetaInfCommand (Guid transactionGuid, List<string> name);
+        OperationResult<TableMetaInf> GetTableMetaInfCommand (Guid transactionGuid, Id name);
 
-        OperationResult<Table> DropTableCommand (Guid transactionGuid, List<string> name);
+        OperationResult<Table> DropTableCommand (Guid transactionGuid, Id name);
 
-        OperationResult<Table> InsertCommand (Guid transactionGuid, List<string> tableName, List<List<string>> columnNames, List<ExpressionFunction> objectParams);
+        OperationResult<Table> InsertCommand (Guid transactionGuid, Id tableName, List<Id> columnNames, List<ExpressionFunction> objectParams);
 
-        OperationResult<Table> SelectCommand (Guid transactionGuid, List<string> tableName, List<List<string>> columnNames, ExpressionFunction expression);
+        OperationResult<Table> SelectCommand (Guid transactionGuid, Id tableName, List<Id> columnNames, ExpressionFunction expression);
 
-        OperationResult<Table> UpdateCommand (Guid transactionGuid, List<string> tableName, List<Assigment> assigmentList, ExpressionFunction expressionFunction);
+        OperationResult<Table> UpdateCommand (Guid transactionGuid, Id tableName, List<Assigment> assigmentList, ExpressionFunction expressionFunction);
 
-        OperationResult<Table> DeleteCommand (Guid transactionGuid, List<string> tableName, ExpressionFunction expression);
+        OperationResult<Table> DeleteCommand (Guid transactionGuid, Id tableName, ExpressionFunction expression);
 
-        OperationResult<Table> ShowTableCommand (Guid transactionGuid, List<string> tableName);
+        OperationResult<Table> ShowTableCommand (Guid transactionGuid, Id tableName);
 
         OperationResult<Table> JoinCommand (Guid transactionGuid,
-                                           List<string> leftId,
-                                           List<string> rightId,
+                                           Id leftId,
+                                           Id rightId,
                                            JoinKind joinKind,
-                                           List<string> statmentLeftId,
-                                           List<string> statmentRightId);
+                                           Id statmentLeftId,
+                                           Id statmentRightId);
 
-        OperationResult<Table> UnionCommand (Guid transactionGuid, List<string> leftId, List<string> rightId, UnionKind unionKind);
+        OperationResult<Table> UnionCommand (Guid transactionGuid, Id leftId, Id rightId, UnionKind unionKind);
 
-        OperationResult<Table> IntersectCommand (Guid transactionGuid, List<string> leftId, List<string> rightId);
+        OperationResult<Table> IntersectCommand (Guid transactionGuid, Id leftId, Id rightId);
 
-        OperationResult<Table> ExceptCommand (Guid transactionGuid, List<string> leftId, List<string> rightId);
+        OperationResult<Table> ExceptCommand (Guid transactionGuid, Id leftId, Id rightId);
 
         void RollBackTransaction (Guid transactionGuid);
 
@@ -277,6 +277,21 @@ namespace DataBaseEngine
         public OperationResult<Table> ShowTableCommand (Guid transactionGuid, List<string> tableName) => throw new NotImplementedException();
         public OperationResult<Table> UnionCommand (Guid transactionGuid, List<string> leftId, List<string> rightId, UnionKind unionKind) => throw new NotImplementedException();
         public OperationResult<Table> UpdateCommand (Guid transactionGuid, List<string> tableName, List<Assigment> assigmentList, ExpressionFunction expressionFunction) => throw new NotImplementedException();
+        public OperationResult<Table> CreateTableCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
+        public OperationResult<Table> DeleteColumnCommand (Guid transactionGuid, Id tableName, Id ColumnName) => throw new NotImplementedException();
+        public OperationResult<Table> AddColumnCommand (Guid transactionGuid, Id tableName, Column column) => throw new NotImplementedException();
+        public OperationResult<Table> GetTableCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
+        public OperationResult<TableMetaInf> GetTableMetaInfCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
+        public OperationResult<Table> DropTableCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
+        public OperationResult<Table> InsertCommand (Guid transactionGuid, Id tableName, List<Id> columnNames, List<ExpressionFunction> objectParams) => throw new NotImplementedException();
+        public OperationResult<Table> SelectCommand (Guid transactionGuid, Id tableName, List<Id> columnNames, ExpressionFunction expression) => throw new NotImplementedException();
+        public OperationResult<Table> UpdateCommand (Guid transactionGuid, Id tableName, List<Assigment> assigmentList, ExpressionFunction expressionFunction) => throw new NotImplementedException();
+        public OperationResult<Table> DeleteCommand (Guid transactionGuid, Id tableName, ExpressionFunction expression) => throw new NotImplementedException();
+        public OperationResult<Table> ShowTableCommand (Guid transactionGuid, Id tableName) => throw new NotImplementedException();
+        public OperationResult<Table> JoinCommand (Guid transactionGuid, Id leftId, Id rightId, JoinKind joinKind, Id statmentLeftId, Id statmentRightId) => throw new NotImplementedException();
+        public OperationResult<Table> UnionCommand (Guid transactionGuid, Id leftId, Id rightId, UnionKind unionKind) => throw new NotImplementedException();
+        public OperationResult<Table> IntersectCommand (Guid transactionGuid, Id leftId, Id rightId) => throw new NotImplementedException();
+        public OperationResult<Table> ExceptCommand (Guid transactionGuid, Id leftId, Id rightId) => throw new NotImplementedException();
     }
 
     [ZeroFormattable]

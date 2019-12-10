@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using DataBaseType;
 using TransactionManagement;
 
 namespace IronySqlParser.AstNodes
@@ -6,8 +7,8 @@ namespace IronySqlParser.AstNodes
     public class SelectCommandNode : SqlCommandNode
     {
 
-        public List<List<string>> ColumnIdList { get; set; }
-        public List<string> TableName { get; set; }
+        public List<Id> ColumnIdList { get; set; }
+        public Id TableName { get; set; }
         public ExpressionNode WhereExpression { get; set; }
 
         public override void CollectInfoFromChild ()
@@ -17,7 +18,7 @@ namespace IronySqlParser.AstNodes
             WhereExpression = FindFirstChildNodeByType<WhereClauseNode>()?.Expression;
         }
 
-        public override List<TableLock> GetTableLocks () => new List<TableLock>() { new TableLock(LockType.Read, TableName, new System.Threading.ManualResetEvent(false)) };
+        public override List<TableLock> GetTableLocks () => new List<TableLock>() { new TableLock(LockType.Read, TableName.SimpleIds, new System.Threading.ManualResetEvent(false)) };
     }
 }
 

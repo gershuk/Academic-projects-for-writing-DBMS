@@ -329,14 +329,14 @@ namespace StorageEngine
 
     public interface IDataStorage
     {
-        OperationResult<Table> LoadTable (List<string> tableName);
-        OperationResult<bool> ContainsTable (List<string> tableName);
+        OperationResult<Table> LoadTable (Id tableName);
+        OperationResult<bool> ContainsTable (Id tableName);
         OperationResult<string> AddTable (Table table);
-        OperationResult<string> RemoveTable (List<string> tableName);
+        OperationResult<string> RemoveTable (Id tableName);
 
-        OperationResult<string> UpdateAllRow (List<string> tableName, Row newRow, Predicate<Row> match);
-        OperationResult<string> InsertRow (List<string> tableName, Row fields);
-        OperationResult<string> RemoveAllRow (List<string> tableName, Predicate<Row> match);
+        OperationResult<string> UpdateAllRow (Id tableName, Row newRow, Predicate<Row> match);
+        OperationResult<string> InsertRow (Id tableName, Row fields);
+        OperationResult<string> RemoveAllRow (Id tableName, Predicate<Row> match);
     }
 
     public class DataStorageInFiles : IDataStorage
@@ -355,7 +355,7 @@ namespace StorageEngine
             }
         }
 
-        public OperationResult<Table> LoadTable (List<string> tableName)
+        public OperationResult<Table> LoadTable (Id tableName)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
@@ -370,17 +370,9 @@ namespace StorageEngine
 
             return new OperationResult<Table>(ExecutionState.performed, table);
         }
-        private static string FullTableName (List<string> tableName)
-        {
-            _ = tableName ?? throw new ArgumentNullException(nameof(tableName));
-            var sb = new StringBuilder();
-            foreach (var n in tableName)
-            {
-                sb.Append(n);
-            }
-            return sb.ToString();
-        }
-        public OperationResult<bool> ContainsTable (List<string> tableName) => File.Exists(GetTableFileName(tableName)) ? new OperationResult<bool>(ExecutionState.performed, true)
+        private static string FullTableName (Id tableName) => tableName.ToString();
+
+        public OperationResult<bool> ContainsTable (Id tableName) => File.Exists(GetTableFileName(tableName)) ? new OperationResult<bool>(ExecutionState.performed, true)
                                                                                                                        : new OperationResult<bool>(ExecutionState.failed, false, new TableNotExistError(FullTableName(tableName)));
 
 
@@ -396,7 +388,7 @@ namespace StorageEngine
             return new OperationResult<string>(ExecutionState.performed, "");
         }
 
-        public OperationResult<string> RemoveTable (List<string> tableName)
+        public OperationResult<string> RemoveTable (Id tableName)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
@@ -408,7 +400,7 @@ namespace StorageEngine
             return new OperationResult<string>(ExecutionState.performed, "");
         }
 
-        public OperationResult<string> UpdateAllRow (List<string> tableName, Row newRow, Predicate<Row> match)
+        public OperationResult<string> UpdateAllRow (Id tableName, Row newRow, Predicate<Row> match)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
@@ -428,7 +420,7 @@ namespace StorageEngine
             return new OperationResult<string>(ExecutionState.performed, "");
         }
 
-        public OperationResult<string> InsertRow (List<string> tableName, Row fields)
+        public OperationResult<string> InsertRow (Id tableName, Row fields)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
@@ -444,7 +436,7 @@ namespace StorageEngine
             return new OperationResult<string>(ExecutionState.performed, "");
         }
 
-        public OperationResult<string> RemoveAllRow (List<string> tableName, Predicate<Row> match)
+        public OperationResult<string> RemoveAllRow (Id tableName, Predicate<Row> match)
         {
 
             if (!File.Exists(GetTableFileName(tableName)))
@@ -467,7 +459,7 @@ namespace StorageEngine
 
         private void CreateDataStorageFolder (string path) => Directory.CreateDirectory(path);
 
-        private string GetTableFileName (List<string> tableName) => PathToDataBase + "/" + FullTableName(tableName) + _fileExtension;
+        private string GetTableFileName (Id tableName) => PathToDataBase + "/" + FullTableName(tableName) + _fileExtension;
 
     }
 

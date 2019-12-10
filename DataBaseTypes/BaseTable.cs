@@ -121,6 +121,11 @@ namespace DataBaseType
             TrStart = 0;
             TrEnd = 0;
         }
+        public Row SetTrEnd (long trEnd)
+        {
+            TrEnd = trEnd;
+            return this;
+        }
     }
 
     [ProtoContract]
@@ -323,7 +328,8 @@ namespace DataBaseType
                 var column = key;
                 sw.Write("{0,-15} ", column.Name);
             }
-
+            sw.Write("{0,-15} ", "TrStart");
+            sw.Write("{0,-15} ",  "TrEnd");
             sw.Write("\n");
 
             foreach (var row in TableData)
@@ -332,6 +338,8 @@ namespace DataBaseType
                 {
                     sw.Write("{0,-15} ", field.ToString().Trim(' '));
                 }
+                sw.Write("{0,-15} ", row.TrStart);
+                sw.Write("{0,-15} ", row.TrEnd == long.MaxValue ? "inf": ""+row.TrEnd);
                 sw.Write("\n");
             }
 

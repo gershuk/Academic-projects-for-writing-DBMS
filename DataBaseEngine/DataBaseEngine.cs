@@ -210,9 +210,9 @@ namespace DataBaseEngine
                 return new OperationResult<Table>(ExecutionState.failed, null, new ColumnTooMachError(table.TableMetaInf.Name.ToString()));
             }
 
-            foreach( var col in columnNames)
+            foreach (var col in columnNames)
             {
-                if(colPool.FindIndex((Column n) => col.ToString() == n.Name) < 0)
+                if (colPool.FindIndex((Column n) => col.ToString() == n.Name) < 0)
                 {
                     return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(col.ToString(), table.TableMetaInf.Name.ToString()));
                 }
@@ -283,7 +283,52 @@ namespace DataBaseEngine
                 ? new OperationResult<Table>(ExecutionState.performed, _dataStorage.LoadTable(name).Result)
                 : new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(name.ToString()));
         }
-        public OperationResult<Table> DeleteCommand (Guid transactionGuid, Id tableName, ExpressionFunction expression) => throw new NotImplementedException();
+        public OperationResult<Table> DeleteCommand (Guid transactionGuid, Id tableName, ExpressionFunction expression)
+        {
+            var res = _dataStorage.LoadTable(tableName);
+            if (res.State == ExecutionState.failed)
+            {
+                return res;
+            }
+            var tr = _dbEngineMetaInf.Transactions[transactionGuid];
+            var table = res.Result;
+            OperationResult<string> resUpdate = null;
+            try
+            {
+                resUpdate = _dataStorage.UpdateAllRow(table.TableMetaInf.Name,
+                       (Row r) => expression.CalcFunc(CompileExpressionData(expression.VariablesNames, r, table.TableMetaInf.ColumnPool)) ? r.SetTrEnd(tr.Id) : null);
+            }
+            catch (Exception ex)
+            {
+                return new OperationResult<Table>(ExecutionState.failed, null, new ExpressionCalculateError(ex.Message));
+            }
+
+            return new OperationResult<Table>(resUpdate.State, table, resUpdate.OperationError);
+        }
+        private static Dictionary<Id, dynamic> CompileExpressionData (List<Id> variablesNames, Row row, List<Column> colPool)
+        {
+            var exprDict = new Dictionary<Id, dynamic>();
+
+            foreach (var v in variablesNames)
+            {
+                var index = colPool.FindIndex((Column n) => v.ToString() == n.Name);
+                switch (row.Fields[index].Type)
+                {
+                    case DataType.INT:
+                        exprDict.Add(v, ((FieldInt)(row.Fields[index])).Value);
+                        break;
+                    case DataType.DOUBLE:
+                        exprDict.Add(v, ((FieldDouble)(row.Fields[index])).Value);
+                        break;
+                    case DataType.CHAR:
+                        exprDict.Add(v, ((FieldChar)(row.Fields[index])).Value);
+                        break;
+                }
+
+            }
+            return exprDict;
+        }
+
         public OperationResult<Table> DropTableCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
         public OperationResult<Table> ExceptCommand (Guid transactionGuid, Id leftId, Id rightId) => throw new NotImplementedException();
 

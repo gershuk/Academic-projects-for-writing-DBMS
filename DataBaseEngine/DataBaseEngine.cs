@@ -140,7 +140,7 @@ namespace DataBaseEngine
 
         private void AddChangedTable (Guid transactionGuid, List<string> tableName)
         {
-            if (_dbEngineMetaInf.Transactions[transactionGuid].ChangedTables.ContainsKey(GetFullName(tableName)))
+            if (!_dbEngineMetaInf.Transactions[transactionGuid].ChangedTables.ContainsKey(GetFullName(tableName)))
             {
                 lock (_idLocker)
                 {
@@ -167,7 +167,7 @@ namespace DataBaseEngine
             lock (_idLocker)
             {
                 var tr = _dbEngineMetaInf.Transactions[transactionGuid];
-                foreach (var table in tr.TempTables)
+                foreach (var table in tr.NewTables)
                 {
                     _dataStorage.AddTable(table.Value);
                 }
@@ -189,7 +189,7 @@ namespace DataBaseEngine
 
             var table = new Table(tableName);
             table.TableMetaInf.CreatedTrId = _dbEngineMetaInf.Transactions[transactionGuid].Id;
-            tr.TempTables.Add(GetFullName(tableName), table);
+            tr.NewTables.Add(GetFullName(tableName), table);
             AddChangedTable(transactionGuid, table.TableMetaInf.Name);
             return new OperationResult<Table>(ExecutionState.performed, table);
         }
@@ -215,13 +215,15 @@ namespace DataBaseEngine
 
             AddChangedTable(transactionGuid, table.TableMetaInf.Name);
             var row = new Row(new Field[table.TableMetaInf.ColumnPool.Count]);
-            for (var i = 0; i < columnNames.Count; ++i)
+            var colPool = table.TableMetaInf.ColumnPool;
+            for (var i = 0; i < colPool.Count; ++i)
             {
-                if (!table.TableMetaInf.ColumnPool.ContainsKey(GetFullName(columnNames[i])))
-                {
-                    return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(GetFullName(columnNames[i]), GetFullName(table.TableMetaInf.Name)));
-                }
-                row.Fields[i] = table.TableMetaInf.ColumnPool[GetFullName(columnNames[i])].CreateField(objectParams[i].CalcFunc());
+               var index = columnNames.FindIndex((List<string> n) => colPool[i].Name == GetFullName(n)); 
+                //if (!table.TableMetaInf.ColumnPool.ContainsKey(GetFullName(columnNames[i])))
+                //{
+                //    return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(GetFullName(columnNames[i]), GetFullName(table.TableMetaInf.Name)));
+                //}
+                //row.Fields[i] = table.TableMetaInf.ColumnPool[GetFullName(columnNames[i])].CreateField(objectParams[i].CalcFunc()).Result;
             }
             row.TrStart = tr.Id;
             row.TrEnd = long.MaxValue;
@@ -229,40 +231,44 @@ namespace DataBaseEngine
             return new OperationResult<Table>(resInsert.State, table, resInsert.OperationError);
         }
 
-
         public OperationResult<Table> AddColumnCommand (Guid transactionGuid, List<string> tableName, Column column)
         {
             var tr = _dbEngineMetaInf.Transactions[transactionGuid];
-            if (!tr.TempTables.ContainsKey(GetFullName(tableName)))
+            if (!tr.NewTables.ContainsKey(GetFullName(tableName)))
             {
                 return new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(GetFullName(tableName)));
             }
-            var table = tr.TempTables[GetFullName(tableName)];
+            var table = tr.NewTables[GetFullName(tableName)];
             table.AddColumn(column);
             return new OperationResult<Table>(ExecutionState.performed, table);
         }
+
         public OperationResult<Table> GetTableCommand (Guid transactionGuid, List<string> name)
         {
-            var state = _dataStorage.ContainsTable(name);
+            
             var tr = _dbEngineMetaInf.Transactions[transactionGuid];
-
-            if (!state.Result)
+            if (tr.TempTables.ContainsKey(GetFullName(name)))
             {
-                if (tr.TempTables.ContainsKey(GetFullName(name)))
-                {
-
-                    return new OperationResult<Table>(ExecutionState.performed, tr.TempTables[GetFullName(name)]);
-                }
-                return new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(GetFullName(name)));
+                return new OperationResult<Table>(ExecutionState.performed, tr.TempTables[GetFullName(name)]);
             }
-            return new OperationResult<Table>(ExecutionState.performed, _dataStorage.LoadTable(name).Result);
+            if (tr.NewTables.ContainsKey(GetFullName(name)))
+            {
+                return new OperationResult<Table>(ExecutionState.performed, tr.NewTables[GetFullName(name)]);
+            }
+            var state = _dataStorage.ContainsTable(name);
+            if (state.Result)
+            {
+                return new OperationResult<Table>(ExecutionState.performed, _dataStorage.LoadTable(name).Result);
+            }
+
+            return new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(GetFullName(name)));
         }
 
         public OperationResult<Table> DeleteColumnCommand (Guid transactionGuid, List<string> tableName, string ColumnName) => throw new NotImplementedException();
         public OperationResult<Table> DeleteCommand (Guid transactionGuid, List<string> tableName, ExpressionFunction expression) => throw new NotImplementedException();
         public OperationResult<Table> DropTableCommand (Guid transactionGuid, List<string> name) => throw new NotImplementedException();
         public OperationResult<Table> ExceptCommand (Guid transactionGuid, List<string> leftId, List<string> rightId) => throw new NotImplementedException();
-       
+
         public OperationResult<TableMetaInf> GetTableMetaInfCommand (Guid transactionGuid, List<string> name) => throw new NotImplementedException();
 
         public OperationResult<Table> IntersectCommand (Guid transactionGuid, List<string> leftId, List<string> rightId) => throw new NotImplementedException();
@@ -305,11 +311,16 @@ namespace DataBaseEngine
         public virtual long PrevVerId { get; protected set; }
         [Index(3)]
         public virtual Dictionary<string, int> ChangedTables { get; set; }
+
         [IgnoreFormat]
-        public Dictionary<string, Table> TempTables { get; set; }
+        public Dictionary<string, Table> TempTables { get; }
+        [IgnoreFormat]
+        public Dictionary<string, Table> NewTables { get; }
 
         public TransactionTempInfo ()
         {
+            TempTables = new Dictionary<string, Table>();
+            NewTables = new Dictionary<string, Table>();
         }
 
         public TransactionTempInfo (long id, long prevVerId)
@@ -317,6 +328,7 @@ namespace DataBaseEngine
             Id = id;
             PrevVerId = prevVerId;
             TempTables = new Dictionary<string, Table>();
+            NewTables = new Dictionary<string, Table>();
             ChangedTables = new Dictionary<string, int>();
         }
     }

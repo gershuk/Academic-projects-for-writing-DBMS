@@ -130,7 +130,7 @@ namespace DataBaseType
         {
         }
 
-        public CastFieldError (List<string> columnName, string type, string member)
+        public CastFieldError (string columnName, string type, string member)
             : base($"Error cast field, Column with name {columnName} and type {type} with member {member}")
         { }
     }

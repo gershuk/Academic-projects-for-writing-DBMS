@@ -127,7 +127,7 @@ namespace DataBaseType
     {
         [ProtoMember(1)]
         [Index(0)]
-        public virtual List<string> Name { get; set; }
+        public virtual string Name { get; set; }
 
         [ProtoMember(2)]
         [Index(1)]
@@ -151,15 +151,25 @@ namespace DataBaseType
 
         public Column () { }
 
-        public Column (List<string> name) => Name = name;
+        public Column (List<string> name) => Name = GetFullName(name);
 
         public Column (List<string> name, DataType dataType, double? dataParam, List<string> constrains, NullSpecOpt typeState)
         {
-            Name = name;
+            Name = GetFullName(name);
             DataType = dataType;
             DataParam = dataParam;
             Constrains = constrains;
             TypeState = typeState;
+        }
+        static private string GetFullName (List<string> Name)
+        {
+            _ = Name ?? throw new ArgumentNullException(nameof(Name));
+            var sb = new StringBuilder();
+            foreach (var n in Name)
+            {
+                sb.Append(n);
+            }
+            return sb.ToString();
         }
         public OperationResult<Field> CreateField (dynamic data)
         {
@@ -236,7 +246,7 @@ namespace DataBaseType
 
         [ProtoMember(2)]
         [Index(1)]
-        public virtual Dictionary<string, Column> ColumnPool { get; set; }
+        public virtual List<Column> ColumnPool { get; set; }
 
         [ProtoMember(3)]
         [Index(2)]
@@ -296,14 +306,18 @@ namespace DataBaseType
         }
         public OperationResult<Table> AddColumn (Column column)
         {
-            TableMetaInf.ColumnPool ??= new Dictionary<string, Column>();
-            if (!TableMetaInf.ColumnPool.ContainsKey(GetFullName(column?.Name)))
+            TableMetaInf.ColumnPool ??= new List<Column>();
+            if(column == null)
             {
-                TableMetaInf.ColumnPool.Add(GetFullName(column?.Name), column);
+                return new OperationResult<Table>(ExecutionState.failed, null, new NullError(nameof(column)));
+            }
+            if (TableMetaInf.ColumnPool.FindIndex((Column c) => c.Name == column.Name) >= 0)
+            {
+                TableMetaInf.ColumnPool.Add(column);
             }
             else
             {
-                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnAlreadyExistError(GetFullName(column?.Name), GetFullName(TableMetaInf.Name)));
+                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnAlreadyExistError(column.Name, GetFullName(TableMetaInf.Name)));
             }
 
             return new OperationResult<Table>(ExecutionState.performed, this);
@@ -320,7 +334,7 @@ namespace DataBaseType
 
             foreach (var key in TableMetaInf.ColumnPool)
             {
-                var column = key.Value;
+                var column = key;
                 sw.Write("{0} ", column.Name);
             }
 
@@ -352,7 +366,7 @@ namespace DataBaseType
 
             foreach (var col in TableMetaInf.ColumnPool)
             {
-                var result = col.Value.CreateField(strs[i]);
+                var result = col.CreateField(strs[i]);
                 if (result.State != ExecutionState.performed)
                 {
                     return new OperationResult<Row>(ExecutionState.failed, null, result.OperationError);
@@ -370,7 +384,7 @@ namespace DataBaseType
 
             foreach (var col in TableMetaInf.ColumnPool)
             {
-                row[i] = col.Value.CreateField("0").Result;
+                row[i] = col.CreateField("0").Result;
                 i++;
             }
             return new OperationResult<Row>(ExecutionState.performed, new Row(row));
@@ -384,7 +398,7 @@ namespace DataBaseType
 
             foreach (var key in TableMetaInf.ColumnPool)
             {
-                var column = key.Value;
+                var column = key;
                 sw.Write($"{column.Name} {column.DataType} ({column.DataParam})");
 
                 foreach (var key2 in column.Constrains)

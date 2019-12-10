@@ -312,7 +312,7 @@ namespace DataBaseType
 
         public override string ToString () => TableData == null ? ShowCreateTable().Result : ShowDataTable().Result;
 
-        public OperationResult<string> ShowDataTable ()
+        public OperationResult<string> ShowDataTable ()//To do Сделать красивый вывод таблички
         {
             using var sw = new StringWriter();
 
@@ -321,7 +321,7 @@ namespace DataBaseType
             foreach (var key in TableMetaInf.ColumnPool)
             {
                 var column = key;
-                sw.Write("{0} ", column.Name);
+                sw.Write("{0,-15} ", column.Name);
             }
 
             sw.Write("\n");
@@ -330,7 +330,7 @@ namespace DataBaseType
             {
                 foreach (var field in row.Fields)
                 {
-                    sw.Write("{0} ", field.ToString());
+                    sw.Write("{0,-15} ", field.ToString().Trim(' '));
                 }
                 sw.Write("\n");
             }

@@ -223,14 +223,23 @@ namespace DataBaseEngine
             for (var i = 0; i < colPool.Count; ++i)
             {
                 var index = columnNames.FindIndex((Id n) => colPool[i].Name == n.ToString());
-                if (index >= 0)
+                var exprDict = new Dictionary<Id, dynamic>();
+                foreach (var v in objectParams[index].VariablesNames)
                 {
-                    row.Fields[i] = table.TableMetaInf.ColumnPool[i].CreateField(objectParams[index].CalcFunc(new Dictionary<Id, dynamic>())).Result;
+                    exprDict.Add(v, null);
                 }
-                else
+                dynamic data = null;
+                try
                 {
-                    row.Fields[i] = table.TableMetaInf.ColumnPool[i].CreateField("0").Result;
+                    data = objectParams[index].CalcFunc(exprDict);
                 }
+                catch (Exception ex)
+                {
+                    return new OperationResult<Table>(ExecutionState.failed, null, new ExpressionCalculateError(ex.Message));
+                }
+                row.Fields[i] = index >= 0
+                    ? (Field)table.TableMetaInf.ColumnPool[i].CreateField(data).Result
+                    : table.TableMetaInf.ColumnPool[i].CreateField("0").Result;
             }
             row.TrStart = tr.Id;
             row.TrEnd = long.MaxValue;

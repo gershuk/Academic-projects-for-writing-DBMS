@@ -39,6 +39,18 @@ namespace DataBaseType
     }
 
     [ProtoContract]
+    public class ExpressionCalculateError : DBError
+    {
+        public ExpressionCalculateError ()
+        {
+        }
+
+        public ExpressionCalculateError (string message)
+            : base(message)
+        { }
+    }
+
+    [ProtoContract]
     public class NullError : DBError
     {
         public NullError ()

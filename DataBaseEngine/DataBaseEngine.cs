@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using DataBaseType;
-using StorageEngine;
-using ZeroFormatter;
 using System.IO;
-using System.Text;
+
+using DataBaseType;
+
+using StorageEngine;
+
+using ZeroFormatter;
 
 namespace DataBaseEngine
 {
@@ -105,10 +107,7 @@ namespace DataBaseEngine
             return new DbEngineMetaInf(metaInf);
         }
 
-        static private DbEngineMetaInf CreateDefaultDbMetaInf ()
-        {
-            return new DbEngineMetaInf(0);
-        }
+        private static DbEngineMetaInf CreateDefaultDbMetaInf () => new DbEngineMetaInf(0);
 
         private DbEngineMetaInf LoadDbMetaInf ()
         {
@@ -211,7 +210,7 @@ namespace DataBaseEngine
             var colPool = table.TableMetaInf.ColumnPool;
             for (var i = 0; i < colPool.Count; ++i)
             {
-          //     var index = columnNames.FindIndex((List<string> n) => colPool[i].Name == GetFullName(n)); 
+                //     var index = columnNames.FindIndex((List<string> n) => colPool[i].Name == GetFullName(n)); 
                 //if (!table.TableMetaInf.ColumnPool.ContainsKey(GetFullName(columnNames[i])))
                 //{
                 //    return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(GetFullName(columnNames[i]), GetFullName(table.TableMetaInf.Name)));
@@ -242,7 +241,7 @@ namespace DataBaseEngine
 
         public OperationResult<Table> GetTableCommand (Guid transactionGuid, Id name)
         {
-            if(name == null)
+            if (name == null)
             {
                 throw new ArgumentNullException(nameof(name));
             }
@@ -292,7 +291,7 @@ namespace DataBaseEngine
         }
         public DbEngineMetaInf (DbEngineMetaInf metaInf)
         {
-            if(metaInf == null)
+            if (metaInf == null)
             {
                 throw new ArgumentNullException(nameof(metaInf));
             }

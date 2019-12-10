@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+
 using ProtoBuf;
-using ZeroFormatter; 
+
+using ZeroFormatter;
 
 namespace DataBaseType
 {
@@ -158,9 +160,13 @@ namespace DataBaseType
     public class ExpressionFunction
     {
         public Func<Dictionary<Id, dynamic>, dynamic> CalcFunc { get; private set; }
+        public List<Id> VariablesNames { get; set; }
 
-        public ExpressionFunction (Func<Dictionary<Id, dynamic>, dynamic> calcFunc) => CalcFunc = calcFunc ?? throw new ArgumentNullException(nameof(calcFunc));
-
+        public ExpressionFunction (Func<Dictionary<Id, dynamic>, dynamic> calcFunc, List<Id> variablesNames)
+        {
+            CalcFunc = calcFunc ?? throw new ArgumentNullException(nameof(calcFunc));
+            VariablesNames = variablesNames ?? throw new ArgumentNullException(nameof(variablesNames));
+        }
     }
 
     public class Assigment

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using DataBaseType;
+﻿using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
@@ -10,7 +9,7 @@ namespace IronySqlParser.AstNodes
         {
             var sqlCommandNode = FindFirstChildNodeByType<SqlCommandNode>();
             TableName = sqlCommandNode?.ReturnedTableName;
-            TableName ??=new Id(FindFirstChildNodeByType<IdNode>().Id);
+            TableName ??= new Id(FindFirstChildNodeByType<IdNode>().Id);
         }
     }
 }

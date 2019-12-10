@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using DataBaseType;
 
 namespace IronySqlParser.AstNodes
@@ -11,7 +12,7 @@ namespace IronySqlParser.AstNodes
 
         public override dynamic Calc (Dictionary<Id, dynamic> variables)
         {
-            if (!variables.TryGetValue(_variableName,out var value))
+            if (!variables.TryGetValue(_variableName, out var value))
             {
                 throw new NullReferenceException();
             }
@@ -50,7 +51,7 @@ namespace IronySqlParser.AstNodes
 
             if (idNod.Count > 0)
             {
-                _variableName =new Id(idNod[0].Id);
+                _variableName = new Id(idNod[0].Id);
                 VariablesNames.Add(_variableName);
             }
 

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using DataBaseType;
+﻿using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
@@ -10,7 +9,7 @@ namespace IronySqlParser.AstNodes
         public override void CollectInfoFromChild ()
         {
             var idNode = FindFirstChildNodeByType<TransactionNameNode>();
-            TransactionName =new Id(idNode?.TransactionName);
+            TransactionName = new Id(idNode?.TransactionName);
         }
     }
 }

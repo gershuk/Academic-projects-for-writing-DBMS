@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+
 using DataBaseType;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using StorageEngine;
 
 namespace DataBaseEngineUnitTest
@@ -57,11 +60,11 @@ namespace DataBaseEngineUnitTest
             var resultTable = _dataStorage.LoadTable(table.TableMetaInf.Name);
             Assert.AreEqual(resultTable.State, ExecutionState.performed);
             Assert.AreEqual(resultTable.Result.TableMetaInf.Name.ToString(), table.TableMetaInf.Name.ToString());
-            for (int i = 0; i < resultTable.Result.TableMetaInf.ColumnPool.Count; ++i)
+            for (var i = 0; i < resultTable.Result.TableMetaInf.ColumnPool.Count; ++i)
             {
-                    Assert.AreEqual(columns[i].Name, resultTable.Result.TableMetaInf.ColumnPool[i].Name);
-                    Assert.AreEqual(columns[i].DataType, resultTable.Result.TableMetaInf.ColumnPool[i].DataType);
-                    Assert.AreEqual(columns[i].DataParam, resultTable.Result.TableMetaInf.ColumnPool[i].DataParam);
+                Assert.AreEqual(columns[i].Name, resultTable.Result.TableMetaInf.ColumnPool[i].Name);
+                Assert.AreEqual(columns[i].DataType, resultTable.Result.TableMetaInf.ColumnPool[i].DataType);
+                Assert.AreEqual(columns[i].DataParam, resultTable.Result.TableMetaInf.ColumnPool[i].DataParam);
             }
         }
 

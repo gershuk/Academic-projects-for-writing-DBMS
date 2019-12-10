@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+
 using DataBaseType;
 
 namespace IronySqlParser.AstNodes
@@ -8,8 +9,8 @@ namespace IronySqlParser.AstNodes
         public List<Id> VariablesNames { get; set; }
 
         public dynamic Value { get; set; }
-        
-        public abstract dynamic Calc (Dictionary<Id,dynamic> variables);
+
+        public abstract dynamic Calc (Dictionary<Id, dynamic> variables);
 
         protected void GetAllValuesNamesFromNode (OperatorNode expNode)
         {

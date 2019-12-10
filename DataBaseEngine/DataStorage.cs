@@ -3,14 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 using DataBaseType;
+
 using ZeroFormatter;
 
 namespace StorageEngine
 {
-   
+
     public interface IDataStorage
     {
         OperationResult<Table> LoadTable (Id tableName);

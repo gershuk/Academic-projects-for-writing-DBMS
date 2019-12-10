@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+
 using ProtoBuf;
 
 namespace DataBaseType
@@ -23,10 +24,7 @@ namespace DataBaseType
         [ProtoMember(5)]
         public List<OperationResult<Table>> OperationsResults { get; set; }
 
-        public TransactionInfo ()
-        {
-            OperationsResults = new List<OperationResult<Table>>();
-        }
+        public TransactionInfo () => OperationsResults = new List<OperationResult<Table>>();
 
         public TransactionInfo (Id name,
                                Guid guid,

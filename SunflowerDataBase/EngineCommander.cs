@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using DataBaseEngine;
 
 using DataBaseType;
+
 using IronySqlParser.AstNodes;
 
 namespace SunflowerDB
@@ -96,7 +97,7 @@ namespace SunflowerDB
 
                 foreach (var param in insertObject.ObjectParams)
                 {
-                    parmsList.Add(new ExpressionFunction(param.Calc));
+                    parmsList.Add(new ExpressionFunction(param.Calc, param.VariablesNames));
                 }
 
                 var insertResult = Engine.InsertCommand(id, node.TableName, node.ColumnNames.IdListNode.IdList, parmsList);
@@ -116,7 +117,7 @@ namespace SunflowerDB
 
         public object ExecuteSqlNode (Guid id, DeleteCommandNode node)
         {
-            var expression = new ExpressionFunction(node.WhereClauseNode.Expression.Calc);
+            var expression = new ExpressionFunction(node.WhereClauseNode.Expression.Calc, node.WhereClauseNode.Expression.VariablesNames);
 
             var deleteResult = Engine.DeleteCommand(id, node.TableName, expression);
 
@@ -130,7 +131,7 @@ namespace SunflowerDB
 
         public object ExecuteSqlNode (Guid id, SelectCommandNode node)
         {
-            var expression = new ExpressionFunction(node.WhereExpression.Calc);
+            var expression = new ExpressionFunction(node.WhereExpression.Calc, node.WhereExpression.VariablesNames);
 
             var selectResult = Engine.SelectCommand(id, node.TableName, node.ColumnIdList, expression);
 
@@ -148,15 +149,15 @@ namespace SunflowerDB
 
             foreach (var assignment in node.Assignments)
             {
-                var assigExp = new ExpressionFunction(assignment.Expression.Calc);
-               
+                var assigExp = new ExpressionFunction(assignment.Expression.Calc, assignment.Expression.VariablesNames);
+
                 var assigmnet = new Assigment(assignment.Id, assigExp);
 
                 assignmentsList.Add(assigmnet);
             }
 
-            var expression = new ExpressionFunction(node.WhereExpression.Calc);
-          
+            var expression = new ExpressionFunction(node.WhereExpression.Calc, node.WhereExpression.VariablesNames);
+
             var updateResult = Engine.UpdateCommand(id, node.TableName, assignmentsList, expression);
 
             if (updateResult.State == ExecutionState.performed)

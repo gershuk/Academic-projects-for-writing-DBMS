@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using ProtoBuf;
 using ZeroFormatter;
+using ProtoBuf;
 
 namespace DataBaseType
 {
@@ -127,7 +127,7 @@ namespace DataBaseType
     {
         [ProtoMember(1)]
         [Index(0)]
-        public virtual List<string> Name { get; set; }
+        public virtual string Name { get; set; }
 
         [ProtoMember(2)]
         [Index(1)]
@@ -151,17 +151,58 @@ namespace DataBaseType
 
         public Column () { }
 
-        public Column (List<string> name) => Name = name;
+        public Column (Id name) => Name = name.ToString();
 
-        public Column (List<string> name, DataType dataType, double? dataParam, List<string> constrains, NullSpecOpt typeState)
+        public Column (Id name, DataType dataType, double? dataParam, List<string> constrains, NullSpecOpt typeState)
         {
-            Name = name;
+            Name = name.ToString();
             DataType = dataType;
             DataParam = dataParam;
             Constrains = constrains;
             TypeState = typeState;
         }
+        static private string GetFullName (List<string> Name)
+        {
+            _ = Name ?? throw new ArgumentNullException(nameof(Name));
+            var sb = new StringBuilder();
+            foreach (var n in Name)
+            {
+                sb.Append(n);
+            }
+            return sb.ToString();
+        }
+        public OperationResult<Field> CreateField (dynamic data)
+        {
 
+            switch (DataType)
+            {
+                case DataType.INT:
+                    try
+                    {
+                        var val = Convert.ToInt32(data);
+                        return new OperationResult<Field>(ExecutionState.performed, new FieldInt { Value = val });
+                    }
+                    catch (FormatException)
+                    {
+                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name, DataType.ToString(), data));
+                    }
+                case DataType.DOUBLE:
+                    try
+                    {
+                        var val = Convert.ToDouble(data, new NumberFormatInfo { NumberDecimalSeparator = "." });
+                        return new OperationResult<Field>(ExecutionState.performed, new FieldDouble { Value = val });
+                    }
+                    catch (FormatException)
+                    {
+                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name, DataType.ToString(), data));
+                    }
+                case DataType.CHAR:
+                    return new OperationResult<Field>(ExecutionState.performed, new FieldChar(data, (int)DataParam));
+
+            }
+
+            return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name, DataType.ToString(), data));
+        }
         public OperationResult<Field> CreateField (string data)
         {
             switch (DataType)
@@ -205,11 +246,18 @@ namespace DataBaseType
 
         [ProtoMember(2)]
         [Index(1)]
-        public virtual Dictionary<string, Column> ColumnPool { get; set; }
+        public virtual List<Column> ColumnPool { get; set; }
 
         [ProtoMember(3)]
         [Index(2)]
         public virtual int SizeInBytes { get; set; }
+
+        [ProtoMember(4)]
+        [Index(3)]
+        public virtual long CreatedTrId { get; set; }
+        [ProtoMember(5)]
+        [Index(4)]
+        public virtual bool Versioning { get; set; } = false;
 
         public TableMetaInf () { }
 
@@ -239,36 +287,35 @@ namespace DataBaseType
             TableData = tableData ?? throw new ArgumentNullException(nameof(tableData));
             TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
         }
-
+        static private string GetFullName (List<string> Name)
+        {
+            _ = Name ?? throw new ArgumentNullException(nameof(Name));
+            var sb = new StringBuilder();
+            foreach (var n in Name)
+            {
+                sb.Append(n);
+            }
+            return sb.ToString();
+        }
         public OperationResult<Table> AddColumn (Column column)
         {
-            TableMetaInf.ColumnPool ??= new Dictionary<string, Column>();
-            if (!TableMetaInf.ColumnPool.ContainsKey(column?.Name.ToString()))
+            TableMetaInf.ColumnPool ??= new List<Column>();
+            if(column == null)
             {
-                TableMetaInf.ColumnPool.Add(column.Name.ToString(), column);
+                return new OperationResult<Table>(ExecutionState.failed, null, new NullError(nameof(column)));
+            }
+            if (TableMetaInf.ColumnPool.FindIndex((Column c) => c.Name == column.Name) >= 0)
+            {
+                TableMetaInf.ColumnPool.Add(column);
             }
             else
             {
-                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnAlreadyExistError(column.Name.ToString(), TableMetaInf.Name.ToString()));
+                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnAlreadyExistError(column.Name, TableMetaInf.Name.ToString()));
             }
 
             return new OperationResult<Table>(ExecutionState.performed, this);
         }
 
-        public OperationResult<Table> DeleteColumn (string ColumName)
-        {
-            TableMetaInf.ColumnPool ??= new Dictionary<string, Column>();
-            if (TableMetaInf.ColumnPool.ContainsKey(ColumName))
-            {
-                TableMetaInf.ColumnPool.Remove(ColumName);
-            }
-            else
-            {
-                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(ColumName, TableMetaInf.Name.ToString()));
-            }
-
-            return new OperationResult<Table>(ExecutionState.performed, this);
-        }
 
         public override string ToString () => TableData == null ? ShowCreateTable().Result : ShowDataTable().Result;
 
@@ -280,7 +327,7 @@ namespace DataBaseType
 
             foreach (var key in TableMetaInf.ColumnPool)
             {
-                var column = key.Value;
+                var column = key;
                 sw.Write("{0} ", column.Name);
             }
 
@@ -297,6 +344,9 @@ namespace DataBaseType
 
             return new OperationResult<string>(ExecutionState.performed, sw.ToString());
         }
+
+
+
         public OperationResult<Row> CreateRowFormStr (string[] strs)
         {
             if (strs is null)
@@ -309,7 +359,7 @@ namespace DataBaseType
 
             foreach (var col in TableMetaInf.ColumnPool)
             {
-                var result = col.Value.CreateField(strs[i]);
+                var result = col.CreateField(strs[i]);
                 if (result.State != ExecutionState.performed)
                 {
                     return new OperationResult<Row>(ExecutionState.failed, null, result.OperationError);
@@ -327,7 +377,7 @@ namespace DataBaseType
 
             foreach (var col in TableMetaInf.ColumnPool)
             {
-                row[i] = col.Value.CreateField("0").Result;
+                row[i] = col.CreateField("0").Result;
                 i++;
             }
             return new OperationResult<Row>(ExecutionState.performed, new Row(row));
@@ -341,7 +391,7 @@ namespace DataBaseType
 
             foreach (var key in TableMetaInf.ColumnPool)
             {
-                var column = key.Value;
+                var column = key;
                 sw.Write($"{column.Name} {column.DataType} ({column.DataParam})");
 
                 foreach (var key2 in column.Constrains)

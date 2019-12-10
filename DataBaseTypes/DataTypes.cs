@@ -138,7 +138,7 @@ namespace DataBaseType
 
         public Id ()
         {
-            SimpleIds = new List<string>();
+
         }
 
         public override string ToString ()

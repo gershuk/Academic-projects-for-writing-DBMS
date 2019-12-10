@@ -40,6 +40,18 @@ namespace DataBaseType
     }
 
     [ProtoContract]
+    public class NullError : DBError
+    {
+        public NullError ()
+        {
+        }
+
+        public NullError (string mess)
+            : base($"{mess} is null")
+        { }
+    }
+
+    [ProtoContract]
     public class DataBaseIsCorruptError : DBError
     {
         public DataBaseIsCorruptError ()
@@ -118,7 +130,7 @@ namespace DataBaseType
         {
         }
 
-        public CastFieldError (List<string> columnName, string type, string member)
+        public CastFieldError (string columnName, string type, string member)
             : base($"Error cast field, Column with name {columnName} and type {type} with member {member}")
         { }
     }

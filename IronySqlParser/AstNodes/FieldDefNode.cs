@@ -5,7 +5,7 @@ namespace IronySqlParser.AstNodes
 {
     public class FieldDefNode : SqlNode
     {
-        public List<string> Id { get; set; }
+        public Id Id { get; set; }
         public DataType FieldType { get; set; }
         public double? TypeParamOpt { get; set; }
         public List<string> ConstaraintList { get; set; }
@@ -13,7 +13,7 @@ namespace IronySqlParser.AstNodes
 
         public override void CollectInfoFromChild ()
         {
-            Id = FindFirstChildNodeByType<IdNode>().Id;
+            Id = new Id (FindFirstChildNodeByType<IdNode>().Id);
             FieldType = FindFirstChildNodeByType<TypeNameNode>().FieldType;
             TypeParamOpt = FindFirstChildNodeByType<TypeParamsOptNode>().TypeParamOpt;
             ConstaraintList = FindFirstChildNodeByType<ConstraintListOptNodes>().ConstraintList;

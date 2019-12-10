@@ -161,16 +161,7 @@ namespace DataBaseType
             Constrains = constrains;
             TypeState = typeState;
         }
-        static private string GetFullName (List<string> Name)
-        {
-            _ = Name ?? throw new ArgumentNullException(nameof(Name));
-            var sb = new StringBuilder();
-            foreach (var n in Name)
-            {
-                sb.Append(n);
-            }
-            return sb.ToString();
-        }
+
         public OperationResult<Field> CreateField (dynamic data)
         {
 
@@ -304,7 +295,7 @@ namespace DataBaseType
             {
                 return new OperationResult<Table>(ExecutionState.failed, null, new NullError(nameof(column)));
             }
-            if (TableMetaInf.ColumnPool.FindIndex((Column c) => c.Name == column.Name) >= 0)
+            if (TableMetaInf.ColumnPool.FindIndex((Column c) => c.Name == column.Name) < 0)
             {
                 TableMetaInf.ColumnPool.Add(column);
             }

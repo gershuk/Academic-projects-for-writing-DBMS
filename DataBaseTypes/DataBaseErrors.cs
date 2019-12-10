@@ -124,6 +124,18 @@ namespace DataBaseType
     }
 
     [ProtoContract]
+    public class ColumnTooMachError : DBError
+    {
+        public ColumnTooMachError ()
+        {
+        }
+
+        public ColumnTooMachError (string tableName)
+            : base($"Error, Too mach Columns from user for Table {tableName}")
+        { }
+    }
+
+    [ProtoContract]
     public class CastFieldError : DBError
     {
         public CastFieldError ()

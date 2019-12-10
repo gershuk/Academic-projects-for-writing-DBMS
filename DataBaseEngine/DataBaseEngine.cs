@@ -196,7 +196,7 @@ namespace DataBaseEngine
             }
             var table = res.Result;
             var tr = _dbEngineMetaInf.Transactions[transactionGuid];
-
+            var colPool = table.TableMetaInf.ColumnPool;
             if (columnNames == null)
             {
                 return new OperationResult<Table>(ExecutionState.failed, null, new NullError(nameof(columnNames)));
@@ -206,17 +206,32 @@ namespace DataBaseEngine
                 return new OperationResult<Table>(ExecutionState.failed, null, new NullError(nameof(objectParams)));
             }
 
+            if (colPool.Count < columnNames.Count)
+            {
+                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnTooMachError(table.TableMetaInf.Name.ToString()));
+            }
+
+            foreach( var col in columnNames)
+            {
+                if(colPool.FindIndex((Column n) => col.ToString() == n.Name) < 0)
+                {
+                    return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(col.ToString(), table.TableMetaInf.Name.ToString()));
+                }
+            }
+
             AddChangedTable(transactionGuid, table.TableMetaInf.Name);
             var row = new Row(new Field[table.TableMetaInf.ColumnPool.Count]);
-            var colPool = table.TableMetaInf.ColumnPool;
             for (var i = 0; i < colPool.Count; ++i)
             {
-          //     var index = columnNames.FindIndex((List<string> n) => colPool[i].Name == GetFullName(n)); 
-                //if (!table.TableMetaInf.ColumnPool.ContainsKey(GetFullName(columnNames[i])))
-                //{
-                //    return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(GetFullName(columnNames[i]), GetFullName(table.TableMetaInf.Name)));
-                //}
-                //row.Fields[i] = table.TableMetaInf.ColumnPool[GetFullName(columnNames[i])].CreateField(objectParams[i].CalcFunc()).Result;
+                var index = columnNames.FindIndex((Id n) => colPool[i].Name == n.ToString());
+                if (index >= 0)
+                {
+                    row.Fields[i] = table.TableMetaInf.ColumnPool[i].CreateField(objectParams[index].CalcFunc(new Dictionary<Id, dynamic>())).Result;
+                }
+                else
+                {
+                    row.Fields[i] = table.TableMetaInf.ColumnPool[i].CreateField("0").Result;
+                }
             }
             row.TrStart = tr.Id;
             row.TrEnd = long.MaxValue;
@@ -242,7 +257,7 @@ namespace DataBaseEngine
 
         public OperationResult<Table> GetTableCommand (Guid transactionGuid, Id name)
         {
-            if(name == null)
+            if (name == null)
             {
                 throw new ArgumentNullException(nameof(name));
             }
@@ -292,7 +307,7 @@ namespace DataBaseEngine
         }
         public DbEngineMetaInf (DbEngineMetaInf metaInf)
         {
-            if(metaInf == null)
+            if (metaInf == null)
             {
                 throw new ArgumentNullException(nameof(metaInf));
             }

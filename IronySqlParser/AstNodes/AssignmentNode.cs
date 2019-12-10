@@ -1,15 +1,16 @@
 ﻿using System.Collections.Generic;
+using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
     public class AssignmentNode : SqlNode
     {
-        public List<string> Id { get; set; }
+        public Id Id { get; set; }
         public ExpressionNode Expression { get; set; }
 
         public override void CollectInfoFromChild ()
         {
-            Id = FindFirstChildNodeByType<IdNode>()?.Id;
+            Id = new Id(FindFirstChildNodeByType<IdNode>().Id);
             Expression = FindFirstChildNodeByType<ExpressionNode>();
         }
     }

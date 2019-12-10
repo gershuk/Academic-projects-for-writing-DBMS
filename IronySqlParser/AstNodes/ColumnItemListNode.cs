@@ -1,16 +1,17 @@
 ﻿using System.Collections.Generic;
+using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
     public class ColumnItemListNode : SqlNode
     {
-        public List<List<string>> IdList { get; set; }
+        public List<Id> IdList { get; set; }
 
         public override void CollectInfoFromChild ()
         {
             var columnItemNodes = FindAllChildNodesByType<ColumnItemNode>();
 
-            IdList = new List<List<string>>();
+            IdList = new List<Id>();
 
             foreach (var columnItemNode in columnItemNodes)
             {

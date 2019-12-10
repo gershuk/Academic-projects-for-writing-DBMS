@@ -79,7 +79,7 @@ namespace SunflowerDB
 
                 var transaction = new TransactionInfo()
                 {
-                    Name = transactionNode.TransactionBeginOptNode?.TransactionName ?? new List<string>() { trGuid.ToString() },
+                    Name = transactionNode.TransactionBeginOptNode?.TransactionName ?? new Id(new List<string>() { trGuid.ToString() }),
                     Guid = trGuid
                 };
 

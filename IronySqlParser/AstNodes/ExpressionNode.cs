@@ -1,17 +1,29 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
     public class ExpressionNode : OperatorNode
     {
+        private Id _variableName;
         private OperatorNode _childOperator;
 
-        public override dynamic Calc () => _childOperator == null ? Value.Data : _childOperator.Calc();
+        public override dynamic Calc (Dictionary<Id, dynamic> variables)
+        {
+            if (!variables.TryGetValue(_variableName,out var value))
+            {
+                throw new NullReferenceException();
+            }
+
+            Value = value;
+
+            return _childOperator == null ? Value : _childOperator.Calc(variables);
+        }
 
         public override void CollectInfoFromChild ()
         {
-            Variables = new Dictionary<List<string>, Variable>();
+            VariablesNames = new List<Id>();
 
             var numberNode = FindAllChildNodesByType<NumberNode>();
             var stringLiteralNode = FindAllChildNodesByType<StringLiteralNode>();
@@ -23,39 +35,29 @@ namespace IronySqlParser.AstNodes
                 switch (numberNode[0].NumberType)
                 {
                     case NumberType.Double:
-                        Value = new Variable { Data = numberNode[0].NumberDouble };
+                        Value = numberNode[0].NumberDouble;
                         break;
                     case NumberType.Int:
-                        Value = new Variable { Data = numberNode[0].NumberInt };
+                        Value = numberNode[0].NumberInt;
                         break;
                 };
-
             }
-
 
             if (stringLiteralNode.Count > 0)
             {
-                Value = new Variable { Data = stringLiteralNode[0].StringLiteral };
+                Value = stringLiteralNode[0].StringLiteral;
             }
 
             if (idNod.Count > 0)
             {
-                var variable = new Variable { Name = idNod[0].Id };
-                Variables.Add(idNod[0].Id, variable);
-                Value = variable;
+                _variableName =new Id(idNod[0].Id);
+                VariablesNames.Add(_variableName);
             }
 
             if (operatorNode.Count > 0)
             {
                 _childOperator = operatorNode[0];
-
-                foreach (var variable in _childOperator.Variables)
-                {
-                    if (!Variables.ContainsKey(variable.Key))
-                    {
-                        Variables.Add(variable.Key, variable.Value);
-                    }                
-                }
+                GetAllValuesNamesFromNode(operatorNode[0]);
             }
         }
     }

@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using DataBaseType;
 using TransactionManagement;
 
 namespace IronySqlParser.AstNodes
 {
     public class IntersectChainOptNode : IdOperatorNode
     {
-        public List<string> LeftId { get; set; }
-        public List<string> RightId { get; set; }
+        public Id LeftId { get; set; }
+        public Id RightId { get; set; }
 
         public override void CollectInfoFromChild ()
         {
@@ -16,7 +17,7 @@ namespace IronySqlParser.AstNodes
             RightId = (childNodes[2] as IdLinkNode).TableName;
         }
 
-        public override List<TableLock> GetTableLocks () => new List<TableLock>() { new TableLock(LockType.Read, LeftId, new System.Threading.ManualResetEvent(false)),
-            new TableLock(LockType.Read, RightId, new System.Threading.ManualResetEvent(false)) };
+        public override List<TableLock> GetTableLocks () => new List<TableLock>() { new TableLock(LockType.Read, LeftId.SimpleIds, new System.Threading.ManualResetEvent(false)),
+            new TableLock(LockType.Read, RightId.SimpleIds, new System.Threading.ManualResetEvent(false)) };
     }
 }

@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
+using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
     public class ColumnItemNode : SqlNode
     {
-        public List<string> Id { get; set; }
+        public Id Id { get; set; }
 
-        public override void CollectInfoFromChild () => Id = FindFirstChildNodeByType<ColumnSourceNode>().Id;
+        public override void CollectInfoFromChild () => Id = new Id(FindFirstChildNodeByType<ColumnSourceNode>().Id);
     }
 }

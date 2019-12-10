@@ -9,7 +9,7 @@ namespace DataBaseType
     public class TransactionInfo
     {
         [ProtoMember(1)]
-        public List<string> Name { get; set; }
+        public Id Name { get; set; }
 
         [ProtoMember(2)]
         public Guid Guid { get; set; }
@@ -28,7 +28,7 @@ namespace DataBaseType
             OperationsResults = new List<OperationResult<Table>>();
         }
 
-        public TransactionInfo (List<string> name,
+        public TransactionInfo (Id name,
                                Guid guid,
                                DateTime startTime,
                                DateTime endTime,
@@ -47,11 +47,7 @@ namespace DataBaseType
 
             stringBuilder.Append("Name:");
 
-            foreach (var simpleId in Name)
-            {
-                stringBuilder.Append(simpleId);
-                stringBuilder.Append(".");
-            }
+            stringBuilder.Append(Name.ToString());
             stringBuilder.Append("\n");
             stringBuilder.Append($"Guid {Guid}\n");
             stringBuilder.Append($"Start Time {StartTime}\n");

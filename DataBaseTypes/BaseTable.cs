@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using ZeroFormatter;
+
 using ProtoBuf;
+
+using ZeroFormatter;
 
 namespace DataBaseType
 {
@@ -278,7 +280,7 @@ namespace DataBaseType
             TableData = tableData ?? throw new ArgumentNullException(nameof(tableData));
             TableMetaInf = tableMetaInf ?? throw new ArgumentNullException(nameof(tableMetaInf));
         }
-        static private string GetFullName (List<string> Name)
+        private static string GetFullName (List<string> Name)
         {
             _ = Name ?? throw new ArgumentNullException(nameof(Name));
             var sb = new StringBuilder();
@@ -291,7 +293,7 @@ namespace DataBaseType
         public OperationResult<Table> AddColumn (Column column)
         {
             TableMetaInf.ColumnPool ??= new List<Column>();
-            if(column == null)
+            if (column == null)
             {
                 return new OperationResult<Table>(ExecutionState.failed, null, new NullError(nameof(column)));
             }

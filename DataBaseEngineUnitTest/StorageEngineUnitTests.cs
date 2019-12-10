@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+
 using DataBaseType;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using StorageEngine;
 
 namespace DataBaseEngineUnitTest
@@ -59,9 +62,9 @@ namespace DataBaseEngineUnitTest
             Assert.AreEqual(resultTable.Result.TableMetaInf.Name.ToString(), table.TableMetaInf.Name.ToString());
             for (var i = 0; i < resultTable.Result.TableMetaInf.ColumnPool.Count; ++i)
             {
-                    Assert.AreEqual(columns[i].Name, resultTable.Result.TableMetaInf.ColumnPool[i].Name);
-                    Assert.AreEqual(columns[i].DataType, resultTable.Result.TableMetaInf.ColumnPool[i].DataType);
-                    Assert.AreEqual(columns[i].DataParam, resultTable.Result.TableMetaInf.ColumnPool[i].DataParam);
+                Assert.AreEqual(columns[i].Name, resultTable.Result.TableMetaInf.ColumnPool[i].Name);
+                Assert.AreEqual(columns[i].DataType, resultTable.Result.TableMetaInf.ColumnPool[i].DataType);
+                Assert.AreEqual(columns[i].DataParam, resultTable.Result.TableMetaInf.ColumnPool[i].DataParam);
             }
         }
 

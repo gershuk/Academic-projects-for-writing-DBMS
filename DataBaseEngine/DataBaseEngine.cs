@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using DataBaseType;
-using StorageEngine;
-using ZeroFormatter;
 using System.IO;
-using System.Text;
+
+using DataBaseType;
+
+using StorageEngine;
+
+using ZeroFormatter;
 
 namespace DataBaseEngine
 {
@@ -105,10 +107,7 @@ namespace DataBaseEngine
             return new DbEngineMetaInf(metaInf);
         }
 
-        static private DbEngineMetaInf CreateDefaultDbMetaInf ()
-        {
-            return new DbEngineMetaInf(0);
-        }
+        private static DbEngineMetaInf CreateDefaultDbMetaInf () => new DbEngineMetaInf(0);
 
         private DbEngineMetaInf LoadDbMetaInf ()
         {

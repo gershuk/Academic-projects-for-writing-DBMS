@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using DataBaseType;
+﻿using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {

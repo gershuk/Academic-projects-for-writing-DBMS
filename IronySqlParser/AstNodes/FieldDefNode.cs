@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+
 using DataBaseType;
 
 namespace IronySqlParser.AstNodes
@@ -13,7 +14,7 @@ namespace IronySqlParser.AstNodes
 
         public override void CollectInfoFromChild ()
         {
-            Id = new Id (FindFirstChildNodeByType<IdNode>().Id);
+            Id = new Id(FindFirstChildNodeByType<IdNode>().Id);
             FieldType = FindFirstChildNodeByType<TypeNameNode>().FieldType;
             TypeParamOpt = FindFirstChildNodeByType<TypeParamsOptNode>().TypeParamOpt;
             ConstaraintList = FindFirstChildNodeByType<ConstraintListOptNodes>().ConstraintList;

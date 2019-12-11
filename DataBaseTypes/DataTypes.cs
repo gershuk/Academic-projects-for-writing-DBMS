@@ -19,7 +19,8 @@ namespace DataBaseType
         Empty,
         Inner,
         Left,
-        Right
+        Right,
+        Full
     }
 
 

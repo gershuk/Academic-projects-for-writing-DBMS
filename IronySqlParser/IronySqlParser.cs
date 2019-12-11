@@ -172,8 +172,8 @@ namespace IronySqlParser
 
             //Join
             joinChainOpt.Rule = idLink + joinKindOpt + JOIN + idLink + ON + joinStatement;
-            joinKindOpt.Rule = Empty | "INNER" | "LEFT" | "RIGHT";
-            joinStatement.Rule = id + "=" + id;
+            joinKindOpt.Rule = Empty | "INNER" | "LEFT" | "RIGHT" | "Full";
+            joinStatement.Rule = "(" + id + "=" + id + ")" | id + "=" + id;
 
             //Union
             unionChainOpt.Rule = idLink + UNION + unionKindOpt + idLink;

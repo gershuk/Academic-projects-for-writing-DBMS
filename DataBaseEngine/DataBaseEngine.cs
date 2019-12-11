@@ -331,17 +331,24 @@ namespace DataBaseEngine
             foreach (var v in variablesNames)
             {
                 var index = colPool.FindIndex((Column n) => v.ToString() == n.Name);
-                switch (row.Fields[index].Type)
+                if (index >= 0)
                 {
-                    case DataType.INT:
-                        exprDict.Add(v, ((FieldInt)(row.Fields[index])).Value);
-                        break;
-                    case DataType.DOUBLE:
-                        exprDict.Add(v, ((FieldDouble)(row.Fields[index])).Value);
-                        break;
-                    case DataType.CHAR:
-                        exprDict.Add(v, ((FieldChar)(row.Fields[index])).Value);
-                        break;
+                    switch (row.Fields[index].Type)
+                    {
+                        case DataType.INT:
+                            exprDict.Add(v, ((FieldInt)(row.Fields[index])).Value);
+                            break;
+                        case DataType.DOUBLE:
+                            exprDict.Add(v, ((FieldDouble)(row.Fields[index])).Value);
+                            break;
+                        case DataType.CHAR:
+                            exprDict.Add(v, ((FieldChar)(row.Fields[index])).Value);
+                            break;
+                    }
+                }
+                else
+                {
+                    throw new Exception($"Unknown variable {v.ToString()}");
                 }
 
             }
@@ -378,6 +385,8 @@ namespace DataBaseEngine
             }
             return new OperationResult<Table>(ExecutionState.performed, null);
         }
+        public OperationResult<Table> UpdateCommand (Guid transactionGuid, Id tableName, List<Assigment> assigmentList, ExpressionFunction expressionFunction) => throw new NotImplementedException();
+
         public OperationResult<Table> ExceptCommand (Guid transactionGuid, Id leftId, Id rightId) => throw new NotImplementedException();
 
         public OperationResult<TableMetaInf> GetTableMetaInfCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
@@ -387,7 +396,7 @@ namespace DataBaseEngine
         public OperationResult<Table> SelectCommand (Guid transactionGuid, Id tableName, List<Id> columnNames, ExpressionFunction expression) => throw new NotImplementedException();
         public OperationResult<Table> ShowTableCommand (Guid transactionGuid, Id tableName) => throw new NotImplementedException();
         public OperationResult<Table> UnionCommand (Guid transactionGuid, Id leftId, Id rightId, UnionKind unionKind) => throw new NotImplementedException();
-        public OperationResult<Table> UpdateCommand (Guid transactionGuid, Id tableName, List<Assigment> assigmentList, ExpressionFunction expressionFunction) => throw new NotImplementedException();
+        
         public OperationResult<Table> DeleteColumnCommand (Guid transactionGuid, Id tableName, Id ColumnName) => throw new NotImplementedException();
     }
 

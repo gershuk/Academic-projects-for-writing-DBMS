@@ -188,7 +188,7 @@ namespace DataBaseEngine
             var state = _dataStorage.ContainsTable(name);
             var tr = _dbEngineMetaInf.Transactions[transactionGuid];
 
-            if (state.Result == true || tr.TempTables.ContainsKey(name.ToString()))
+            if (state.Result == true || tr.NewTables.ContainsKey(name.ToString()))
             {
                 return new OperationResult<Table>(ExecutionState.failed, null, new TableAlreadyExistError(name.ToString()));
             }
@@ -292,9 +292,13 @@ namespace DataBaseEngine
             {
                 return new OperationResult<Table>(ExecutionState.performed, tr.NewTables[name.ToString()]);
             }
-            var state = _dataStorage.ContainsTable(name);
-            return state.Result
-                ? new OperationResult<Table>(ExecutionState.performed, _dataStorage.LoadTable(name).Result)
+            if (tr.DroppedTables.ContainsKey(name.ToString()))
+            {
+                return new OperationResult<Table>(ExecutionState.performed, tr.DroppedTables[name.ToString()]);
+            }
+            var state = _dataStorage.LoadTable(name);
+            return state.State == ExecutionState.performed && (state.Result.TableMetaInf.CreatedTrId <= tr.PrevVerId || state.Result.TableMetaInf.CreatedTrId<= tr.Id)
+                ? new OperationResult<Table>(ExecutionState.performed, state.Result)
                 : new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(name.ToString()));
         }
         public OperationResult<Table> DeleteCommand (Guid transactionGuid, Id tableName, ExpressionFunction expression)
@@ -343,8 +347,37 @@ namespace DataBaseEngine
             }
             return exprDict;
         }
+        
+        public OperationResult<Table> DropTableCommand (Guid transactionGuid, Id name)
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+            var state = _dataStorage.ContainsTable(name);
+            var tr = _dbEngineMetaInf.Transactions[transactionGuid];
 
-        public OperationResult<Table> DropTableCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
+            if (state.Result == false && !tr.NewTables.ContainsKey(name.ToString()))
+            {
+                return new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(name.ToString()));
+            }
+            if (state.Result)
+            {
+                var table = _dataStorage.LoadTable(name);
+                table.Result.TableData = null;
+                _dataStorage.RemoveTable(name);
+                tr.DroppedTables.Add(table.Result.TableMetaInf.Name.ToString(), table.Result);
+                return new OperationResult<Table>(ExecutionState.performed, table.Result);
+            }
+            if (tr.NewTables.ContainsKey(name.ToString()))
+            {
+                var table = tr.NewTables[name.ToString()];
+                tr.NewTables.Remove(name.ToString());
+                tr.DroppedTables.Add(table.TableMetaInf.Name.ToString(), table);
+                return new OperationResult<Table>(ExecutionState.performed, table);
+            }
+            return new OperationResult<Table>(ExecutionState.performed, null);
+        }
         public OperationResult<Table> ExceptCommand (Guid transactionGuid, Id leftId, Id rightId) => throw new NotImplementedException();
 
         public OperationResult<TableMetaInf> GetTableMetaInfCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
@@ -400,12 +433,15 @@ namespace DataBaseEngine
         [IgnoreFormat]
         public Dictionary<string, Table> TempTables { get; }
         [IgnoreFormat]
+        public Dictionary<string, Table> DroppedTables { get; }
+        [IgnoreFormat]
         public Dictionary<string, Table> NewTables { get; }
 
         public TransactionTempInfo ()
         {
             TempTables = new Dictionary<string, Table>();
             NewTables = new Dictionary<string, Table>();
+            DroppedTables = new Dictionary<string, Table>();
         }
 
         public TransactionTempInfo (long id, long prevVerId)
@@ -415,6 +451,7 @@ namespace DataBaseEngine
             TempTables = new Dictionary<string, Table>();
             NewTables = new Dictionary<string, Table>();
             ChangedTables = new Dictionary<string, Id>();
+            DroppedTables = new Dictionary<string, Table>();
         }
     }
 

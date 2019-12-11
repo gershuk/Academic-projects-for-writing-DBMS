@@ -255,6 +255,9 @@ namespace DataBaseType
         public virtual long CreatedTrId { get; set; }
         [ProtoMember(5)]
         [Index(4)]
+        public virtual long DeletedTrId { get; set; }
+        [ProtoMember(6)]
+        [Index(5)]
         public virtual bool Versioning { get; set; } = false;
 
         public TableMetaInf () { }

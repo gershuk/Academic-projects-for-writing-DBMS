@@ -71,7 +71,7 @@ namespace DataBaseEngine
         private readonly IDataStorage _dataStorage;
         private readonly string _path;
         private readonly object _idLocker;
-        private readonly DbEngineMetaInf _dbEngineMetaInf;
+        private DbEngineMetaInf _dbEngineMetaInf;
 
         public DataBaseEngineMain ()
         {
@@ -99,7 +99,9 @@ namespace DataBaseEngine
             }
             if (metaInf.Transactions.Count > 0)
             {
-                foreach (var tran in metaInf.Transactions)
+                _dbEngineMetaInf = metaInf;
+                var trs = new Dictionary<Guid, TransactionTempInfo>(metaInf.Transactions);
+                foreach (var tran in trs)
                 {
                     RollBackTransaction(tran.Key);
                 }
@@ -109,7 +111,7 @@ namespace DataBaseEngine
             return newMetaInf;
         }
 
-        private static DbEngineMetaInf CreateDefaultDbMetaInf () => new DbEngineMetaInf(0,0);
+        private static DbEngineMetaInf CreateDefaultDbMetaInf () => new DbEngineMetaInf(0, 0);
 
         private DbEngineMetaInf LoadDbMetaInf ()
         {
@@ -154,9 +156,10 @@ namespace DataBaseEngine
             lock (_idLocker)
             {
                 var tr = _dbEngineMetaInf.Transactions[transactionGuid];
-                foreach(var tName in tr.ChangedTables)
+                foreach (var tName in tr.ChangedTables)
                 {
                     _dataStorage.RemoveAllRow(tName.Value, (Row r) => r.TrStart == tr.Id);
+                    _dataStorage.UpdateAllRow(tName.Value, (Row r) => r.TrEnd == tr.Id ? r.SetTrEnd(long.MaxValue) : null);
                 }
                 _dbEngineMetaInf.Transactions.Remove(transactionGuid);
                 SaveDbMetaInf(_dbEngineMetaInf);
@@ -297,7 +300,7 @@ namespace DataBaseEngine
                 return new OperationResult<Table>(ExecutionState.performed, tr.DroppedTables[name.ToString()]);
             }
             var state = _dataStorage.LoadTable(name);
-            return state.State == ExecutionState.performed && (state.Result.TableMetaInf.CreatedTrId <= tr.PrevVerId || state.Result.TableMetaInf.CreatedTrId<= tr.Id)
+            return state.State == ExecutionState.performed && (state.Result.TableMetaInf.CreatedTrId <= tr.PrevVerId || state.Result.TableMetaInf.CreatedTrId <= tr.Id)
                 ? new OperationResult<Table>(ExecutionState.performed, state.Result)
                 : new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(name.ToString()));
         }
@@ -311,11 +314,11 @@ namespace DataBaseEngine
             var tr = _dbEngineMetaInf.Transactions[transactionGuid];
             var table = res.Result;
             OperationResult<string> resUpdate = null;
-            AddChangedTable(transactionGuid,table.TableMetaInf.Name);
+            AddChangedTable(transactionGuid, table.TableMetaInf.Name);
             try
             {
                 resUpdate = _dataStorage.UpdateAllRow(table.TableMetaInf.Name,
-                       (Row r) => expression.CalcFunc(CompileExpressionData(expression.VariablesNames, r, table.TableMetaInf.ColumnPool)) ? r.SetTrEnd(tr.Id) : null);
+                       (Row r) => expression.CalcFunc(CompileExpressionData(expression.VariablesNames, r, table.TableMetaInf.ColumnPool)) && ChekRowVersion(transactionGuid, r) ? r.SetTrEnd(tr.Id) : null);
             }
             catch (Exception ex)
             {
@@ -324,37 +327,7 @@ namespace DataBaseEngine
 
             return new OperationResult<Table>(resUpdate.State, table, resUpdate.OperationError);
         }
-        private static Dictionary<Id, dynamic> CompileExpressionData (List<Id> variablesNames, Row row, List<Column> colPool)
-        {
-            var exprDict = new Dictionary<Id, dynamic>();
 
-            foreach (var v in variablesNames)
-            {
-                var index = colPool.FindIndex((Column n) => v.ToString() == n.Name);
-                if (index >= 0)
-                {
-                    switch (row.Fields[index].Type)
-                    {
-                        case DataType.INT:
-                            exprDict.Add(v, ((FieldInt)(row.Fields[index])).Value);
-                            break;
-                        case DataType.DOUBLE:
-                            exprDict.Add(v, ((FieldDouble)(row.Fields[index])).Value);
-                            break;
-                        case DataType.CHAR:
-                            exprDict.Add(v, ((FieldChar)(row.Fields[index])).Value);
-                            break;
-                    }
-                }
-                else
-                {
-                    throw new Exception($"Unknown variable {v.ToString()}");
-                }
-
-            }
-            return exprDict;
-        }
-        
         public OperationResult<Table> DropTableCommand (Guid transactionGuid, Id name)
         {
             if (name == null)
@@ -385,7 +358,118 @@ namespace DataBaseEngine
             }
             return new OperationResult<Table>(ExecutionState.performed, null);
         }
-        public OperationResult<Table> UpdateCommand (Guid transactionGuid, Id tableName, List<Assigment> assigmentList, ExpressionFunction expressionFunction) => throw new NotImplementedException();
+        public OperationResult<Table> UpdateCommand (Guid transactionGuid, Id tableName, List<Assigment> assigmentList, ExpressionFunction expressionFunction)
+        {
+            var res = _dataStorage.LoadTable(tableName);
+            if (res.State == ExecutionState.failed)
+            {
+                return res;
+            }
+            var tr = _dbEngineMetaInf.Transactions[transactionGuid];
+            var table = res.Result;
+            OperationResult<string> resUpdate = null;
+            res = _dataStorage.LoadTable(tableName);
+            table = res.Result;
+            var updatedRows = new List<Row>();
+            foreach (var row in table.TableData)
+            {
+                if (expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, row, table.TableMetaInf.ColumnPool)) && ChekRowVersion(transactionGuid, row))
+                {
+                    foreach (var ass in assigmentList)
+                    {
+                        var index = table.TableMetaInf.ColumnPool.FindIndex((Column col) => col.Name == ass.Id.ToString());
+                        if (index >= 0)
+                        {
+                            try
+                            {
+                                var val = ass.EpressionFunction.CalcFunc(CompileExpressionData(ass.EpressionFunction.VariablesNames, row, table.TableMetaInf.ColumnPool));
+                                switch (row.Fields[index].Type)
+                                {
+                                    case DataType.INT:
+                                        row.Fields[index] = new FieldInt(val);
+                                        break;
+                                    case DataType.DOUBLE:
+                                        row.Fields[index] = new FieldDouble(val);
+                                        break;
+                                    case DataType.CHAR:
+                                        row.Fields[index] = new FieldChar(val, ((FieldChar)(row.Fields[index])).ValueBytes.Length);
+                                        break;
+                                }
+
+                            }
+                            catch (Exception ex)
+                            {
+                                return new OperationResult<Table>(ExecutionState.failed, null, new ExpressionCalculateError(ex.Message));
+                            }
+                        }
+                        else
+                        {
+                            return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(ass.Id.ToString(), table.TableMetaInf.Name.ToString()));
+                        }
+                    }
+                    row.TrStart = tr.Id;
+                    row.TrEnd = long.MaxValue;
+                    updatedRows.Add(row);
+                }
+
+            }
+            AddChangedTable(transactionGuid, table.TableMetaInf.Name);
+            try
+            {
+                resUpdate = _dataStorage.UpdateAllRow(table.TableMetaInf.Name,
+                     (Row r) => expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, r, table.TableMetaInf.ColumnPool)) && ChekRowVersion(transactionGuid, r) ? r.SetTrEnd(tr.Id) : null);
+            }
+            catch (Exception ex)
+            {
+                return new OperationResult<Table>(ExecutionState.failed, null, new ExpressionCalculateError(ex.Message));
+            }
+            foreach (var row in updatedRows)
+            {
+                _dataStorage.InsertRow(tableName, row);
+            }
+
+
+            return new OperationResult<Table>(resUpdate.State, table, resUpdate.OperationError);
+
+        }
+
+        private static Dictionary<Id, dynamic> CompileExpressionData (List<Id> variablesNames, Row row, List<Column> colPool)
+        {
+            var exprDict = new Dictionary<Id, dynamic>();
+
+            foreach (var v in variablesNames)
+            {
+                var index = colPool.FindIndex((Column n) => v.ToString() == n.Name);
+                if (index >= 0)
+                {
+                    switch (row.Fields[index].Type)
+                    {
+                        case DataType.INT:
+                            exprDict.Add(v, ((FieldInt)(row.Fields[index])).Value);
+                            break;
+                        case DataType.DOUBLE:
+                            exprDict.Add(v, ((FieldDouble)(row.Fields[index])).Value);
+                            break;
+                        case DataType.CHAR:
+                            exprDict.Add(v, ((FieldChar)(row.Fields[index])).Value);
+                            break;
+                    }
+                }
+                else
+                {
+                    throw new Exception($"Unknown variable {v.ToString()}");
+                }
+
+            }
+            return exprDict;
+        }
+
+        private bool ChekRowVersion (Guid transactionGuid, Row r)
+        {
+            var tr = _dbEngineMetaInf.Transactions[transactionGuid];
+            return r.TrStart < tr.PrevVerId && r.TrEnd > tr.PrevVerId;
+        }
+
 
         public OperationResult<Table> ExceptCommand (Guid transactionGuid, Id leftId, Id rightId) => throw new NotImplementedException();
 
@@ -396,7 +480,7 @@ namespace DataBaseEngine
         public OperationResult<Table> SelectCommand (Guid transactionGuid, Id tableName, List<Id> columnNames, ExpressionFunction expression) => throw new NotImplementedException();
         public OperationResult<Table> ShowTableCommand (Guid transactionGuid, Id tableName) => throw new NotImplementedException();
         public OperationResult<Table> UnionCommand (Guid transactionGuid, Id leftId, Id rightId, UnionKind unionKind) => throw new NotImplementedException();
-        
+
         public OperationResult<Table> DeleteColumnCommand (Guid transactionGuid, Id tableName, Id ColumnName) => throw new NotImplementedException();
     }
 

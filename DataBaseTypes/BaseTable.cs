@@ -36,6 +36,10 @@ namespace DataBaseType
         public FieldInt ()
         {
         }
+        public FieldInt (int val)
+        {
+            Value = val;
+        }
 
         public override string ToString () => Value.ToString();
     }
@@ -54,6 +58,10 @@ namespace DataBaseType
         public FieldDouble ()
         {
 
+        }
+        public FieldDouble (double val)
+        {
+            Value = val;
         }
 
         public override string ToString () => Value.ToString();

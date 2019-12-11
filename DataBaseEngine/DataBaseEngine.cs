@@ -101,13 +101,15 @@ namespace DataBaseEngine
             {
                 foreach (var tran in metaInf.Transactions)
                 {
-                    //To do //RollBackTransaction(tran.Key);
+                    RollBackTransaction(tran.Key);
                 }
             }
-            return new DbEngineMetaInf(metaInf);
+            var newMetaInf = new DbEngineMetaInf(metaInf);
+            SaveDbMetaInf(newMetaInf);
+            return newMetaInf;
         }
 
-        private static DbEngineMetaInf CreateDefaultDbMetaInf () => new DbEngineMetaInf(0);
+        private static DbEngineMetaInf CreateDefaultDbMetaInf () => new DbEngineMetaInf(0,0);
 
         private DbEngineMetaInf LoadDbMetaInf ()
         {
@@ -132,7 +134,7 @@ namespace DataBaseEngine
             {
                 lock (_idLocker)
                 {
-                    _dbEngineMetaInf.Transactions[transactionGuid].ChangedTables.Add(tableName.ToString(), 0);
+                    _dbEngineMetaInf.Transactions[transactionGuid].ChangedTables.Add(tableName.ToString(), tableName);
                     SaveDbMetaInf(_dbEngineMetaInf);
                 }
             }
@@ -142,12 +144,24 @@ namespace DataBaseEngine
         {
             lock (_idLocker)
             {
-                _dbEngineMetaInf.Transactions.Add(transactionGuid, new TransactionTempInfo(++_dbEngineMetaInf.LastId, _dbEngineMetaInf.LastId));
+                _dbEngineMetaInf.Transactions.Add(transactionGuid, new TransactionTempInfo(++_dbEngineMetaInf.LastId, _dbEngineMetaInf.LastCommitedId));
                 SaveDbMetaInf(_dbEngineMetaInf);
             }
         }
 
-        public void RollBackTransaction (Guid transactionGuid) => throw new NotImplementedException();
+        public void RollBackTransaction (Guid transactionGuid)
+        {
+            lock (_idLocker)
+            {
+                var tr = _dbEngineMetaInf.Transactions[transactionGuid];
+                foreach(var tName in tr.ChangedTables)
+                {
+                    _dataStorage.RemoveAllRow(tName.Value, (Row r) => r.TrStart == tr.Id);
+                }
+                _dbEngineMetaInf.Transactions.Remove(transactionGuid);
+                SaveDbMetaInf(_dbEngineMetaInf);
+            }
+        }
 
         public void CommitTransaction (Guid transactionGuid)
         {
@@ -160,7 +174,7 @@ namespace DataBaseEngine
                     _dataStorage.AddTable(table.Value);
                 }
 
-                _dbEngineMetaInf.LastId = tr.Id;
+                _dbEngineMetaInf.LastCommitedId = tr.Id > _dbEngineMetaInf.LastCommitedId ? tr.Id : _dbEngineMetaInf.LastCommitedId;
                 _dbEngineMetaInf.Transactions.Remove(transactionGuid);
                 SaveDbMetaInf(_dbEngineMetaInf);
             }
@@ -293,6 +307,7 @@ namespace DataBaseEngine
             var tr = _dbEngineMetaInf.Transactions[transactionGuid];
             var table = res.Result;
             OperationResult<string> resUpdate = null;
+            AddChangedTable(transactionGuid,table.TableMetaInf.Name);
             try
             {
                 resUpdate = _dataStorage.UpdateAllRow(table.TableMetaInf.Name,
@@ -347,15 +362,17 @@ namespace DataBaseEngine
     public class DbEngineMetaInf
     {
         [Index(0)] public virtual long LastId { get; set; }
-        [Index(1)] public virtual Dictionary<Guid, TransactionTempInfo> Transactions { get; set; }
+        [Index(1)] public virtual long LastCommitedId { get; set; }
+        [Index(2)] public virtual Dictionary<Guid, TransactionTempInfo> Transactions { get; set; }
 
         public DbEngineMetaInf ()
         {
 
         }
-        public DbEngineMetaInf (long lastId)
+        public DbEngineMetaInf (long lastId, long lastCommitedId)
         {
             LastId = lastId;
+            LastCommitedId = lastCommitedId;
             Transactions = new Dictionary<Guid, TransactionTempInfo>();
         }
         public DbEngineMetaInf (DbEngineMetaInf metaInf)
@@ -365,6 +382,7 @@ namespace DataBaseEngine
                 throw new ArgumentNullException(nameof(metaInf));
             }
             LastId = metaInf.LastId;
+            LastCommitedId = metaInf.LastCommitedId;
             Transactions = new Dictionary<Guid, TransactionTempInfo>();
         }
     }
@@ -377,7 +395,7 @@ namespace DataBaseEngine
         [Index(2)]
         public virtual long PrevVerId { get; protected set; }
         [Index(3)]
-        public virtual Dictionary<string, int> ChangedTables { get; set; }
+        public virtual Dictionary<string, Id> ChangedTables { get; set; }
 
         [IgnoreFormat]
         public Dictionary<string, Table> TempTables { get; }
@@ -396,7 +414,7 @@ namespace DataBaseEngine
             PrevVerId = prevVerId;
             TempTables = new Dictionary<string, Table>();
             NewTables = new Dictionary<string, Table>();
-            ChangedTables = new Dictionary<string, int>();
+            ChangedTables = new Dictionary<string, Id>();
         }
     }
 

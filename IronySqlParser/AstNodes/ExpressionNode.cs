@@ -12,12 +12,15 @@ namespace IronySqlParser.AstNodes
 
         public override dynamic Calc (Dictionary<Id, dynamic> variables)
         {
-            if (!variables.TryGetValue(_variableName, out var value))
+            if (_variableName != null)
             {
-                throw new NullReferenceException();
-            }
+                if (!variables.TryGetValue(_variableName, out var value))
+                {
+                    throw new NullReferenceException();
+                }
 
-            Value = value;
+                Value = value;
+            }
 
             return _childOperator == null ? Value : _childOperator.Calc(variables);
         }

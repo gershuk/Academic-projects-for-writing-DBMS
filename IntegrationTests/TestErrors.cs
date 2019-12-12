@@ -57,24 +57,24 @@ namespace IntegrationTests
             SendSQLQuery(cl1, $"insert into qh values ('aa');", expected);
 
 
-            SendSQLQuery(cl1, $"CREATE TABLE fn(id INT NOT NULL , age DOUBLE, name char(150));", expected);
-            SendSQLQuery(cl1, $"INSERT INTO fn values(1, 2.9);", expected);
+            SendSQLQuery(cl1, $"CREATE TABLE fn1(id INT NOT NULL , age DOUBLE, name char(150));", expected);
+            SendSQLQuery(cl1, $"INSERT INTO fn1 values(1, 2.9);", expected);
 
 
 
-            SendSQLQuery(cl1, $"CREATE TABLE fn(age DOUBLE);", expected);
-            SendSQLQuery(cl1, $"INSERT INTO fn values('dfgdg');", expected);
+            SendSQLQuery(cl1, $"CREATE TABLE fn2(age DOUBLE);", expected);
+            SendSQLQuery(cl1, $"INSERT INTO fn2 values('dfgdg');", expected);
 
-            SendSQLQuery(cl1, $"CREATE TABLE qg(id int unique);", expected);
-            SendSQLQuery(cl1, $"insert into qg values (1);", expected);
-            SendSQLQuery(cl1, $"insert into qg values (2);", expected);
-            SendSQLQuery(cl1, $"update qg set id = 2 where id = 1;", expected);
+            SendSQLQuery(cl1, $"CREATE TABLE qg1(id int unique);", expected);
+            SendSQLQuery(cl1, $"insert into qg1 values (1);", expected);
+            SendSQLQuery(cl1, $"insert into qg1 values (2);", expected);
+            SendSQLQuery(cl1, $"update qg1 set id = 2 where id = 1;", expected);
 
 
-            SendSQLQuery(cl1, $"CREATE TABLE qg(id int unique);", expected);
-            SendSQLQuery(cl1, $"insert into qg values (1);", expected);
-            SendSQLQuery(cl1, $"insert into qg values (2);", expected);
-            SendSQLQuery(cl1, $"update qg set id = 3;", expected);
+            SendSQLQuery(cl1, $"CREATE TABLE qg2(id int unique);", expected);
+            SendSQLQuery(cl1, $"insert into qg2 values (1);", expected);
+            SendSQLQuery(cl1, $"insert into qg2 values (2);", expected);
+            SendSQLQuery(cl1, $"update qg2 set id = 3;", expected);
 
             SendSQLQuery(cl1, $"select * from( t join tt);", expected);
             SendSQLQuery(cl1, $"select * from t jon tt on t.id = tt.id;", expected);
@@ -83,8 +83,12 @@ namespace IntegrationTests
             SendSQLQuery(cl1, $"select * from t as t1 join tt t.id = tt.id;", expected);
             SendSQLQuery(cl1, $"select * from t unon select * from t1;", expected);
 
-
-
+            SendSQLQuery(cl1, $"select * from( t join tt);", expected);
+            SendSQLQuery(cl1, $"select * from t jon tt on t.id = tt.id;", expected);
+            SendSQLQuery(cl1, $"select * from t as join tt on t.id = tt.id;", expected);
+            SendSQLQuery(cl1, $"select * from t a t1 join tt on t.id = tt.id;", expected);
+            SendSQLQuery(cl1, $"select * from t as t1 join tt t.id = tt.id;", expected);
+            SendSQLQuery(cl1, $"select * from t unon select * from t1;", expected);
 
 
 

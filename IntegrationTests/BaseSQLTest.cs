@@ -39,43 +39,61 @@ namespace IntegrationTests
 
         protected void SendSQLQuery (TestClient cl, string query, TestData expected)
         {
-            Trace.WriteLine(query);
-            var res = cl.SendQuery(query);
-            if (_fixtests)
+            var res = "";
+            try
             {
-                if (expected.GetResult(cl) != res)
+                res = cl.SendQuery(query);
+                if (_fixtests)
                 {
-                    Console.WriteLine($"Fix test: {query}\nExpected:\n{expected.GetResult(cl)}\nGet:\n{res}\n00");
-                    Console.WriteLine("Fix?(Y/N)");
-                    expected.FixResult(res, cl);
-                    if (Console.ReadLine().Trim().ToLower() == "y")
+
+                    Console.WriteLine($"Fix test:\n\n{query}\n\nExpected:\n\n{expected.GetResult(cl)}\n\nGet:\n\n{res}\n");            
+                    if (expected.GetResult(cl) != res)
                     {
-                        expected.FixResult(res, cl);
+                        Console.WriteLine("Fix?(Y/N)");
+                        if (Console.ReadLine().Trim().ToLower() == "y")
+                        {
+                            expected.FixResult(res, cl);
+                        }
                     }
                     expected.Save();
+                }else
+                Assert.AreEqual(expected.GetResult(cl), res);
+            }
+            catch(Exception ex)
+            {
+                res = ex.ToString();
+                if (_fixtests)
+                {
+
+                    Console.WriteLine($"Fix test:\n{query}\nGet:\n{res}\n00");
+                    Console.ReadLine();
+                    expected.Save();
+                }else
+                {
+                    Assert.IsTrue(false);
                 }
             }
-            Assert.AreEqual(expected.GetResult(cl), res);
+           
+            
             expected.Next(cl);
         }
         protected void SendSQLQuery (TestApClient cl, string query, TestData expected)
         {
-            Trace.WriteLine(query);
             var res = cl.SendQuery(query);
             if (_fixtests)
             {
+
+                Console.WriteLine($"Fix test: {query}\nExpected:\n{expected.GetResult(cl)}\nGet:\n{res}\n00");
+                Console.WriteLine("Fix?(Y/N)");
+                expected.FixResult(res, cl);
                 if (expected.GetResult(cl) != res)
                 {
-                    Console.WriteLine($"Fix test: {query}\nExpected:\n{expected.GetResult(cl)}\nGet:\n{res}\n00");
-                    Console.WriteLine("Fix?(Y/N)");
-                    expected.FixResult(res, cl);
-                    /* if (Console.ReadLine().Trim().ToLower() == "y")
-                     {
-                         expected.FixResult(res, cl);
-                     }*/
-                    //Console.ReadLine();
-                    expected.Save();
+                    if (Console.ReadLine().Trim().ToLower() == "y")
+                    {
+                        expected.FixResult(res, cl);
+                    }
                 }
+                expected.Save();
             }
             Assert.AreEqual(expected.GetResult(cl), res);
             expected.Next(cl);

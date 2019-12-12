@@ -21,6 +21,8 @@ namespace IronySqlParser
             stringLiteral.AstConfig.NodeType = typeof(StringLiteralNode);
             var simpleId = TerminalFactory.CreateSqlExtIdentifier(this, "id_simple");
             simpleId.AstConfig.NodeType = typeof(SimpleIdNode);
+            var dateTime = new RegexBasedTerminal("date time", @"'\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d\d\d\d\d'");
+            dateTime.AstConfig.NodeType = typeof(SqlNode);
 
             var comma = ToTerm(",");
             var dot = ToTerm(".");
@@ -58,7 +60,12 @@ namespace IronySqlParser
             var EXCEPT = ToTerm("EXCEPT");
             var JOIN = ToTerm("JOIN");
             var DELETE = ToTerm("DELETE");
-
+            var FOR = ToTerm("FOR");
+            var SYSTEM_TIME = ToTerm("SYSTEM_TIME");
+            var BETWEEN = ToTerm("BETWEEN");
+            var AND = ToTerm("AND");
+            var OF = ToTerm("OF");
+            var TO = ToTerm("TO");
 
             var stmtList = new NonTerminal("stmtList", typeof(StmtListNode));
             var stmtLine = new NonTerminal("stmtLine", typeof(StmtLineNode));
@@ -99,7 +106,12 @@ namespace IronySqlParser
             var selRestrOpt = new NonTerminal("selRestrOpt", typeof(SqlNode));
             var selList = new NonTerminal("selList", typeof(SelListNode));
             var intoClauseOpt = new NonTerminal("intoClauseOpt", typeof(SqlNode));
+            var forClauseOpt = new NonTerminal("forClauseOpt", typeof(SqlNode));
+            var systemTimeOpt = new NonTerminal("systemTimeOpt", typeof(SqlNode));
             var fromClauseOpt = new NonTerminal("fromClauseOpt", typeof(FromClauseNode));
+            var betweenSelector = new NonTerminal("betweenSelector", typeof(SqlNode));
+            var fromToSelector = new NonTerminal("fromToSelector", typeof(SqlNode));
+            var asOfSelector = new NonTerminal("asOfSelector", typeof(SqlNode));
             var groupClauseOpt = new NonTerminal("groupClauseOpt", typeof(SqlNode));
             var havingClauseOpt = new NonTerminal("havingClauseOpt", typeof(SqlNode));
             var orderClauseOpt = new NonTerminal("orderClauseOpt", typeof(SqlNode));
@@ -219,7 +231,7 @@ namespace IronySqlParser
             showTableStmt.Rule = SHOW + TABLE + id;
 
             //Select stmt
-            selectStmt.Rule = SELECT + selRestrOpt + selList + intoClauseOpt + fromClauseOpt + whereClauseOpt +
+            selectStmt.Rule = SELECT + selRestrOpt + selList + intoClauseOpt + fromClauseOpt + forClauseOpt + whereClauseOpt +
                               groupClauseOpt + havingClauseOpt + orderClauseOpt;
             selRestrOpt.Rule = Empty | ALL | "DISTINCT";
             selList.Rule = columnItemList | STAR;
@@ -232,6 +244,11 @@ namespace IronySqlParser
             aggregateArg.Rule = expression | STAR;
             aggregateName.Rule = COUNT | "Avg" | "Min" | "Max" | "StDev" | "StDevP" | "Sum" | "Var" | "VarP";
             intoClauseOpt.Rule = Empty | INTO + id;
+            forClauseOpt.Rule = FOR + systemTimeOpt;
+            systemTimeOpt.Rule = SYSTEM_TIME + betweenSelector | SYSTEM_TIME + fromToSelector | SYSTEM_TIME + asOfSelector;
+            betweenSelector.Rule = BETWEEN + dateTime + AND + dateTime;
+            fromToSelector.Rule = FROM + dateTime + TO + dateTime;
+            asOfSelector.Rule = AS + OF + dateTime;
             fromClauseOpt.Rule = Empty | FROM + idLink;
             whereClauseOpt.Rule = Empty | "WHERE" + expression;
             groupClauseOpt.Rule = Empty | "GROUP" + BY + idList;
@@ -268,7 +285,7 @@ namespace IronySqlParser
             binOp.Rule = ToTerm("+") | "-" | "*" | "/" | "%" | "&" | "|" | "^"
                        | "=" | ">" | "<" | ">=" | "<=" | "<>" | "!=" | "!<" | "!>"
                        | "AND" | "OR" | "LIKE" | NOT + "LIKE" | "IN" | NOT + "IN";
-            betweenExpr.Rule = expression + notOpt + "BETWEEN" + expression + "AND" + expression;
+            betweenExpr.Rule = expression + notOpt + BETWEEN + expression + AND + expression;
             notOpt.Rule = Empty | NOT;
             funCall.Rule = id + "(" + funArgs + ")";
             funArgs.Rule = selectStmt | expressionList;

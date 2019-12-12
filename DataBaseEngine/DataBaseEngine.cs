@@ -227,6 +227,10 @@ namespace DataBaseEngine
             {
                 return new OperationResult<Table>(ExecutionState.failed, null, new ColumnTooMachError(table.TableMetaInf.Name.ToString()));
             }
+            if(objectParams.Count > table.TableMetaInf.ColumnPool.Count)
+            {
+                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnTooMachError(table.TableMetaInf.Name.ToString()));
+            }
 
             foreach (var col in columnNames)
             {
@@ -241,6 +245,10 @@ namespace DataBaseEngine
             for (var i = 0; i < colPool.Count; ++i)
             {
                 var index = columnNames.FindIndex((Id n) => colPool[i].Name.ToString() == n.ToString());
+                if(index < 0)
+                {
+                    return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistInInsert(colPool[i].Name.ToString()));
+                }
                 var exprDict = new Dictionary<Id, dynamic>();
                 foreach (var v in objectParams[index].VariablesNames)
                 {

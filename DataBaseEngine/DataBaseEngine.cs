@@ -240,6 +240,11 @@ namespace DataBaseEngine
                 }
             }
 
+            if(columnNames.Count != objectParams.Count)
+            {
+                return new OperationResult<Table>(ExecutionState.failed, null, new DataCountNotEqualWithColumnCountInInsert(""));
+            }
+
             AddChangedTable(transactionGuid, table.TableMetaInf.Name);
             var row = new Row(new Field[table.TableMetaInf.ColumnPool.Count]);
             for (var i = 0; i < colPool.Count; ++i)

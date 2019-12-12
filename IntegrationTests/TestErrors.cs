@@ -76,7 +76,17 @@ namespace IntegrationTests
             SendSQLQuery(cl1, $"insert into qg2 values (2);", expected);
             SendSQLQuery(cl1, $"update qg2 set id = 3;", expected);
 
-            SendSQLQuery(cl1, $"select * from( t join tt);", expected);
+            SendSQLQuery(cl1, $"CREATE TABLE qg(id int unique, name char(50));", expected);
+            SendSQLQuery (cl1, $"insert into qg values (1, 'qwe');", expected);
+            SendSQLQuery (cl1, $"insert into qg values (2, 'ewq');", expected);
+            SendSQLQuery (cl1, $"select * from qg where id = name + 1;", expected);
+
+            SendSQLQuery(cl1, $"CREATE TABLE fn(id INT NOT NULL , age double, name char(150));", expected);
+            SendSQLQuery (cl1, $"INSERT INTO fn values(1, 2.9, 'sfsf');", expected);
+            SendSQLQuery (cl1, $"INSERT INTO fn values(2, 3.789, 'qwerty');", expected);
+            SendSQLQuery (cl1, $"SELECT * from (fn join nf on fn.id = nf.id);", expected);
+
+            SendSQLQuery (cl1, $"select * from( t join tt);", expected);
             SendSQLQuery(cl1, $"select * from t jon tt on t.id = tt.id;", expected);
             SendSQLQuery(cl1, $"select * from t as join tt on t.id = tt.id;", expected);
             SendSQLQuery(cl1, $"select * from t a t1 join tt on t.id = tt.id;", expected);

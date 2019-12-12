@@ -496,7 +496,7 @@ namespace DataBaseEngine
         private bool ChekRowVersion (Guid transactionGuid, Row r)
         {
             var tr = _dbEngineMetaInf.Transactions[transactionGuid];
-            return r.TrStart < tr.PrevVerId && r.TrEnd > tr.PrevVerId;
+            return r.TrStart <= tr.PrevVerId && r.TrEnd > tr.PrevVerId;
         }
 
         public OperationResult<Table> JoinCommand (Guid transactionGuid, Id leftId, Id rightId, JoinKind joinKind, Id statmentLeftId, Id statmentRightId)

@@ -236,13 +236,78 @@ id              TrStart         TrEnd
 
 "
 ""
-""
-""
-""
-""
-""
-""
-""
-""
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE qg (id INT () unique,name CHAR (50));
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              name            TrStart         TrEnd           
+1               qwe             28              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              name            TrStart         TrEnd           
+1               qwe             28              inf             
+2               ewq             29              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Failed
+Не удается применить оператор \"==\" к операндам типа \"int\" и \"string\"
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE fn (id INT (),age DOUBLE (),name CHAR (150));
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              age             name            TrStart         TrEnd           
+1               2,9             sfsf            32              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              age             name            TrStart         TrEnd           
+1               2,9             sfsf            32              inf             
+2               3,789           qwerty          33              inf             
+
+---------------------------------------
+
+
+"
+"Error
+Syntax error, expected: FOR, WHERE, GROUP, HAVING, ORDER, ;, COMMIT, ROLLBACK, CREATE, ALTER, DELETE, DROP, SHOW, SELECT, UPDATE, INSERT, ), BEGIN TRANSACTION (1:18)
+"
 ""
 "

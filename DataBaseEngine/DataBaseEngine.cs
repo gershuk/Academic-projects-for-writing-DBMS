@@ -61,10 +61,6 @@ namespace DataBaseEngine
 
     public class DataBaseEngineMain : IDataBaseEngine
     {
-
-
-
-
         private const string _pathDefault = "DataBaseStorage";
         private const int _blockSizeDefault = 4096;
         private const string _fileNameDbMetaInf = "DbMetaInf.bin";
@@ -216,7 +212,11 @@ namespace DataBaseEngine
             var colPool = table.TableMetaInf.ColumnPool;
             if (columnNames == null)
             {
-                return new OperationResult<Table>(ExecutionState.failed, null, new NullError(nameof(columnNames)));
+                columnNames = new List<Id>();
+                foreach(var col in table.TableMetaInf.ColumnPool)
+                {
+                    columnNames.Add(col.Name);
+                }
             }
             if (objectParams == null)
             {
@@ -376,7 +376,16 @@ namespace DataBaseEngine
             var updatedRows = new List<Row>();
             foreach (var row in table.TableData)
             {
-                if (expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, row, table.TableMetaInf.ColumnPool)) && ChekRowVersion(transactionGuid, row))
+                var exprRes = false;
+                try
+                {
+                    exprRes = expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, row, table.TableMetaInf.ColumnPool)) && ChekRowVersion(transactionGuid, row);
+                }
+                catch (Exception ex)
+                {
+                    return new OperationResult<Table>(ExecutionState.failed, null, new ExpressionCalculateError(ex.Message));
+                }
+                if (exprRes)
                 {
                     foreach (var ass in assigmentList)
                     {
@@ -638,16 +647,84 @@ namespace DataBaseEngine
             }
 
                 resultTable.TableData = resultTableData;
+            tr.TempTables.Add(resultTable.TableMetaInf.Name.ToString(), resultTable);
             return new OperationResult<Table>(ExecutionState.performed, resultTable);
         }
-
+        public OperationResult<Table> SelectCommand (Guid transactionGuid, Id tableName, List<Id> columnNames, ExpressionFunction expression)
+        {
+            var res = GetTableCommand(transactionGuid, tableName);
+            if (res.State == ExecutionState.failed)
+            {
+                return res;
+            }
+            var table = res.Result;
+            var tr = _dbEngineMetaInf.Transactions[transactionGuid];
+            var resulTableMetaInf = new TableMetaInf
+            {
+                ColumnPool = new List<Column>(),
+                Name = new Id(new List<string>(table.TableMetaInf.Name.SimpleIds))
+            };
+            resulTableMetaInf.Name.SimpleIds.Add(transactionGuid.ToString());
+            if(columnNames == null || columnNames[0].ToString() == "*")
+            {
+                foreach (var col in table.TableMetaInf.ColumnPool)
+                {
+                    resulTableMetaInf.ColumnPool.Add(new Column(col));
+                }
+                resulTableMetaInf.ColumnPool = new List<Column>(table.TableMetaInf.ColumnPool);
+            }
+            else
+            {
+                foreach(var colName in columnNames)
+                {
+                    var index = table.TableMetaInf.ColumnPool.FindIndex((Column c) => c.Name.ToString() == colName.ToString());
+                    if(index < 0)
+                    {
+                        return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(colName.ToString(), table.TableMetaInf.Name.ToString()));
+                    }
+                    resulTableMetaInf.ColumnPool.Add(new Column(table.TableMetaInf.ColumnPool[index]));
+                }
+            }
+            var resultTable = new Table(resulTableMetaInf);
+            var resultTableData = new List<Row>();
+            foreach (var row in table.TableData)
+            {
+                var exprRes = true;
+                if (expression != null)
+                {
+                    try
+                    {
+                        exprRes = expression.CalcFunc(CompileExpressionData(expression.VariablesNames, row, table.TableMetaInf.ColumnPool)) && ChekRowVersion(transactionGuid, row);
+                    }
+                    catch (Exception ex)
+                    {
+                        return new OperationResult<Table>(ExecutionState.failed, null, new ExpressionCalculateError(ex.Message));
+                    }
+                }
+                if (exprRes)
+                {
+                    var len = resultTable.TableMetaInf.ColumnPool.Count;
+                    var newFields = new Field[len];
+                    for (var i = 0; i < len; ++i)
+                    {
+                        var coll = resultTable.TableMetaInf.ColumnPool[i];
+                        var index = table.TableMetaInf.ColumnPool.FindIndex((Column c) => c.Name.ToString() == coll.Name.ToString());
+                        newFields[i] = row.Fields[index];
+                    }
+                    resultTableData.Add(new Row(newFields));
+                }
+            }
+            resultTable.TableData = resultTableData;
+            tr.TempTables.Add(resultTable.TableMetaInf.Name.ToString(), resultTable);
+            return new OperationResult<Table>(ExecutionState.performed, resultTable);
+        }
         public OperationResult<Table> ExceptCommand (Guid transactionGuid, Id leftId, Id rightId) => throw new NotImplementedException();
 
         public OperationResult<TableMetaInf> GetTableMetaInfCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
 
         public OperationResult<Table> IntersectCommand (Guid transactionGuid, Id leftId, Id rightId) => throw new NotImplementedException();
        
-        public OperationResult<Table> SelectCommand (Guid transactionGuid, Id tableName, List<Id> columnNames, ExpressionFunction expression) => throw new NotImplementedException();
+   
         public OperationResult<Table> ShowTableCommand (Guid transactionGuid, Id tableName) => throw new NotImplementedException();
         public OperationResult<Table> UnionCommand (Guid transactionGuid, Id leftId, Id rightId, UnionKind unionKind) => throw new NotImplementedException();
 

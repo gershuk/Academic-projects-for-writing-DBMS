@@ -84,6 +84,7 @@ namespace DataBaseEngine
 
         public DataBaseEngineMain (string pathDataBaseStorage, int blockSize = _blockSizeDefault)
         {
+            _path = pathDataBaseStorage;
             _dataStorage = new DataStorageInFiles(pathDataBaseStorage, blockSize);
             _idLocker = new object();
             _dbEngineMetaInf = CheckRestoreDb();
@@ -229,7 +230,7 @@ namespace DataBaseEngine
 
             foreach (var col in columnNames)
             {
-                if (colPool.FindIndex((Column n) => col.ToString() == n.Name) < 0)
+                if (colPool.FindIndex((Column n) => col.ToString() == n.Name.ToString()) < 0)
                 {
                     return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(col.ToString(), table.TableMetaInf.Name.ToString()));
                 }
@@ -239,7 +240,7 @@ namespace DataBaseEngine
             var row = new Row(new Field[table.TableMetaInf.ColumnPool.Count]);
             for (var i = 0; i < colPool.Count; ++i)
             {
-                var index = columnNames.FindIndex((Id n) => colPool[i].Name == n.ToString());
+                var index = columnNames.FindIndex((Id n) => colPool[i].Name.ToString() == n.ToString());
                 var exprDict = new Dictionary<Id, dynamic>();
                 foreach (var v in objectParams[index].VariablesNames)
                 {
@@ -297,7 +298,9 @@ namespace DataBaseEngine
             }
             if (tr.DroppedTables.ContainsKey(name.ToString()))
             {
-                return new OperationResult<Table>(ExecutionState.performed, tr.DroppedTables[name.ToString()]);
+                var table = tr.DroppedTables[name.ToString()];
+                tr.DroppedTables.Remove(name.ToString());
+                return new OperationResult<Table>(ExecutionState.performed, table);
             }
             var state = _dataStorage.LoadTable(name);
             return state.State == ExecutionState.performed && (state.Result.TableMetaInf.CreatedTrId <= tr.PrevVerId || state.Result.TableMetaInf.CreatedTrId <= tr.Id)
@@ -377,7 +380,7 @@ namespace DataBaseEngine
                 {
                     foreach (var ass in assigmentList)
                     {
-                        var index = table.TableMetaInf.ColumnPool.FindIndex((Column col) => col.Name == ass.Id.ToString());
+                        var index = table.TableMetaInf.ColumnPool.FindIndex((Column col) => col.Name.ToString() == ass.Id.ToString());
                         if (index >= 0)
                         {
                             try
@@ -433,13 +436,14 @@ namespace DataBaseEngine
 
         }
 
+
         private static Dictionary<Id, dynamic> CompileExpressionData (List<Id> variablesNames, Row row, List<Column> colPool)
         {
             var exprDict = new Dictionary<Id, dynamic>();
 
             foreach (var v in variablesNames)
             {
-                var index = colPool.FindIndex((Column n) => v.ToString() == n.Name);
+                var index = colPool.FindIndex((Column n) => v.ToString() == n.Name.ToString());
                 if (index >= 0)
                 {
                     switch (row.Fields[index].Type)
@@ -470,13 +474,179 @@ namespace DataBaseEngine
             return r.TrStart < tr.PrevVerId && r.TrEnd > tr.PrevVerId;
         }
 
+        public OperationResult<Table> JoinCommand (Guid transactionGuid, Id leftId, Id rightId, JoinKind joinKind, Id statmentLeftId, Id statmentRightId)
+        {
+            var leftRes = GetTableCommand(transactionGuid, leftId);
+            if (leftRes.State == ExecutionState.failed)
+            {
+                return leftRes;
+            }
+
+            var rightRes = GetTableCommand(transactionGuid, rightId);
+            if (rightRes.State == ExecutionState.failed)
+            {
+                return rightRes;
+            }
+            var leftTable = leftRes.Result;
+            var rightTable = rightRes.Result;
+            var tr = _dbEngineMetaInf.Transactions[transactionGuid];
+            var resulTableMetaInf = new TableMetaInf
+            {
+                ColumnPool = new List<Column>(),
+                Name = new Id(new List<string>(leftId.SimpleIds))
+            };
+            resulTableMetaInf.Name.SimpleIds.AddRange(rightId.SimpleIds);
+            foreach (var col in leftTable.TableMetaInf.ColumnPool)
+            {
+                var newColName = new List<string>(leftTable.TableMetaInf.Name.SimpleIds);
+                newColName.AddRange(col.Name.SimpleIds);
+                var newCol = new Column(new Id(newColName), col.DataType,col.DataParam, new List<string>(col.Constrains),col.TypeState);
+                resulTableMetaInf.ColumnPool.Add(newCol);
+            }
+            foreach (var col in rightTable.TableMetaInf.ColumnPool)
+            {
+                var newColName = new List<string>(rightTable.TableMetaInf.Name.SimpleIds);
+                newColName.AddRange(col.Name.SimpleIds);
+                var newCol = new Column(new Id(newColName), col.DataType, col.DataParam, new List<string>(col.Constrains), col.TypeState);
+                resulTableMetaInf.ColumnPool.Add(newCol);
+            }
+            var resultTable = new Table(resulTableMetaInf);
+            var resultTableData = new List<Row>();
+
+            var statmentLeftIndex = resultTable.TableMetaInf.ColumnPool.FindIndex((Column c) => statmentLeftId.ToString() == c.Name.ToString());
+            var statmentRightIndex = resultTable.TableMetaInf.ColumnPool.FindIndex((Column c) => statmentRightId.ToString() == c.Name.ToString());
+            if(statmentLeftIndex < 0)
+            {
+                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(statmentLeftId.ToString(), resultTable.TableMetaInf.Name.ToString()));
+            }
+            if (statmentRightIndex < 0)
+            {
+                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(statmentRightId.ToString(), resultTable.TableMetaInf.Name.ToString()));
+            }
+            var leftIndex = statmentLeftIndex < leftTable.TableMetaInf.ColumnPool.Count ? statmentLeftIndex : statmentRightIndex;
+            var rightIndex = statmentLeftIndex < leftTable.TableMetaInf.ColumnPool.Count ? statmentRightIndex - (leftTable.TableMetaInf.ColumnPool.Count) : statmentLeftIndex - (leftTable.TableMetaInf.ColumnPool.Count);
+            foreach (var leftRow in leftTable.TableData)
+            {
+                if (ChekRowVersion(transactionGuid, leftRow))
+                {
+                    foreach (var rightRow in rightTable.TableData)
+                    {
+                        if (ChekRowVersion(transactionGuid, rightRow))
+                        {
+                            var stateCompare = Field.Compare(leftRow.Fields[leftIndex], rightRow.Fields[rightIndex]);
+                            if(stateCompare.State == ExecutionState.failed)
+                            {
+                                return new OperationResult<Table>(ExecutionState.failed, null, 
+                                           new CastFieldError( leftTable.TableMetaInf.ColumnPool[leftIndex].Name.ToString(), leftTable.TableMetaInf.ColumnPool[leftIndex].DataType.ToString(),""));
+                            }
+                            if (stateCompare.Result)
+                            {
+                                var newRowFields = new Field[leftTable.TableMetaInf.ColumnPool.Count + rightTable.TableMetaInf.ColumnPool.Count];
+                                for (var i = 0; i < leftRow.Fields.Length; ++i)
+                                {
+                                    newRowFields[i] = leftRow.Fields[i];
+                                }
+                                for (var i = 0; i < rightRow.Fields.Length; ++i)
+                                {
+                                    newRowFields[i + leftTable.TableMetaInf.ColumnPool.Count] = rightRow.Fields[i];
+                                }
+                                resultTableData.Add(new Row(newRowFields));
+                            }
+                        }
+                    }
+                }
+            }
+            if(joinKind == JoinKind.Left)
+            {
+                foreach (var leftRow in leftTable.TableData)
+                {
+                    var IsFind = false;
+                    if (ChekRowVersion(transactionGuid, leftRow))
+                    {
+                        foreach (var rightRow in rightTable.TableData)
+                        {
+                            if (ChekRowVersion(transactionGuid, rightRow))
+                            {
+                                var stateCompare = Field.Compare(leftRow.Fields[leftIndex], rightRow.Fields[rightIndex]);
+                                if (stateCompare.State == ExecutionState.failed)
+                                {
+                                    return new OperationResult<Table>(ExecutionState.failed, null,
+                                               new CastFieldError(leftTable.TableMetaInf.ColumnPool[leftIndex].Name.ToString(), leftTable.TableMetaInf.ColumnPool[leftIndex].DataType.ToString(), ""));
+                                }
+                                if (stateCompare.Result)
+                                {
+                                    IsFind = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (!IsFind)
+                    {
+                        var newRowFields = new Field[leftTable.TableMetaInf.ColumnPool.Count + rightTable.TableMetaInf.ColumnPool.Count];
+                        for (var i = 0; i < leftRow.Fields.Length; ++i)
+                        {
+                            newRowFields[i] = leftRow.Fields[i];
+                        }
+                        for (var i = 0; i < rightTable.TableMetaInf.ColumnPool.Count; ++i)
+                        {
+                            newRowFields[i + leftTable.TableMetaInf.ColumnPool.Count] = null;
+                        }
+                        resultTableData.Add(new Row(newRowFields));
+                    }
+                }
+            }
+            if (joinKind == JoinKind.Right)
+            {
+                foreach (var rightRow in rightTable.TableData)
+                {
+                    var IsFind = false;
+                    if (ChekRowVersion(transactionGuid, rightRow))
+                    {
+                        foreach (var leftRow in leftTable.TableData)
+                        {
+                            if (ChekRowVersion(transactionGuid, rightRow))
+                            {
+                                var stateCompare = Field.Compare(leftRow.Fields[leftIndex], rightRow.Fields[rightIndex]);
+                                if (stateCompare.State == ExecutionState.failed)
+                                {
+                                    return new OperationResult<Table>(ExecutionState.failed, null,
+                                               new CastFieldError(leftTable.TableMetaInf.ColumnPool[leftIndex].Name.ToString(), leftTable.TableMetaInf.ColumnPool[leftIndex].DataType.ToString(), ""));
+                                }
+                                if (stateCompare.Result)
+                                {
+                                    IsFind = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (!IsFind)
+                    {
+                        var newRowFields = new Field[leftTable.TableMetaInf.ColumnPool.Count + rightTable.TableMetaInf.ColumnPool.Count];
+                        for (var i = 0; i < leftTable.TableMetaInf.ColumnPool.Count; ++i)
+                        {
+                            newRowFields[i] = null;
+                        }
+                        for (var i = 0; i < rightTable.TableMetaInf.ColumnPool.Count; ++i)
+                        {
+                            newRowFields[i + leftTable.TableMetaInf.ColumnPool.Count] = rightRow.Fields[i];
+                        }
+                        resultTableData.Add(new Row(newRowFields));
+                    }
+                }
+            }
+
+                resultTable.TableData = resultTableData;
+            return new OperationResult<Table>(ExecutionState.performed, resultTable);
+        }
 
         public OperationResult<Table> ExceptCommand (Guid transactionGuid, Id leftId, Id rightId) => throw new NotImplementedException();
 
         public OperationResult<TableMetaInf> GetTableMetaInfCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
 
         public OperationResult<Table> IntersectCommand (Guid transactionGuid, Id leftId, Id rightId) => throw new NotImplementedException();
-        public OperationResult<Table> JoinCommand (Guid transactionGuid, Id leftId, Id rightId, JoinKind joinKind, Id statmentLeftId, Id statmentRightId) => throw new NotImplementedException();
+       
         public OperationResult<Table> SelectCommand (Guid transactionGuid, Id tableName, List<Id> columnNames, ExpressionFunction expression) => throw new NotImplementedException();
         public OperationResult<Table> ShowTableCommand (Guid transactionGuid, Id tableName) => throw new NotImplementedException();
         public OperationResult<Table> UnionCommand (Guid transactionGuid, Id leftId, Id rightId, UnionKind unionKind) => throw new NotImplementedException();

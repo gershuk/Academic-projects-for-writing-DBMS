@@ -7,7 +7,8 @@ using System.Threading;
 using ConsoleClientServer;
 
 using DataBaseEngine;
-
+using DataBaseType;
+using ProtoBuf;
 using TransactionManagement;
 using ZeroFormatter;
 

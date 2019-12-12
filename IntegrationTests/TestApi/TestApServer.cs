@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
-    class TestServer
+    class TestApServer
     {
         private Process _client;
         private StreamWriter _input;
         private StreamReader _output;
         private StreamReader _error;
-        public TestServer ()
+        public TestApServer ()
         {
             var dirr = Directory.GetCurrentDirectory();
             dirr = dirr.Remove(dirr.LastIndexOf("\\"), 1);
@@ -48,7 +48,7 @@ namespace IntegrationTests
             return res;
         }
 
-        ~TestServer ()
+        ~TestApServer ()
         {
             _client.Kill();
             _client.Close();

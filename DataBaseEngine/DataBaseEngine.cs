@@ -445,7 +445,7 @@ namespace DataBaseEngine
             try
             {
                 resUpdate = _dataStorage.UpdateAllRow(table.TableMetaInf.Name,
-                     (Row r) => expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, r, table.TableMetaInf.ColumnPool)) && ChekRowVersion(transactionGuid, r) ? r.SetTrEnd(tr.Id) : null);
+                     (Row r) => (expressionFunction == null ? true: expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, r, table.TableMetaInf.ColumnPool))) && ChekRowVersion(transactionGuid, r) ? r.SetTrEnd(tr.Id) : null);
             }
             catch (Exception ex)
             {

@@ -100,7 +100,7 @@ namespace SunflowerDB
                     parmsList.Add(new ExpressionFunction(param.Calc, param.VariablesNames));
                 }
 
-                var insertResult = Engine.InsertCommand(id, node.TableName, node.ColumnNames.IdListNode.IdList, parmsList);
+                var insertResult = Engine.InsertCommand(id, node.TableName, node.ColumnNames?.IdListNode?.IdList, parmsList);
 
                 if (insertResult.State != ExecutionState.performed)
                 {

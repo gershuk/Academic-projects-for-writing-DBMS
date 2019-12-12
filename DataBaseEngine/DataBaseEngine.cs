@@ -227,6 +227,10 @@ namespace DataBaseEngine
             {
                 return new OperationResult<Table>(ExecutionState.failed, null, new ColumnTooMachError(table.TableMetaInf.Name.ToString()));
             }
+            if(objectParams.Count > table.TableMetaInf.ColumnPool.Count)
+            {
+                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnTooMachError(table.TableMetaInf.Name.ToString()));
+            }
 
             foreach (var col in columnNames)
             {
@@ -236,11 +240,20 @@ namespace DataBaseEngine
                 }
             }
 
+            if(columnNames.Count != objectParams.Count)
+            {
+                return new OperationResult<Table>(ExecutionState.failed, null, new DataCountNotEqualWithColumnCountInInsert(""));
+            }
+
             AddChangedTable(transactionGuid, table.TableMetaInf.Name);
             var row = new Row(new Field[table.TableMetaInf.ColumnPool.Count]);
             for (var i = 0; i < colPool.Count; ++i)
             {
                 var index = columnNames.FindIndex((Id n) => colPool[i].Name.ToString() == n.ToString());
+                if(index < 0)
+                {
+                    return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistInInsert(colPool[i].Name.ToString()));
+                }
                 var exprDict = new Dictionary<Id, dynamic>();
                 foreach (var v in objectParams[index].VariablesNames)
                 {
@@ -277,8 +290,8 @@ namespace DataBaseEngine
                 return new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(tableName.ToString()));
             }
             var table = tr.NewTables[tableName.ToString()];
-            table.AddColumn(column);
-            return new OperationResult<Table>(ExecutionState.performed, table);
+            var res = table.AddColumn(column);
+            return new OperationResult<Table>(res.State, table,res.OperationError);
         }
 
         public OperationResult<Table> GetTableCommand (Guid transactionGuid, Id name)
@@ -376,14 +389,17 @@ namespace DataBaseEngine
             var updatedRows = new List<Row>();
             foreach (var row in table.TableData)
             {
-                var exprRes = false;
-                try
+                var exprRes = true;
+                if (expressionFunction != null)
                 {
-                    exprRes = expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, row, table.TableMetaInf.ColumnPool)) && ChekRowVersion(transactionGuid, row);
-                }
-                catch (Exception ex)
-                {
-                    return new OperationResult<Table>(ExecutionState.failed, null, new ExpressionCalculateError(ex.Message));
+                    try
+                    {
+                        exprRes = expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, row, table.TableMetaInf.ColumnPool)) && ChekRowVersion(transactionGuid, row);
+                    }
+                    catch (Exception ex)
+                    {
+                        return new OperationResult<Table>(ExecutionState.failed, null, new ExpressionCalculateError(ex.Message));
+                    }
                 }
                 if (exprRes)
                 {
@@ -429,7 +445,7 @@ namespace DataBaseEngine
             try
             {
                 resUpdate = _dataStorage.UpdateAllRow(table.TableMetaInf.Name,
-                     (Row r) => expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, r, table.TableMetaInf.ColumnPool)) && ChekRowVersion(transactionGuid, r) ? r.SetTrEnd(tr.Id) : null);
+                     (Row r) => (expressionFunction == null ? true: expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, r, table.TableMetaInf.ColumnPool))) && ChekRowVersion(transactionGuid, r) ? r.SetTrEnd(tr.Id) : null);
             }
             catch (Exception ex)
             {
@@ -480,7 +496,7 @@ namespace DataBaseEngine
         private bool ChekRowVersion (Guid transactionGuid, Row r)
         {
             var tr = _dbEngineMetaInf.Transactions[transactionGuid];
-            return r.TrStart < tr.PrevVerId && r.TrEnd > tr.PrevVerId;
+            return r.TrStart <= tr.PrevVerId && r.TrEnd > tr.PrevVerId;
         }
 
         public OperationResult<Table> JoinCommand (Guid transactionGuid, Id leftId, Id rightId, JoinKind joinKind, Id statmentLeftId, Id statmentRightId)

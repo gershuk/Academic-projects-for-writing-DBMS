@@ -1,13 +1,16 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 using System.Threading;
 
 using ConsoleClientServer;
 
 using DataBaseEngine;
-
+using DataBaseType;
+using ProtoBuf;
 using TransactionManagement;
+using ZeroFormatter;
 
 namespace SunflowerDB
 {
@@ -46,12 +49,46 @@ namespace SunflowerDB
 
         public override byte[] ExecuteQuery (string query)
         {
-            var formatter = new BinaryFormatter();
-            using (var fs = new MemoryStream())
+            using (var binaryData = new MemoryStream())
             {
-                formatter.Serialize(fs, _core.ExecuteSqlSequence(query));
-                return fs.ToArray();
+                try
+                {
+                    Serializer.Serialize(binaryData, _core.ExecuteSqlSequence(query));
+                }catch(Exception ex)
+                {
+                    var res = new OperationResult<SqlSequenceResult>();
+                    res.State = ExecutionState.failed;
+                    res.OperationError = new DataBaseIsCorruptError("\b\b\b\b\b\bNot implemented");
+                    Serializer.Serialize(binaryData, res);
+                }
+                return binaryData.ToArray();
             }
+        }
+
+        public override string ConvertMessageToString (byte[] messege)
+        {
+
+            var value = Serializer.Deserialize<OperationResult<SqlSequenceResult>>(messege);
+            var result = "";
+            switch (value.State)
+            {
+                case ExecutionState.notProcessed:
+                    break;
+                case ExecutionState.parserError:
+                case ExecutionState.failed:
+                    result += "Error" + "\n";
+                    result += value.OperationError + "\n";
+                    break;
+                case ExecutionState.performed:
+                    foreach (var info in value.Result.Answer)
+                    {
+                        result += info.ToString() + "\n";
+                        result += "\n";
+                    }
+                    break;
+            }
+            result += "*";
+            return result.ToString();
         }
     }
     public class ConsoleServer
@@ -64,14 +101,16 @@ namespace SunflowerDB
             try
             {
                 _server = new SunflowerDBServer();
-                _listenThread = new Thread(new ThreadStart(_server.Listen));
-                _listenThread.Start(); //старт потока
-                _server.Dispose();
+                _server.Listen();
             }
             catch (Exception ex)
             {
                 _server?.Disconnect();
                 Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                _server.Dispose();
             }
         }
     }

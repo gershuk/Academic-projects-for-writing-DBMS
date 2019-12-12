@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 
@@ -65,16 +67,16 @@ namespace ConsoleClientServer
             }
         }
 
-        protected internal static void SereverConsoleReader ()
+        protected internal void SereverConsoleReader()
         {
             while (true)
             {
-                var comand = Console.ReadLine();
-                //Отправка команды в бд
-                var result = comand;
-                Console.WriteLine(result);
+                Console.WriteLine(ConvertMessageToString(ExecuteQuery(Console.ReadLine())));
             }
         }
+
+        public abstract string ConvertMessageToString(byte[] messege);
+        
 
         // трансляция сообщения всем подключенным клиентам на случай чего
         protected internal void BroadcastMessage (string message)

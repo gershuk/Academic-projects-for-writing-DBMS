@@ -1,0 +1,496 @@
+cl1
+---------------------------------------
+Performed
+CREATE TABLE i (id INT ());
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Failed
+Error, Table with name i already exist.
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE asa (id INT () UNIQUE UNIQUE,id1 DOUBLE ());
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Failed
+Error, Column with name id alredy exist in Table ac
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Failed
+Error, Table named qqq doesn't exist
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE ac (id INT () UNIQUE,di DOUBLE ());
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Failed
+Error, Data count in row not equal with column count 
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE qw (id INT () UNIQUE,id1 DOUBLE ());
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Failed
+Error, Column with name id1 not exist in insert column list
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE j (id INT ());
+---------------------------------------
+
+
+"
+"Error
+Cannot convert literal 159753159753 to type Int32. (1:22)
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE qh (id CHAR (1));
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              TrStart         TrEnd           
+                12              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              TrStart         TrEnd           
+                12              inf             
+a               13              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              TrStart         TrEnd           
+                12              inf             
+a               13              inf             
+a               14              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE fn1 (id INT (),age DOUBLE (),name CHAR (150));
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Failed
+Error, Data count in row not equal with column count 
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE fn2 (age DOUBLE ());
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+age             TrStart         TrEnd           
+NULL            18              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE qg1 (id INT () unique);
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              TrStart         TrEnd           
+1               20              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              TrStart         TrEnd           
+1               20              inf             
+2               21              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              TrStart         TrEnd           
+1               20              22              
+2               21              inf             
+2               22              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE qg2 (id INT () unique);
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              TrStart         TrEnd           
+1               24              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              TrStart         TrEnd           
+1               24              inf             
+2               25              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              TrStart         TrEnd           
+1               24              26              
+2               25              26              
+3               26              inf             
+3               26              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE qg (id INT () unique,name CHAR (50));
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              name            TrStart         TrEnd           
+1               qwe             28              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              name            TrStart         TrEnd           
+1               qwe             28              inf             
+2               ewq             29              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Failed
+Не удается применить оператор \"==\" к операндам типа \"int\" и \"string\"
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE fn (id INT (),age DOUBLE (),name CHAR (150));
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              age             name            TrStart         TrEnd           
+1               2,9             sfsf            32              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              age             name            TrStart         TrEnd           
+1               2,9             sfsf            32              inf             
+2               3,789           qwerty          33              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Failed
+Error, Table named nf doesn't exist
+---------------------------------------
+
+
+"
+"Error
+Syntax error, expected: ON (1:25)
+"
+"Error
+Syntax error, expected: ., FOR, WHERE, GROUP, HAVING, ORDER, ;, COMMIT, ROLLBACK, CREATE, ALTER, DELETE, DROP, SHOW, SELECT, UPDATE, INSERT, ), BEGIN TRANSACTION, INNER, LEFT, RIGHT, Full, UNION, INTERSECT, EXCEPT, JOIN, ON (1:17)
+"
+"Error
+Syntax error, expected: ., FOR, WHERE, GROUP, HAVING, ORDER, ;, COMMIT, ROLLBACK, CREATE, ALTER, DELETE, DROP, SHOW, SELECT, UPDATE, INSERT, ), BEGIN TRANSACTION, INNER, LEFT, RIGHT, Full, UNION, INTERSECT, EXCEPT, JOIN, ON (1:17)
+"
+"Error
+Syntax error, expected: ., FOR, WHERE, GROUP, HAVING, ORDER, ;, COMMIT, ROLLBACK, CREATE, ALTER, DELETE, DROP, SHOW, SELECT, UPDATE, INSERT, ), BEGIN TRANSACTION, INNER, LEFT, RIGHT, Full, UNION, INTERSECT, EXCEPT, JOIN, ON (1:17)
+"
+"Error
+Syntax error, expected: ., FOR, WHERE, GROUP, HAVING, ORDER, ;, COMMIT, ROLLBACK, CREATE, ALTER, DELETE, DROP, SHOW, SELECT, UPDATE, INSERT, ), BEGIN TRANSACTION, INNER, LEFT, RIGHT, Full, UNION, INTERSECT, EXCEPT, JOIN, ON (1:17)
+"
+"Error
+Syntax error, expected: ., FOR, WHERE, GROUP, HAVING, ORDER, ;, COMMIT, ROLLBACK, CREATE, ALTER, DELETE, DROP, SHOW, SELECT, UPDATE, INSERT, ), BEGIN TRANSACTION, INNER, LEFT, RIGHT, Full, UNION, INTERSECT, EXCEPT, JOIN, ON (1:17)
+"
+"Error
+Syntax error, expected: ON (1:25)
+"
+"Error
+Syntax error, expected: ., FOR, WHERE, GROUP, HAVING, ORDER, ;, COMMIT, ROLLBACK, CREATE, ALTER, DELETE, DROP, SHOW, SELECT, UPDATE, INSERT, ), BEGIN TRANSACTION, INNER, LEFT, RIGHT, Full, UNION, INTERSECT, EXCEPT, JOIN, ON (1:18)
+"
+"Error
+Syntax error, expected: ., FOR, WHERE, GROUP, HAVING, ORDER, ;, COMMIT, ROLLBACK, CREATE, ALTER, DELETE, DROP, SHOW, SELECT, UPDATE, INSERT, ), BEGIN TRANSACTION, INNER, LEFT, RIGHT, Full, UNION, INTERSECT, EXCEPT, JOIN, ON (1:18)
+"
+"Error
+Syntax error, expected: ., FOR, WHERE, GROUP, HAVING, ORDER, ;, COMMIT, ROLLBACK, CREATE, ALTER, DELETE, DROP, SHOW, SELECT, UPDATE, INSERT, ), BEGIN TRANSACTION, INNER, LEFT, RIGHT, Full, UNION, INTERSECT, EXCEPT, JOIN, ON (1:18)
+"
+"Error
+Syntax error, expected: ., FOR, WHERE, GROUP, HAVING, ORDER, ;, COMMIT, ROLLBACK, CREATE, ALTER, DELETE, DROP, SHOW, SELECT, UPDATE, INSERT, ), BEGIN TRANSACTION, INNER, LEFT, RIGHT, Full, UNION, INTERSECT, EXCEPT, JOIN, ON (1:18)
+"
+"Error
+Syntax error, expected: ., FOR, WHERE, GROUP, HAVING, ORDER, ;, COMMIT, ROLLBACK, CREATE, ALTER, DELETE, DROP, SHOW, SELECT, UPDATE, INSERT, ), BEGIN TRANSACTION, INNER, LEFT, RIGHT, Full, UNION, INTERSECT, EXCEPT, JOIN, ON (1:18)
+"
+"cl1
+---------------------------------------
+Performed
+
+id              age             name            TrStart         TrEnd           
+1               2,9             sfsf            32              inf             
+2               3,789           qwerty          33              inf             
+1               2,9             sfsf            35              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              age             name            TrStart         TrEnd           
+1               2,9             sfsf            32              inf             
+2               3,789           qwerty          33              inf             
+1               2,9             sfsf            35              inf             
+2               3,789           qwerty          36              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Failed
+Error, Column with name fn.id11 not exist in Table fn.qg
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              name            TrStart         TrEnd           
+1               qwe             -1              -2              
+2               ewq             -1              -2              
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE fn (id INT (),age DOUBLE (),name CHAR (150));
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE fn (id INT (),age DOUBLE (),name CHAR (150));
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              age             name            TrStart         TrEnd           
+1               2,9             sfsf            41              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Failed
+Error, Column with name dgdfg not exist in Table fn
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE table1 (id INT (),age DOUBLE (),name CHAR (150));
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE table2 (id INT (),age DOUBLE ());
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              age             name            TrStart         TrEnd           
+1               2,9             sfsf            45              inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              age             TrStart         TrEnd           
+1               3,5             46              inf             
+
+---------------------------------------
+
+
+"
+"Error
+Syntax error, expected: id_simple (1:17)
+"
+"Error
+Syntax error, expected: BEGIN TRANSACTION, CREATE, ALTER, DELETE, DROP, SHOW, SELECT, UPDATE, INSERT (1:1)
+"
+"Error
+Syntax error, expected: TABLE (1:8)
+"
+"Error
+Syntax error, expected: id_simple (1:14)

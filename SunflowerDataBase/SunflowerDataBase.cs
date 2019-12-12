@@ -11,7 +11,6 @@ using IronySqlParser;
 using IronySqlParser.AstNodes;
 
 using TransactionManagement;
-
 namespace SunflowerDB
 {
     public interface IDataBase

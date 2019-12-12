@@ -344,7 +344,7 @@ namespace DataBaseType
             {
                 return new OperationResult<Table>(ExecutionState.failed, null, new NullError(nameof(column)));
             }
-            if (TableMetaInf.ColumnPool.FindIndex((Column c) => c.Name == column.Name) < 0)
+            if (TableMetaInf.ColumnPool.FindIndex((Column c) => c.Name.ToString() == column.Name.ToString()) < 0)
             {
                 TableMetaInf.ColumnPool.Add(column);
             }
@@ -357,7 +357,8 @@ namespace DataBaseType
         }
 
 
-        public override string ToString () => TableData == null ? ShowCreateTable().Result : ShowDataTable().Result;
+        public override string ToString () => TableData == null ?
+            ShowCreateTable().Result : ShowDataTable().Result;
 
         public OperationResult<string> ShowDataTable ()//To do Сделать красивый вывод таблички
         {

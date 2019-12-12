@@ -3,6 +3,7 @@
 using ConsoleClientServer;
 
 using DataBaseType;
+using ProtoBuf;
 
 namespace SunflowerDBClient
 {
@@ -12,34 +13,31 @@ namespace SunflowerDBClient
         {
         }
 
-        public override string ConvertMessageToString<T> (T messege)
+        public override string ConvertMessageToString (byte[] messege)
         {
-            if (messege is OperationResult<SqlSequenceResult> value)
+            var value = Serializer.Deserialize<OperationResult<SqlSequenceResult>>(messege);
+            var result = "";
+            switch (value.State)
             {
-                var result = "";
-                switch (value.State)
-                {
-                    case ExecutionState.notProcessed:
-                        break;
-                    case ExecutionState.parserError:
-                    case ExecutionState.failed:
-                        result += value.State + "\n";
-                        result += value.OperationError + "\n";
+                case ExecutionState.notProcessed:
+                    break;
+                case ExecutionState.parserError:
+                case ExecutionState.failed:
+                    result += "Error" + "\n";
+                    result += value.OperationError + "\n";
+                    break;
+                case ExecutionState.performed:
+                    foreach (var info in value.Result.Answer)
+                    {
+                        result += info.ToString() + "\n";
                         result += "\n";
-                        break;
-                    case ExecutionState.performed:
-                        foreach (var info in value.Result.Answer)
-                        {
-                            result += info.ToString() + "\n";
-                            result += "\n";
-                        }
-                        break;
-                }
-                return result.ToString();
+                    }
+                    break;
             }
-            throw new NotImplementedException();
-
+            result += "*";
+            return result.ToString();
         }
+
         internal class ConsoleClient
         {
             private static void Main (string[] args)
@@ -56,7 +54,7 @@ namespace SunflowerDBClient
 
                 client = new SunflowerDBClient(BaseHost, BasePort);
 
-                client.SendResieveMessage<OperationResult<SqlSequenceResult>>();
+                client.SendResieveMessage();
                 client.Dispose();
             }
         }

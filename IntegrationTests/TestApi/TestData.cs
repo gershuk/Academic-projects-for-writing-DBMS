@@ -8,7 +8,7 @@ using IntegrationTests.TestApi;
 
 namespace IntegrationTests
 {
-    class TestData
+    public class TestData
     {
         private readonly Dictionary<String,List<string>> _expected = new Dictionary<String, List<string>>();
         private string _dirr;

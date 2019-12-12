@@ -52,6 +52,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseSQLTest.cs" />
     <Compile Include="Create_ShowCreate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestApi\TestApClient.cs" />

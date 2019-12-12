@@ -10,12 +10,12 @@ using TransactionManagement;
 
 namespace IntegrationTests.TestApi
 {
-    class TestClient
+    public class TestClient
     {
         private readonly DataBase _core;
         public readonly string Name;
 
-        public TestClient(string name, ref DataBase core)
+        public TestClient(string name, DataBase core)
         {
             _core = core;
             Name = name.Trim();
@@ -41,7 +41,6 @@ namespace IntegrationTests.TestApi
                     foreach (var info in value.Result.Answer)
                     {
                         result += info.ToString() + "\n";
-                        result += "\n";
                     }
                     break;
             }

@@ -1,67 +1,24 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
+using DataBaseEngine;
 using IntegrationTests.TestApi;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-
+using SunflowerDB;
+using TransactionManagement;
 
 namespace IntegrationTests
 {
     [TestClass]
-    public class Create_ShowCreate
+    public class Create_ShowCreate : BaseSQLTest
     {
-        private readonly bool _fixtests;
-        public Create_ShowCreate()
+        
+        public Create_ShowCreate (bool fixtests) : base(fixtests)
         {
-            _fixtests = false;
-        }
-        public Create_ShowCreate (bool fixtests) => _fixtests = fixtests;
-
-        private TestData GetTestData ()
-        {
-            var st = new StackTrace();
-            var currentMethodName = st.GetFrame(1).GetMethod().Name;
-            return new TestData(this.GetType().FullName, currentMethodName);
         }
 
-        private void SendSQLQuery (TestClient cl, string query, TestData expected)
+        public Create_ShowCreate () : base(false)
         {
-            var res = cl.SendQuery(query);
-
-            if (_fixtests)
-            {
-                if (expected.GetResult(cl) != res)
-                {
-                    Console.WriteLine($"Fix test: {query}\nExpected:\n{expected.GetResult(cl)}\nGet:\n{res}\n00");
-                    Console.WriteLine("Fix?(Y/N)");
-                    if (Console.ReadLine().Trim().ToLower() == "y")
-                    {
-                        expected.FixResult(res,cl);
-                    }
-                }
-            }
-            Assert.AreEqual(expected.GetResult(cl), res);
-            expected.Next(cl);
-        }
-        private void SendSQLQuery (TestApClient cl, string query, TestData expected)
-        {
-            var res = cl.SendQuery(query);
-
-            if (_fixtests)
-            {
-                if (expected.GetResult(cl) != res)
-                {
-                    Console.WriteLine($"Fix test: {query}\nExpected:\n{expected.GetResult(cl)}\nGet:\n{res}\n00");
-                    Console.WriteLine("Fix?(Y/N)");
-                    if (Console.ReadLine().Trim().ToLower() == "y")
-                    {
-                        expected.FixResult(res, cl);
-                    }
-                }
-            }
-            Assert.AreEqual(expected.GetResult(cl), res);
-            expected.Next(cl);
         }
 
         [TestMethod]
@@ -82,21 +39,19 @@ namespace IntegrationTests
         [TestMethod]
         public void TestCreateCommandSynax ()
         {
+            DelFiles();
+            var _core = new DataBase(20, new DataBaseEngineMain(_testPath), new TransactionScheduler());
             var expected = GetTestData();
-            var server = new TestApServer();
-            var client1 = new TestApClient("cl1");
+            var cl1 = new TestClient("cl1", _core);
 
-            SendSQLQuery(client1, "create table t(i int primary key)", expected);
-            SendSQLQuery(client1, "create table t(i int primary key)", expected);
-            SendSQLQuery(client1, "create table t(i int primary key)", expected);
-            SendSQLQuery(client1, "create table t(i int primary key)", expected);
-            SendSQLQuery(client1, "create table t(i int primary key)", expected);
-            SendSQLQuery(client1, "create table t(i int primary key)", expected);
-            SendSQLQuery(client1, "create table t(i int primary key)", expected);
-            SendSQLQuery(client1, "create table t(i int primary key)", expected);
-            SendSQLQuery(client1, "create table t(i int primary key)", expected);
-            SendSQLQuery(client1, "create table t(i int primary key)", expected);
-            expected.Save();
+            {
+                var _tail = "";
+                for (int i = 0; i < 1000; i++)
+                {
+                    SendSQLQuery(cl1, $"CREATE TABLE UnitMeasure{i}(Name CHAR({i}), UnitMeasureCode CHAR({i}), ModifiedDate INT{_tail});", expected);
+                    _tail += $", Name{i} CHAR({i}), UnitMeasureCode{i} CHAR({i})";
+                }
+            }
         }
     }
 }

@@ -212,7 +212,11 @@ namespace DataBaseEngine
             var colPool = table.TableMetaInf.ColumnPool;
             if (columnNames == null)
             {
-                return new OperationResult<Table>(ExecutionState.failed, null, new NullError(nameof(columnNames)));
+                columnNames = new List<Id>();
+                foreach(var col in table.TableMetaInf.ColumnPool)
+                {
+                    columnNames.Add(col.Name);
+                }
             }
             if (objectParams == null)
             {

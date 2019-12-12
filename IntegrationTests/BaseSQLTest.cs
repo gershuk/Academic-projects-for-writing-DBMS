@@ -15,7 +15,7 @@ namespace IntegrationTests
     {
         protected readonly string _testPath;
         protected readonly bool _fixtests;
-        protected void DelFiles()
+        protected void DelFiles ()
         {
             if (Directory.Exists(_testPath))
             {
@@ -26,7 +26,7 @@ namespace IntegrationTests
         {
             _fixtests = fixtests;
             _testPath = this.GetType().FullName;
-            
+
         }
 
         protected TestData GetTestData ()
@@ -47,10 +47,12 @@ namespace IntegrationTests
                 {
                     Console.WriteLine($"Fix test: {query}\nExpected:\n{expected.GetResult(cl)}\nGet:\n{res}\n00");
                     Console.WriteLine("Fix?(Y/N)");
+                    expected.FixResult(res, cl);
                     if (Console.ReadLine().Trim().ToLower() == "y")
                     {
                         expected.FixResult(res, cl);
                     }
+                    expected.Save();
                 }
             }
             Assert.AreEqual(expected.GetResult(cl), res);
@@ -66,10 +68,13 @@ namespace IntegrationTests
                 {
                     Console.WriteLine($"Fix test: {query}\nExpected:\n{expected.GetResult(cl)}\nGet:\n{res}\n00");
                     Console.WriteLine("Fix?(Y/N)");
-                    if (Console.ReadLine().Trim().ToLower() == "y")
-                    {
-                        expected.FixResult(res, cl);
-                    }
+                    expected.FixResult(res, cl);
+                    /* if (Console.ReadLine().Trim().ToLower() == "y")
+                     {
+                         expected.FixResult(res, cl);
+                     }*/
+                    //Console.ReadLine();
+                    expected.Save();
                 }
             }
             Assert.AreEqual(expected.GetResult(cl), res);

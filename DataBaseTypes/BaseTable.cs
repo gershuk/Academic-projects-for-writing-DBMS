@@ -346,7 +346,8 @@ namespace DataBaseType
         }
 
 
-        public override string ToString () => TableData == null ? ShowCreateTable().Result : ShowDataTable().Result;
+        public override string ToString () => TableData == null ?
+            ShowCreateTable().Result : ShowDataTable().Result;
 
         public OperationResult<string> ShowDataTable ()//To do Сделать красивый вывод таблички
         {

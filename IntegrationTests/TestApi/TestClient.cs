@@ -40,7 +40,14 @@ namespace IntegrationTests.TestApi
                 case ExecutionState.performed:
                     foreach (var info in value.Result.Answer)
                     {
-                        result += info.ToString() + "\n";
+                        var stringBuilder = new StringBuilder();
+                        stringBuilder.Append(Name.ToString());
+                        stringBuilder.Append("\n");
+                        foreach (var opResult in info.OperationsResults)
+                        {
+                            stringBuilder.Append($"{opResult}\n");
+                        }
+                        result += stringBuilder.ToString() + "\n";
                     }
                     break;
             }

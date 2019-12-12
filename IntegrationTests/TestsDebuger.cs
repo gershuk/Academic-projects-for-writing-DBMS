@@ -10,10 +10,14 @@ namespace IntegrationTests
     class TestsDebuger
     {
         private static void Main (string[] args)
-        {
+        {/*
             var test1 = new Create_ShowCreate(true);
             test1.TestTest();
             test1.TestCreateCommandSynax();
+            Console.ReadKey();
+            */
+            var test = new Insert_Delete(true);
+            test.InsertTest();
         }
     }
 }

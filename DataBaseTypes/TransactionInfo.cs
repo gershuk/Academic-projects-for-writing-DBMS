@@ -47,9 +47,6 @@ namespace DataBaseType
 
             stringBuilder.Append(Name.ToString());
             stringBuilder.Append("\n");
-            stringBuilder.Append($"Guid {Guid}\n");
-            stringBuilder.Append($"Start Time {StartTime}\n");
-            stringBuilder.Append($"End Time {EndTime}\n");
 
             foreach (var opResult in OperationsResults)
             {

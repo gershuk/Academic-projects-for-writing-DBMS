@@ -131,7 +131,7 @@ namespace SunflowerDB
 
         public object ExecuteSqlNode (Guid id, SelectCommandNode node)
         {
-            var expression = new ExpressionFunction(node.WhereExpression.Calc, node.WhereExpression.VariablesNames);
+            var expression = node.WhereExpression != null ? new ExpressionFunction(node.WhereExpression.Calc, node.WhereExpression.VariablesNames) : null;
 
             var selectResult = Engine.SelectCommand(id, node.TableName, node.ColumnIdList, expression);
 

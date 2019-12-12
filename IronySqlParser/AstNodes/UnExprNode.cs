@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using DataBaseType;
 
 namespace IronySqlParser.AstNodes
@@ -9,20 +10,20 @@ namespace IronySqlParser.AstNodes
         private OperatorNode _childOperator;
         private UnOp _unOp;
 
-        public override dynamic Calc () =>
+        public override dynamic Calc (Dictionary<Id, dynamic> variables) =>
             _unOp switch
             {
-                UnOp.Plus => _childOperator == null ? +Value.Data() : +_childOperator.Calc(),
-                UnOp.Minus => _childOperator == null ? -Value.Data() : -_childOperator.Calc(),
-                UnOp.Not => _childOperator == null ? !Value.Data() : !_childOperator.Calc(),
-                UnOp.Tilde => _childOperator == null ? ~Value.Data() : ~_childOperator.Calc(),
+                UnOp.Plus => +_childOperator?.Calc(variables),
+                UnOp.Minus => -_childOperator?.Calc(variables),
+                UnOp.Not => !_childOperator?.Calc(variables),
+                UnOp.Tilde => ~_childOperator?.Calc(variables),
                 _ => throw new NotImplementedException()
             };
 
 
         public override void CollectInfoFromChild ()
         {
-            Variables = new Dictionary<List<string>, Variable>();
+            VariablesNames = new List<Id>();
 
             _unOp = FindFirstChildNodeByType<UnOpNode>().UnOp;
 
@@ -31,10 +32,7 @@ namespace IronySqlParser.AstNodes
             if (operatorNode.Count > 0)
             {
                 _childOperator = operatorNode[0];
-                foreach (var variable in Variables)
-                {
-                    Variables.Add(variable.Key, variable.Value);
-                }
+                GetAllValuesNamesFromNode(operatorNode[0]);
             }
         }
     }

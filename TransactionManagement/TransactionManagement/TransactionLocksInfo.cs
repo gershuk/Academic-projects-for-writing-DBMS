@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+
 using ProtoBuf;
 
 namespace TransactionManagement
@@ -22,10 +23,7 @@ namespace TransactionManagement
         [ProtoMember(1)]
         public List<TableLock> TablesLocks { get; private set; }
 
-        public TransactionLocksInfo ()
-        {
-            TablesLocks = new List<TableLock>();
-        }
+        public TransactionLocksInfo () => TablesLocks = new List<TableLock>();
 
         public TransactionLocksInfo (List<TableLock> tablesLocks)
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using DataBaseType;
 
 namespace IronySqlParser.AstNodes
@@ -11,41 +12,41 @@ namespace IronySqlParser.AstNodes
         private ExpressionNode _leftOperand;
         private ExpressionNode _rightOperand;
 
-        public override dynamic Calc () =>
+        public override dynamic Calc (Dictionary<Id, dynamic> variables) =>
 
              _binOp switch
              {
-                 BinOp.Plus => _leftOperand.Calc() + _rightOperand.Calc(),
+                 BinOp.Plus => _leftOperand.Calc(variables) + _rightOperand.Calc(variables),
 
-                 BinOp.Minus => _leftOperand.Calc() - _rightOperand.Calc(),
+                 BinOp.Minus => _leftOperand.Calc(variables) - _rightOperand.Calc(variables),
 
-                 BinOp.Multiply => _leftOperand.Calc() * _rightOperand.Calc(),
+                 BinOp.Multiply => _leftOperand.Calc(variables) * _rightOperand.Calc(variables),
 
-                 BinOp.Divide => _leftOperand.Calc() / _rightOperand.Calc(),
+                 BinOp.Divide => _leftOperand.Calc(variables) / _rightOperand.Calc(variables),
 
-                 BinOp.Modulo => _leftOperand.Calc() % _rightOperand.Calc(),
+                 BinOp.Modulo => _leftOperand.Calc(variables) % _rightOperand.Calc(variables),
 
-                 BinOp.BitAnd => _leftOperand.Calc() & _rightOperand.Calc(),
+                 BinOp.BitAnd => _leftOperand.Calc(variables) & _rightOperand.Calc(variables),
 
-                 BinOp.BitOr => _leftOperand.Calc() | _rightOperand.Calc(),
+                 BinOp.BitOr => _leftOperand.Calc(variables) | _rightOperand.Calc(variables),
 
-                 BinOp.ExclusiveOr => _leftOperand.Calc() ^ _rightOperand.Calc(),
+                 BinOp.ExclusiveOr => _leftOperand.Calc(variables) ^ _rightOperand.Calc(variables),
 
-                 BinOp.Equal => _leftOperand.Calc() == _rightOperand.Calc(),
+                 BinOp.Equal => _leftOperand.Calc(variables) == _rightOperand.Calc(variables),
 
-                 BinOp.Greater => _leftOperand.Calc() > _rightOperand.Calc(),
+                 BinOp.Greater => _leftOperand.Calc(variables) > _rightOperand.Calc(variables),
 
-                 BinOp.Less => _leftOperand.Calc() < _rightOperand.Calc(),
+                 BinOp.Less => _leftOperand.Calc(variables) < _rightOperand.Calc(variables),
 
-                 BinOp.EqualGreater => _leftOperand.Calc() >= _rightOperand.Calc(),
+                 BinOp.EqualGreater => _leftOperand.Calc(variables) >= _rightOperand.Calc(variables),
 
-                 BinOp.EqualLess => _leftOperand.Calc() <= _rightOperand.Calc(),
+                 BinOp.EqualLess => _leftOperand.Calc(variables) <= _rightOperand.Calc(variables),
 
-                 BinOp.NotEqual => _leftOperand.Calc() != _rightOperand.Calc(),
+                 BinOp.NotEqual => _leftOperand.Calc(variables) != _rightOperand.Calc(variables),
 
-                 BinOp.And => _leftOperand.Calc() && _rightOperand.Calc(),
+                 BinOp.And => _leftOperand.Calc(variables) && _rightOperand.Calc(variables),
 
-                 BinOp.Or => _leftOperand.Calc() || _rightOperand.Calc(),
+                 BinOp.Or => _leftOperand.Calc(variables) || _rightOperand.Calc(variables),
 
                  _ => throw new NotImplementedException()
              };
@@ -58,17 +59,8 @@ namespace IronySqlParser.AstNodes
             _leftOperand = (ExpressionNode)childNodes[0];
             _rightOperand = (ExpressionNode)childNodes[2];
 
-            Variables = new Dictionary<List<string>, Variable>();
-
-            foreach (var variable in _leftOperand.Variables)
-            {
-                Variables.Add(variable.Key, variable.Value);
-            }
-
-            foreach (var variable in _rightOperand.Variables)
-            {
-                Variables.Add(variable.Key, variable.Value);
-            }
+            GetAllValuesNamesFromNode(_leftOperand);
+            GetAllValuesNamesFromNode(_rightOperand);
         }
     }
 }

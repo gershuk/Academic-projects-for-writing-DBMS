@@ -72,17 +72,15 @@ namespace SunflowerDB
                 {
                     tableLocks.AddRange(command.GetTableLocks());
                 }
-
                 var transactionLocksInfo = new TransactionLocksInfo(tableLocks);
+
+                var trGuid = _transactionScheduler.RegisterTransaction(transactionLocksInfo);
 
                 var transaction = new TransactionInfo()
                 {
-                    Name = transactionNode.TransactionBeginOptNode?.TransactionName,
-                    Guid = _transactionScheduler.RegisterTransaction(transactionLocksInfo),
-                    LocksInfo = transactionLocksInfo
+                    Name = transactionNode.TransactionBeginOptNode?.TransactionName ?? new Id(new List<string>() { trGuid.ToString() }),
+                    Guid = trGuid
                 };
-
-                transaction.Name ??= new List<string>() { transaction.Guid.ToString() };
 
                 _transactionScheduler.WaitTransactionResourceLock(transaction.Guid);
 
@@ -93,9 +91,17 @@ namespace SunflowerDB
 
                 if (state == ExecutionState.performed)
                 {
-                    foreach (var stmt in transactionNode.StmtListNode.StmtList)
+                    if (transactionNode.StmtListNode != null)
                     {
-                        var table = _engineCommander.GetTableByName(transaction.Guid, stmt.SqlCommand.ReturnedTableName);
+                        foreach (var stmt in transactionNode.StmtListNode.StmtList)
+                        {
+                            var table = _engineCommander.GetTableByName(transaction.Guid, stmt.SqlCommand.ReturnedTableName);
+                            transaction.OperationsResults.Add(table);
+                        }
+                    }
+                    else
+                    {
+                        var table = _engineCommander.GetTableByName(transaction.Guid, transactionNode.SqlCommandNode.ReturnedTableName);
                         transaction.OperationsResults.Add(table);
                     }
 

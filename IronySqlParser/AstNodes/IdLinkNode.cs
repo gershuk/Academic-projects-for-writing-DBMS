@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
     public class IdLinkNode : SqlNode
     {
-        public List<string> TableName { get; private set; }
+        public Id TableName { get; private set; }
         public override void CollectInfoFromChild ()
         {
             var sqlCommandNode = FindFirstChildNodeByType<SqlCommandNode>();
             TableName = sqlCommandNode?.ReturnedTableName;
-            TableName ??= FindFirstChildNodeByType<IdNode>().Id;
+            TableName ??= new Id(FindFirstChildNodeByType<IdNode>().Id);
         }
     }
 }

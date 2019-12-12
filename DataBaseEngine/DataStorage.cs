@@ -3,340 +3,24 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 using DataBaseType;
+
 using ZeroFormatter;
 
 namespace StorageEngine
 {
-    [ZeroFormattable]
-    public class DataBlockNode
-    {
-        [Index(0)]
-        public virtual int CountRealRecords { get; set; } = 0;
-
-        [Index(1)]
-        public virtual int CountNotDeletedRecords { get; set; } = 0;
-
-        [Index(2)]
-        public virtual int NextBlock { get; set; } = 0;
-
-        [Index(3)]
-        public virtual int PrevBlock { get; set; } = 0;
-
-        [Index(4)]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1819:Properties should not return arrays", Justification = "<Ожидание>")]
-        public virtual byte[] Data { get; set; } = null;
-
-        public DataBlockNode()
-        {
-
-        }
-
-        public DataBlockNode(DataBlockNode from)
-        {
-            if (from is null)
-            {
-                throw new ArgumentNullException(nameof(from));
-            }
-
-            CountRealRecords = from.CountRealRecords;
-            CountNotDeletedRecords = from.CountNotDeletedRecords;
-            NextBlock = from.NextBlock;
-            PrevBlock = from.PrevBlock;
-            Data = from.Data;
-        }
-
-        public DataBlockNode(int prevBlock, int nextBlock, int dataSize)
-        {
-            PrevBlock = prevBlock;
-            NextBlock = nextBlock;
-            Data = Enumerable.Repeat((byte)0x33, dataSize).ToArray();
-            Data[0] = 77;
-            CountRealRecords = 0;
-            CountNotDeletedRecords = 0;
-        }
-        public bool InsertRecord(RowRecord record, int recordSize)
-        {
-            if (CountRealRecords * recordSize + recordSize > Data.Length)
-            {
-                return false;
-            }
-
-            SaveRecord(record, CountRealRecords, recordSize);
-            CountRealRecords++;
-            CountNotDeletedRecords++;
-            return true;
-        }
-        public RowRecord LoadRowRecord(int pos, int recordSize)
-        {
-            if (pos < CountRealRecords)
-            {
-                using var memStream = new MemoryStream(Data);
-                memStream.Seek(pos * recordSize, SeekOrigin.Begin);
-                var recordBytes = new byte[recordSize];
-                memStream.Read(recordBytes, 0, recordBytes.Length);
-                return ZeroFormatterSerializer.Deserialize<RowRecord>(recordBytes);
-            }
-            else
-            {
-                return null;
-            }
-        }
-        public void SaveRecord(RowRecord record, int pos, int recordSize)
-        {
-            using var memStream = new MemoryStream(Data);
-            memStream.Seek(pos * recordSize, SeekOrigin.Begin);
-            var buffer = new byte[recordSize];
-            ZeroFormatterSerializer.Serialize(ref buffer, 0, record);
-            memStream.Write(buffer, 0, buffer.Length);
-        }
-        public bool DeleteRecord(int pos, int recordSize)
-        {
-            var rowRecord = LoadRowRecord(pos, recordSize);
-            rowRecord.IsDeleted = true;
-            SaveRecord(rowRecord, pos, recordSize);
-            CountNotDeletedRecords--;
-            return CountNotDeletedRecords == 0;
-        }
-        public bool UpdateRecord(RowRecord newRecord, int pos, int recordSize)
-        {
-            SaveRecord(newRecord, pos, recordSize);
-            return true;
-        }
-        public RecordsInDataBlockNodeEnumarator GetRowRecrodsEnumerator(int recordSize) => new RecordsInDataBlockNodeEnumarator(this, recordSize);
-    }
-
-
-    [ZeroFormattable]
-    public class RowRecord
-    {
-        [Index(0)]
-        public virtual bool IsDeleted { get; set; }
-
-        [Index(1)]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1819:Properties should not return arrays", Justification = "<Ожидание>")]
-        public virtual Row Fields { get; set; }
-
-        public RowRecord()
-        {
-
-        }
-
-        public RowRecord(Row fields)
-        {
-            Fields = fields;
-            IsDeleted = false;
-        }
-    }
-
-    public class RecordsInDataBlockNodeEnumarator : IEnumerator<RowRecord>
-    {
-        public RowRecord Current { get; private set; }
-        object IEnumerator.Current => throw new NotImplementedException();
-
-        private readonly DataBlockNode _dataBlock;
-        private readonly int _recordSize;
-        private int _curPos;
-        private bool _disposed = false;
-
-        public RecordsInDataBlockNodeEnumarator(DataBlockNode dataBlock, int recordSize)
-        {
-            _dataBlock = dataBlock;
-            _recordSize = recordSize;
-            Reset();
-        }
-
-        // Public implementation of Dispose pattern callable by consumers.
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        // Protected implementation of Dispose pattern.
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (disposing)
-            {
-                // Free any other managed objects here.
-            }
-
-            _disposed = true;
-        }
-
-        public bool MoveNext()
-        {
-            _curPos++;
-            Current = _dataBlock.LoadRowRecord(_curPos, _recordSize);
-            return Current != null ? Current.IsDeleted ? MoveNext() : true : false;
-        }
-
-        public bool DeleteCurRow() => _dataBlock.DeleteRecord(_curPos, _recordSize);
-
-        public bool UpdateCurRow(RowRecord rowRecord) => _dataBlock.UpdateRecord(rowRecord, _curPos, _recordSize);
-
-        public void Reset() => _curPos = -1;
-    }
-
-    internal class DataStorageRowsInFiles : IEnumerable<Row>
-    {
-       // private TableFileManager _tManager;
-        private string _tableFileName;
-
-        public DataStorageRowsInFiles(string fileName) => _tableFileName = fileName;
-        public IEnumerator<Row> GetEnumerator() => new DataStorageRowsInFilesEnumerator(new TableFileManager(new FileStream(_tableFileName,FileMode.Open)));
-
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
-
-    }
-
-    internal class DataStorageRowsInFilesEnumerator : IEnumerator<Row>
-    {
-        public Row Current { get; private set; }
-        object IEnumerator.Current => throw new NotImplementedException();
-
-        private readonly TableFileManager _tManager;
-        private TableFileManagerDataBlockNodeEnumerator _blocks;
-        private RecordsInDataBlockNodeEnumarator _curRowRecordsEnumarator;
-        private bool _disposed = false;
-
-        public DataStorageRowsInFilesEnumerator(TableFileManager tManager)
-        {
-            _tManager = tManager;
-            Reset();
-
-        }
-
-        // Public implementation of Dispose pattern callable by consumers.
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        // Protected implementation of Dispose pattern.
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (disposing)
-            {
-                _tManager.Dispose();
-                _blocks.Dispose();
-                if (_curRowRecordsEnumarator != null)
-                {
-                    _curRowRecordsEnumarator.Dispose();
-                }
-
-            }
-
-            _disposed = true;
-        }
-
-        public bool UpdateCurrentRow(Row newRow)
-        {
-            _curRowRecordsEnumarator.UpdateCurRow(new RowRecord(newRow));
-            _tManager.SaveDataBlock(_blocks.Current, _blocks.CurrentOffset);
-            return MoveNext();
-        }
-
-        public bool DeleteCurrentRow()
-        {
-            var res = _curRowRecordsEnumarator.DeleteCurRow();
-            var prevBlock = _blocks.Current;
-
-            if (res)
-            {
-                _tManager.DeleteBlock(prevBlock);
-            }
-            else
-            {
-                _tManager.SaveDataBlock(_blocks.Current, _blocks.CurrentOffset);
-            }
-
-            return MoveNext();
-        }
-
-        public bool MoveNext()
-        {
-            if (_curRowRecordsEnumarator == null)
-            {
-                var res = _blocks.MoveNext();
-                if (!res)
-                {
-                    return res;
-                }
-                _curRowRecordsEnumarator = _blocks.Current.GetRowRecrodsEnumerator(_tManager.RowRecordSize);
-            }
-            if (_curRowRecordsEnumarator.MoveNext())
-            {
-                Current = _curRowRecordsEnumarator.Current.Fields;
-                return true;
-            }
-            else
-            {
-                if (_blocks.MoveNext())
-                {
-                    _curRowRecordsEnumarator = _blocks.Current.GetRowRecrodsEnumerator(_tManager.RowRecordSize);
-                    _curRowRecordsEnumarator.MoveNext();
-                    Current = _curRowRecordsEnumarator.Current.Fields;
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-
-            }
-        }
-
-        public void Reset()
-        {
-            _blocks = _tManager.GetBlockEnumarator();
-            _curRowRecordsEnumarator = null;
-            Current = null;
-        }
-    }
-    [ZeroFormattable]
-    public class MetaInfDataStorage
-    {
-        [Index(0)]
-        public virtual int TableMetaInfSize { get; set; } = 0;
-
-        [Index(1)]
-        public virtual int RowRecordSize { get; set; } = 0;
-
-        [Index(2)]
-        public virtual int DataBlockSize { get; set; } = 0;
-
-        [Index(3)]
-        public virtual int HeadFreeBlockList { get; set; } = 0;
-
-        [Index(4)]
-        public virtual int HeadDataBlockList { get; set; } = 0;
-    }
-
 
     public interface IDataStorage
     {
-        OperationResult<Table> LoadTable(List<string> tableName);
-        OperationResult<bool> ContainsTable(List<string> tableName);
-        OperationResult<string> AddTable(Table table);
-        OperationResult<string> RemoveTable(List<string> tableName);
+        OperationResult<Table> LoadTable (Id tableName);
+        OperationResult<bool> ContainsTable (Id tableName);
+        OperationResult<string> AddTable (Table table);
+        OperationResult<string> RemoveTable (Id tableName);
 
-        OperationResult<string> UpdateAllRow(List<string> tableName, Row newRow, Predicate<Row> match);
-        OperationResult<string> InsertRow(List<string> tableName, Row fields);
-        OperationResult<string> RemoveAllRow(List<string> tableName, Predicate<Row> match);
+        OperationResult<string> UpdateAllRow (Id tableName, Row newRow, Predicate<Row> match);
+        OperationResult<string> InsertRow (Id tableName, Row fields);
+        OperationResult<string> RemoveAllRow (Id tableName, Predicate<Row> match);
     }
 
     public class DataStorageInFiles : IDataStorage
@@ -345,7 +29,7 @@ namespace StorageEngine
 
         private const string _fileExtension = ".tdb";
         private readonly int _blockSize = 4096;
-        public DataStorageInFiles(string path, int blockSize)
+        public DataStorageInFiles (string path, int blockSize)
         {
             _blockSize = blockSize;
             PathToDataBase = path;
@@ -355,36 +39,29 @@ namespace StorageEngine
             }
         }
 
-        public OperationResult<Table> LoadTable(List<string> tableName)
+        public OperationResult<Table> LoadTable (Id tableName)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
                 return new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
             }
             Table table;
-            using( var tManager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)) ){ 
-             table = tManager.LoadTable();
-             table.TableData = new DataStorageRowsInFiles(GetTableFileName(tableName));
+            using (var tManager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
+            {
+                table = tManager.LoadTable();
+                table.TableData = new DataStorageRowsInFiles(GetTableFileName(tableName));
             }
 
             return new OperationResult<Table>(ExecutionState.performed, table);
         }
-       static private string FullTableName(List<string> tableName)
-        {
-            _ = tableName ?? throw new ArgumentNullException(nameof(tableName));
-            var sb = new StringBuilder();
-            foreach (var n in tableName)
-            {
-                sb.Append(n);
-            }
-            return sb.ToString();
-        }
-        public OperationResult<bool> ContainsTable(List<string> tableName) => File.Exists(GetTableFileName(tableName)) ? new OperationResult<bool>(ExecutionState.performed, true)
+        private static string FullTableName (Id tableName) => tableName.ToString();
+
+        public OperationResult<bool> ContainsTable (Id tableName) => File.Exists(GetTableFileName(tableName)) ? new OperationResult<bool>(ExecutionState.performed, true)
                                                                                                                        : new OperationResult<bool>(ExecutionState.failed, false, new TableNotExistError(FullTableName(tableName)));
 
 
 
-        public OperationResult<string> AddTable(Table table)
+        public OperationResult<string> AddTable (Table table)
         {
             _ = table ?? throw new ArgumentNullException(nameof(table));
             if (File.Exists(GetTableFileName(table.TableMetaInf.Name)))
@@ -395,7 +72,7 @@ namespace StorageEngine
             return new OperationResult<string>(ExecutionState.performed, "");
         }
 
-        public OperationResult<string> RemoveTable(List<string> tableName)
+        public OperationResult<string> RemoveTable (Id tableName)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
@@ -407,7 +84,7 @@ namespace StorageEngine
             return new OperationResult<string>(ExecutionState.performed, "");
         }
 
-        public OperationResult<string> UpdateAllRow(List<string> tableName, Row newRow, Predicate<Row> match)
+        public OperationResult<string> UpdateAllRow (Id tableName, Row newRow, Predicate<Row> match)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
@@ -427,7 +104,7 @@ namespace StorageEngine
             return new OperationResult<string>(ExecutionState.performed, "");
         }
 
-        public OperationResult<string> InsertRow(List<string> tableName, Row fields)
+        public OperationResult<string> InsertRow (Id tableName, Row fields)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
@@ -443,7 +120,7 @@ namespace StorageEngine
             return new OperationResult<string>(ExecutionState.performed, "");
         }
 
-        public OperationResult<string> RemoveAllRow(List<string> tableName, Predicate<Row> match)
+        public OperationResult<string> RemoveAllRow (Id tableName, Predicate<Row> match)
         {
 
             if (!File.Exists(GetTableFileName(tableName)))
@@ -464,9 +141,9 @@ namespace StorageEngine
             return new OperationResult<string>(ExecutionState.performed, "");
         }
 
-        private void CreateDataStorageFolder(string path) => Directory.CreateDirectory(path);
+        private void CreateDataStorageFolder (string path) => Directory.CreateDirectory(path);
 
-        private string GetTableFileName(List<string> tableName) => PathToDataBase + "/" + FullTableName(tableName) + _fileExtension;
+        private string GetTableFileName (Id tableName) => PathToDataBase + "/" + FullTableName(tableName) + _fileExtension;
 
     }
 
@@ -480,21 +157,21 @@ namespace StorageEngine
         private readonly TableFileManager _tManager;
         private bool _disposed = false;
 
-        public TableFileManagerDataBlockNodeEnumerator(TableFileManager tManager_)
+        public TableFileManagerDataBlockNodeEnumerator (TableFileManager tManager_)
         {
             _tManager = tManager_;
             Reset();
         }
 
         // Public implementation of Dispose pattern callable by consumers.
-        public void Dispose()
+        public void Dispose ()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
         // Protected implementation of Dispose pattern.
-        protected virtual void Dispose(bool disposing)
+        protected virtual void Dispose (bool disposing)
         {
             if (_disposed)
             {
@@ -511,7 +188,7 @@ namespace StorageEngine
             _disposed = true;
         }
 
-        public bool MoveNext()
+        public bool MoveNext ()
         {
             if (Current == null)
             {
@@ -532,7 +209,7 @@ namespace StorageEngine
             }
         }
 
-        public void Reset() => CurrentOffset = _tManager.metaInfDataStorage.HeadDataBlockList;// Current = tManager.LoadHeadDataBlock();
+        public void Reset () => CurrentOffset = _tManager.metaInfDataStorage.HeadDataBlockList;// Current = tManager.LoadHeadDataBlock();
     }
 
     internal class TableFileManager : IDisposable
@@ -541,13 +218,13 @@ namespace StorageEngine
         public int RowRecordSize => metaInfDataStorage.RowRecordSize;
         public MetaInfDataStorage metaInfDataStorage;
 
-        public TableFileManager(FileStream fileStream)
+        public TableFileManager (FileStream fileStream)
         {
             _fileStream = fileStream;
             metaInfDataStorage = LoadMetaInfStorage();
         }
 
-        public TableFileManager(FileStream fs_, Table table, int blockSize)
+        public TableFileManager (FileStream fs_, Table table, int blockSize)
         {
             _fileStream = fs_;
             using var memStream = new MemoryStream();
@@ -558,7 +235,7 @@ namespace StorageEngine
             metaInfDataStorage = LoadMetaInfStorage();
         }
 
-        private int CalculateDataBlockNodeSize()
+        private int CalculateDataBlockNodeSize ()
         {
             using var memStream = new MemoryStream();
             var dataBlock = new DataBlockNode(0, 0, 1);
@@ -566,7 +243,7 @@ namespace StorageEngine
             return metaInfDataStorage.DataBlockSize - (int)memStream.Length + 1;
         }
 
-        private static int GetCalculateMetaInfDataStorageSize()
+        private static int GetCalculateMetaInfDataStorageSize ()
         {
             using var memStream = new MemoryStream();
 
@@ -584,7 +261,7 @@ namespace StorageEngine
             return (int)memStream.Length;
         }
 
-        private int CalculateRowRecordSize(Table table)
+        private int CalculateRowRecordSize (Table table)
         {
             using var memStream = new MemoryStream();
             var rowRecord = new RowRecord(table.CreateDefaultRow().Result);
@@ -592,7 +269,7 @@ namespace StorageEngine
             return (int)memStream.Length;
         }
 
-        public void InsertRecord(RowRecord rowRecord)
+        public void InsertRecord (RowRecord rowRecord)
         {
 
             var dataBlock = LoadDataBlock(metaInfDataStorage.HeadDataBlockList);
@@ -606,27 +283,27 @@ namespace StorageEngine
             SaveDataBlock(dataBlock, metaInfDataStorage.HeadDataBlockList);
         }
 
-        private void CreateMetaInfInEnd(MetaInfDataStorage meta)
+        private void CreateMetaInfInEnd (MetaInfDataStorage meta)
         {
             _fileStream.Seek(0, SeekOrigin.End);
             ZeroFormatterSerializer.Serialize(_fileStream, meta);
             metaInfDataStorage = LoadMetaInfStorage();
         }
 
-        private void SaveMetaInfStorage(MetaInfDataStorage meta)
+        private void SaveMetaInfStorage (MetaInfDataStorage meta)
         {
             _fileStream.Seek(-GetCalculateMetaInfDataStorageSize(), SeekOrigin.End);
             ZeroFormatterSerializer.Serialize(_fileStream, meta);
             metaInfDataStorage = LoadMetaInfStorage();
         }
 
-        private MetaInfDataStorage LoadMetaInfStorage()
+        private MetaInfDataStorage LoadMetaInfStorage ()
         {
             _fileStream.Seek(-GetCalculateMetaInfDataStorageSize(), SeekOrigin.End);
             return ZeroFormatterSerializer.Deserialize<MetaInfDataStorage>(_fileStream);
         }
 
-        public void DeleteBlock(DataBlockNode block)
+        public void DeleteBlock (DataBlockNode block)
         {
             var nextBlock = LoadDataBlock(block.NextBlock);
             var prevBlock = LoadDataBlock(block.PrevBlock);
@@ -667,7 +344,7 @@ namespace StorageEngine
             SaveMetaInfStorage(metaInfDataStorage);
         }
 
-        public void MoveNewBlockToHead()
+        public void MoveNewBlockToHead ()
         {
             if (metaInfDataStorage.HeadFreeBlockList == 0)
             {
@@ -698,7 +375,7 @@ namespace StorageEngine
                 SaveMetaInfStorage(metaInfDataStorage);
             }
         }
-        public void SaveDataBlock(DataBlockNode block, int offset)
+        public void SaveDataBlock (DataBlockNode block, int offset)
         {
             _fileStream.Seek(offset, SeekOrigin.Begin);
             //using var memStream = new MemoryStream();
@@ -707,7 +384,7 @@ namespace StorageEngine
             //memStream.CopyTo(fs);
             _fileStream.Flush(true);
         }
-        public void CreateAndAddDataBlock()
+        public void CreateAndAddDataBlock ()
         {
             var metaInf = metaInfDataStorage;
             DataBlockNode newBlock;
@@ -730,7 +407,7 @@ namespace StorageEngine
             CreateMetaInfInEnd(metaInf);
         }
 
-        public DataBlockNode LoadDataBlock(int offset)
+        public DataBlockNode LoadDataBlock (int offset)
         {
             if (offset == 0)
             {
@@ -748,11 +425,11 @@ namespace StorageEngine
             return ZeroFormatterSerializer.Deserialize<DataBlockNode>(memStream);
         }
 
-        public DataBlockNode LoadHeadDataBlock() => LoadDataBlock(metaInfDataStorage.HeadDataBlockList);
+        public DataBlockNode LoadHeadDataBlock () => LoadDataBlock(metaInfDataStorage.HeadDataBlockList);
 
-        public TableFileManagerDataBlockNodeEnumerator GetBlockEnumarator() => new TableFileManagerDataBlockNodeEnumerator(this);
+        public TableFileManagerDataBlockNodeEnumerator GetBlockEnumarator () => new TableFileManagerDataBlockNodeEnumerator(this);
 
-        public Table LoadTable()
+        public Table LoadTable ()
         {
             var table = new Table();
             _fileStream.Seek(0, SeekOrigin.Begin);
@@ -763,6 +440,323 @@ namespace StorageEngine
             return table;
         }
 
-        public void Dispose() => _fileStream.Dispose();
+        public void Dispose () => _fileStream.Dispose();
     }
+    [ZeroFormattable]
+    public class DataBlockNode
+    {
+        [Index(0)]
+        public virtual int CountRealRecords { get; set; } = 0;
+
+        [Index(1)]
+        public virtual int CountNotDeletedRecords { get; set; } = 0;
+
+        [Index(2)]
+        public virtual int NextBlock { get; set; } = 0;
+
+        [Index(3)]
+        public virtual int PrevBlock { get; set; } = 0;
+
+        [Index(4)]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1819:Properties should not return arrays", Justification = "<Ожидание>")]
+        public virtual byte[] Data { get; set; } = null;
+
+        public DataBlockNode ()
+        {
+
+        }
+
+        public DataBlockNode (DataBlockNode from)
+        {
+            if (from is null)
+            {
+                throw new ArgumentNullException(nameof(from));
+            }
+
+            CountRealRecords = from.CountRealRecords;
+            CountNotDeletedRecords = from.CountNotDeletedRecords;
+            NextBlock = from.NextBlock;
+            PrevBlock = from.PrevBlock;
+            Data = from.Data;
+        }
+
+        public DataBlockNode (int prevBlock, int nextBlock, int dataSize)
+        {
+            PrevBlock = prevBlock;
+            NextBlock = nextBlock;
+            Data = Enumerable.Repeat((byte)0x33, dataSize).ToArray();
+            Data[0] = 77;
+            CountRealRecords = 0;
+            CountNotDeletedRecords = 0;
+        }
+        public bool InsertRecord (RowRecord record, int recordSize)
+        {
+            if (CountRealRecords * recordSize + recordSize > Data.Length)
+            {
+                return false;
+            }
+
+            SaveRecord(record, CountRealRecords, recordSize);
+            CountRealRecords++;
+            CountNotDeletedRecords++;
+            return true;
+        }
+        public RowRecord LoadRowRecord (int pos, int recordSize)
+        {
+            if (pos < CountRealRecords)
+            {
+                using var memStream = new MemoryStream(Data);
+                memStream.Seek(pos * recordSize, SeekOrigin.Begin);
+                var recordBytes = new byte[recordSize];
+                memStream.Read(recordBytes, 0, recordBytes.Length);
+                return ZeroFormatterSerializer.Deserialize<RowRecord>(recordBytes);
+            }
+            else
+            {
+                return null;
+            }
+        }
+        public void SaveRecord (RowRecord record, int pos, int recordSize)
+        {
+            using var memStream = new MemoryStream(Data);
+            memStream.Seek(pos * recordSize, SeekOrigin.Begin);
+            var buffer = new byte[recordSize];
+            ZeroFormatterSerializer.Serialize(ref buffer, 0, record);
+            memStream.Write(buffer, 0, buffer.Length);
+        }
+        public bool DeleteRecord (int pos, int recordSize)
+        {
+            var rowRecord = LoadRowRecord(pos, recordSize);
+            rowRecord.IsDeleted = true;
+            SaveRecord(rowRecord, pos, recordSize);
+            CountNotDeletedRecords--;
+            return CountNotDeletedRecords == 0;
+        }
+        public bool UpdateRecord (RowRecord newRecord, int pos, int recordSize)
+        {
+            SaveRecord(newRecord, pos, recordSize);
+            return true;
+        }
+        public RecordsInDataBlockNodeEnumarator GetRowRecrodsEnumerator (int recordSize) => new RecordsInDataBlockNodeEnumarator(this, recordSize);
+    }
+
+
+    [ZeroFormattable]
+    public class RowRecord
+    {
+        [Index(0)]
+        public virtual bool IsDeleted { get; set; }
+
+        [Index(1)]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1819:Properties should not return arrays", Justification = "<Ожидание>")]
+        public virtual Row Fields { get; set; }
+
+        public RowRecord ()
+        {
+
+        }
+
+        public RowRecord (Row fields)
+        {
+            Fields = fields;
+            IsDeleted = false;
+        }
+    }
+
+    public class RecordsInDataBlockNodeEnumarator : IEnumerator<RowRecord>
+    {
+        public RowRecord Current { get; private set; }
+        object IEnumerator.Current => throw new NotImplementedException();
+
+        private readonly DataBlockNode _dataBlock;
+        private readonly int _recordSize;
+        private int _curPos;
+        private bool _disposed = false;
+
+        public RecordsInDataBlockNodeEnumarator (DataBlockNode dataBlock, int recordSize)
+        {
+            _dataBlock = dataBlock;
+            _recordSize = recordSize;
+            Reset();
+        }
+
+        // Public implementation of Dispose pattern callable by consumers.
+        public void Dispose ()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        // Protected implementation of Dispose pattern.
+        protected virtual void Dispose (bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                // Free any other managed objects here.
+            }
+
+            _disposed = true;
+        }
+
+        public bool MoveNext ()
+        {
+            _curPos++;
+            Current = _dataBlock.LoadRowRecord(_curPos, _recordSize);
+            return Current != null ? Current.IsDeleted ? MoveNext() : true : false;
+        }
+
+        public bool DeleteCurRow () => _dataBlock.DeleteRecord(_curPos, _recordSize);
+
+        public bool UpdateCurRow (RowRecord rowRecord) => _dataBlock.UpdateRecord(rowRecord, _curPos, _recordSize);
+
+        public void Reset () => _curPos = -1;
+    }
+
+    internal class DataStorageRowsInFiles : IEnumerable<Row>
+    {
+        // private TableFileManager _tManager;
+        private readonly string _tableFileName;
+
+        public DataStorageRowsInFiles (string fileName) => _tableFileName = fileName;
+        public IEnumerator<Row> GetEnumerator () => new DataStorageRowsInFilesEnumerator(new TableFileManager(new FileStream(_tableFileName, FileMode.Open)));
+
+        IEnumerator IEnumerable.GetEnumerator () => throw new NotImplementedException();
+
+    }
+
+    internal class DataStorageRowsInFilesEnumerator : IEnumerator<Row>
+    {
+        public Row Current { get; private set; }
+        object IEnumerator.Current => throw new NotImplementedException();
+
+        private readonly TableFileManager _tManager;
+        private TableFileManagerDataBlockNodeEnumerator _blocks;
+        private RecordsInDataBlockNodeEnumarator _curRowRecordsEnumarator;
+        private bool _disposed = false;
+
+        public DataStorageRowsInFilesEnumerator (TableFileManager tManager)
+        {
+            _tManager = tManager;
+            Reset();
+
+        }
+
+        // Public implementation of Dispose pattern callable by consumers.
+        public void Dispose ()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        // Protected implementation of Dispose pattern.
+        protected virtual void Dispose (bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                _tManager.Dispose();
+                _blocks.Dispose();
+                if (_curRowRecordsEnumarator != null)
+                {
+                    _curRowRecordsEnumarator.Dispose();
+                }
+
+            }
+
+            _disposed = true;
+        }
+
+        public bool UpdateCurrentRow (Row newRow)
+        {
+            _curRowRecordsEnumarator.UpdateCurRow(new RowRecord(newRow));
+            _tManager.SaveDataBlock(_blocks.Current, _blocks.CurrentOffset);
+            return MoveNext();
+        }
+
+        public bool DeleteCurrentRow ()
+        {
+            var res = _curRowRecordsEnumarator.DeleteCurRow();
+            var prevBlock = _blocks.Current;
+
+            if (res)
+            {
+                _tManager.DeleteBlock(prevBlock);
+            }
+            else
+            {
+                _tManager.SaveDataBlock(_blocks.Current, _blocks.CurrentOffset);
+            }
+
+            return MoveNext();
+        }
+
+        public bool MoveNext ()
+        {
+            if (_curRowRecordsEnumarator == null)
+            {
+                var res = _blocks.MoveNext();
+                if (!res)
+                {
+                    return res;
+                }
+                _curRowRecordsEnumarator = _blocks.Current.GetRowRecrodsEnumerator(_tManager.RowRecordSize);
+            }
+            if (_curRowRecordsEnumarator.MoveNext())
+            {
+                Current = _curRowRecordsEnumarator.Current.Fields;
+                return true;
+            }
+            else
+            {
+                if (_blocks.MoveNext())
+                {
+                    _curRowRecordsEnumarator = _blocks.Current.GetRowRecrodsEnumerator(_tManager.RowRecordSize);
+                    _curRowRecordsEnumarator.MoveNext();
+                    Current = _curRowRecordsEnumarator.Current.Fields;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+
+            }
+        }
+
+        public void Reset ()
+        {
+            _blocks = _tManager.GetBlockEnumarator();
+            _curRowRecordsEnumarator = null;
+            Current = null;
+        }
+    }
+    [ZeroFormattable]
+    public class MetaInfDataStorage
+    {
+        [Index(0)]
+        public virtual int TableMetaInfSize { get; set; } = 0;
+
+        [Index(1)]
+        public virtual int RowRecordSize { get; set; } = 0;
+
+        [Index(2)]
+        public virtual int DataBlockSize { get; set; } = 0;
+
+        [Index(3)]
+        public virtual int HeadFreeBlockList { get; set; } = 0;
+
+        [Index(4)]
+        public virtual int HeadDataBlockList { get; set; } = 0;
+    }
+
+
 }

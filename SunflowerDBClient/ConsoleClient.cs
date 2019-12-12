@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Text;
+
 using ConsoleClientServer;
+
 using DataBaseType;
 using ProtoBuf;
 

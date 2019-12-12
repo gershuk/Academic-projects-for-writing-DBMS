@@ -1,16 +1,19 @@
 ﻿using System.Collections.Generic;
+
+using DataBaseType;
+
 using TransactionManagement;
 
 namespace IronySqlParser.AstNodes
 {
     public class CreateTableCommandNode : SqlCommandNode
     {
-        public List<string> TableName { get; set; }
+        public Id TableName { get; set; }
         public List<FieldDefNode> FieldDefList { get; set; }
 
         public override void CollectInfoFromChild ()
         {
-            TableName = FindFirstChildNodeByType<IdNode>().Id;
+            TableName = new Id(FindFirstChildNodeByType<IdNode>().Id);
             FieldDefList = FindFirstChildNodeByType<FieldDefListNode>().FieldDefList;
         }
 

@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
     public class FromClauseNode : SqlNode
     {
-        public List<string> IdList { get; set; }
+        public Id IdList { get; set; }
 
         public override void CollectInfoFromChild ()
         {

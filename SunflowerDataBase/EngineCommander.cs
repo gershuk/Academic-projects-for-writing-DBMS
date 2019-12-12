@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using DataBaseEngine;
 
 using DataBaseType;
+
 using IronySqlParser.AstNodes;
 
 namespace SunflowerDB
@@ -13,7 +14,7 @@ namespace SunflowerDB
         public (ExecutionState state, DBError exception) ExecuteCommands (Guid transactionGuid, List<SqlCommandNode> sqlCommand);
         public void RollBackTransaction (Guid transactionGuid);
         public void CommitTransaction (Guid transactionGuid);
-        public OperationResult<Table> GetTableByName (Guid transactionGuid, List<string> tableName);
+        public OperationResult<Table> GetTableByName (Guid transactionGuid, Id tableName);
         public void StartTransaction (Guid transactionGuid);
     }
 
@@ -36,8 +37,6 @@ namespace SunflowerDB
 
             return (ExecutionState.performed, null);
         }
-
-        //public object ExecuteSqlNode (Guid id, SqlNode node) => node.Accept(id, this);
 
         public object ExecuteSqlNode (Guid id, CreateTableCommandNode node)
         {
@@ -90,13 +89,15 @@ namespace SunflowerDB
 
         public object ExecuteSqlNode (Guid id, InsertCommandNode node)
         {
+            Id TableName = null;
+
             foreach (var insertObject in node.InsertDataNode.InsertDataListNode.InsertObjects)
             {
                 var parmsList = new List<ExpressionFunction>();
 
                 foreach (var param in insertObject.ObjectParams)
                 {
-                    parmsList.Add(new ExpressionFunction(param.Calc, param.Variables));
+                    parmsList.Add(new ExpressionFunction(param.Calc, param.VariablesNames));
                 }
 
                 var insertResult = Engine.InsertCommand(id, node.TableName, node.ColumnNames.IdListNode.IdList, parmsList);
@@ -106,19 +107,17 @@ namespace SunflowerDB
                     return insertResult;
                 }
 
-                node.SetReturnedTableName(insertResult.Result.TableMetaInf.Name);
+                TableName = insertResult.Result.TableMetaInf.Name;
             }
+
+            node.SetReturnedTableName(TableName);
 
             return new OperationResult<Table>(ExecutionState.performed, null);
         }
 
         public object ExecuteSqlNode (Guid id, DeleteCommandNode node)
         {
-            var expression = new ExpressionFunction()
-            {
-                CalcFunc = node.WhereClauseNode.Expression.Calc,
-                Variables = node.WhereClauseNode.Expression.Variables
-            };
+            var expression = new ExpressionFunction(node.WhereClauseNode.Expression.Calc, node.WhereClauseNode.Expression.VariablesNames);
 
             var deleteResult = Engine.DeleteCommand(id, node.TableName, expression);
 
@@ -132,11 +131,7 @@ namespace SunflowerDB
 
         public object ExecuteSqlNode (Guid id, SelectCommandNode node)
         {
-            var expression = new ExpressionFunction()
-            {
-                CalcFunc = node.WhereExpression.Calc,
-                Variables = node.WhereExpression.Variables
-            };
+            var expression = new ExpressionFunction(node.WhereExpression.Calc, node.WhereExpression.VariablesNames);
 
             var selectResult = Engine.SelectCommand(id, node.TableName, node.ColumnIdList, expression);
 
@@ -154,22 +149,14 @@ namespace SunflowerDB
 
             foreach (var assignment in node.Assignments)
             {
-                var assigExp = new ExpressionFunction()
-                {
-                    Variables = assignment.Expression.Variables,
-                    CalcFunc = assignment.Expression.Calc
-                };
+                var assigExp = new ExpressionFunction(assignment.Expression.Calc, assignment.Expression.VariablesNames);
 
                 var assigmnet = new Assigment(assignment.Id, assigExp);
 
                 assignmentsList.Add(assigmnet);
             }
 
-            var expression = new ExpressionFunction()
-            {
-                Variables = node.WhereExpression.Variables,
-                CalcFunc = node.WhereExpression.Calc
-            };
+            var expression = new ExpressionFunction(node.WhereExpression.Calc, node.WhereExpression.VariablesNames);
 
             var updateResult = Engine.UpdateCommand(id, node.TableName, assignmentsList, expression);
 
@@ -234,7 +221,7 @@ namespace SunflowerDB
             return exceptResult;
         }
 
-        public OperationResult<Table> GetTableByName (Guid id, List<string> tableName) => Engine.GetTableCommand(id, tableName);
+        public OperationResult<Table> GetTableByName (Guid guid, Id tableName) => Engine.GetTableCommand(guid, tableName);
 
         public void RollBackTransaction (Guid transactionGuid) => Engine.RollBackTransaction(transactionGuid);
         public void CommitTransaction (Guid transactionGuid) => Engine.CommitTransaction(transactionGuid);

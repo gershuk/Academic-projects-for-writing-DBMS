@@ -10,8 +10,8 @@ namespace IronySqlParser.AstNodes
     public class UnionChainOptNode : IdOperatorNode
     {
         public UnionKind UnionKind { get; set; }
-        public List<string> LeftId { get; set; }
-        public List<string> RightId { get; set; }
+        public Id LeftId { get; set; }
+        public Id RightId { get; set; }
 
         public override void CollectInfoFromChild ()
         {
@@ -21,7 +21,7 @@ namespace IronySqlParser.AstNodes
             RightId = (childNodes[3] as IdLinkNode).TableName;
         }
 
-        public override List<TableLock> GetTableLocks () => new List<TableLock>() { new TableLock(LockType.Read, LeftId, new System.Threading.ManualResetEvent(false)),
-            new TableLock(LockType.Read, RightId, new System.Threading.ManualResetEvent(false)) };
+        public override List<TableLock> GetTableLocks () => new List<TableLock>() { new TableLock(LockType.Read, LeftId.SimpleIds, new System.Threading.ManualResetEvent(false)),
+            new TableLock(LockType.Read, RightId.SimpleIds, new System.Threading.ManualResetEvent(false)) };
     }
 }

@@ -1,35 +1,35 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-using DataBaseEngine;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DataBaseType;
-using StorageEngine;
 
-using ZeroFormatter;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using StorageEngine;
 
 namespace DataBaseEngineUnitTest
 {
     [TestClass]
     public class StorageEngineUnitTests
     {
-        DataStorageInFiles _dataStorage;
-        const int _blockSize = 4096;
+        private DataStorageInFiles _dataStorage;
+        private const int _blockSize = 4096;
         [TestInitialize]
-        public void TestInitialize()
+        public void TestInitialize ()
         {
 
 
         }
 
         [TestCleanup]
-        public void TestCleanup()
+        public void TestCleanup ()
         {
 
         }
+
         [TestMethod]
-        public void AddTableTest()
-        {   
+        public void AddTableTest ()
+        {
             const string testPath = "StorageTestAddTableTest";
             if (Directory.Exists(testPath))
             {
@@ -38,12 +38,12 @@ namespace DataBaseEngineUnitTest
             _dataStorage = new DataStorageInFiles(testPath, _blockSize);
 
 
-            var tableName = new List<string>() { "Table1" };
-            var columns = new Dictionary<string, Column> {
-                { "Name",new Column(new List<string>(){"Name"}, DataType.CHAR, 25, new List<string>(), NullSpecOpt.Null) },
-                { "Soname",new Column(new List<string>(){"Soname"}, DataType.CHAR, 30, new List<string>(), NullSpecOpt.Null) },
-                { "Age",new Column(new List<string>(){"Age"}, DataType.INT, 0, new List<string>(), NullSpecOpt.Null) },
-                { "Rating",new Column(new List<string>(){"Rating" }, DataType.DOUBLE, 0, new List<string>(), NullSpecOpt.Null) },
+            var tableName = new Id(new List<string>() { "Table1" });
+            var columns = new List<Column> {
+                { new Column(new Id(new List<string>(){"Name"}), DataType.CHAR, 25, new List<string>(), NullSpecOpt.Null) },
+                { new Column(new Id(new List<string>(){"Soname"}), DataType.CHAR, 30, new List<string>(), NullSpecOpt.Null) },
+                { new Column(new Id(new List<string>(){"Age"}), DataType.INT, 0, new List<string>(), NullSpecOpt.Null) },
+                {new Column(new Id(new List<string>(){"Rating" }), DataType.DOUBLE, 0, new List<string>(), NullSpecOpt.Null) },
                 };
             var table = new Table(new TableMetaInf(tableName) { ColumnPool = columns });
             var result = _dataStorage.AddTable(table);
@@ -53,22 +53,23 @@ namespace DataBaseEngineUnitTest
             Assert.AreEqual(resultCont.State, ExecutionState.performed);
             Assert.AreEqual(resultCont.Result, true);
 
-            resultCont = _dataStorage.ContainsTable(new List<string>() { "radomTable" });
+            resultCont = _dataStorage.ContainsTable(new Id(new List<string>() { "radomTable" }));
             Assert.AreEqual(resultCont.State, ExecutionState.failed);
             Assert.AreEqual(resultCont.Result, false);
 
             var resultTable = _dataStorage.LoadTable(table.TableMetaInf.Name);
             Assert.AreEqual(resultTable.State, ExecutionState.performed);
-            Assert.AreEqual(resultTable.Result.TableMetaInf.Name[0], table.TableMetaInf.Name[0]);
-            foreach (var col in resultTable.Result.TableMetaInf.ColumnPool)
+            Assert.AreEqual(resultTable.Result.TableMetaInf.Name.ToString(), table.TableMetaInf.Name.ToString());
+            for (var i = 0; i < resultTable.Result.TableMetaInf.ColumnPool.Count; ++i)
             {
-                Assert.AreEqual(columns[col.Key].Name[0], col.Value.Name[0]);
-                Assert.AreEqual(columns[col.Key].DataType, col.Value.DataType);
-                Assert.AreEqual(columns[col.Key].DataParam, col.Value.DataParam);
+                Assert.AreEqual(columns[i].Name, resultTable.Result.TableMetaInf.ColumnPool[i].Name);
+                Assert.AreEqual(columns[i].DataType, resultTable.Result.TableMetaInf.ColumnPool[i].DataType);
+                Assert.AreEqual(columns[i].DataParam, resultTable.Result.TableMetaInf.ColumnPool[i].DataParam);
             }
         }
+
         [TestMethod]
-        public void InsertRowsTest()
+        public void InsertRowsTest ()
         {
             const string testPath = "StorageTestInsertRowsTest";
             if (Directory.Exists(testPath))
@@ -77,12 +78,12 @@ namespace DataBaseEngineUnitTest
             }
             _dataStorage = new DataStorageInFiles(testPath, 805);
 
-            var tableName = new List<string>() { "Table1" };
-            var columns = new Dictionary<string, Column> {
-                { "Name",new Column(new List<string>(){"Name"}, DataType.CHAR, 25, new List<string>(), NullSpecOpt.Null) },
-                { "Soname",new Column(new List<string>(){"Soname"}, DataType.CHAR, 30, new List<string>(), NullSpecOpt.Null) },
-                { "Age",new Column(new List<string>(){"Age"}, DataType.INT, 0, new List<string>(), NullSpecOpt.Null) },
-                { "Rating",new Column(new List<string>(){"Rating" }, DataType.DOUBLE, 0, new List<string>(), NullSpecOpt.Null) },
+            var tableName = new Id(new List<string>() { "Table1" });
+            var columns = new List<Column> {
+                { new Column(new Id(new List<string>(){"Name"}), DataType.CHAR, 25, new List<string>(), NullSpecOpt.Null) },
+                { new Column(new Id(new List<string>(){"Soname"}), DataType.CHAR, 30, new List<string>(), NullSpecOpt.Null) },
+                { new Column(new Id(new List<string>(){"Age"}), DataType.INT, 0, new List<string>(), NullSpecOpt.Null) },
+                {new Column(new Id(new List<string>(){"Rating" }), DataType.DOUBLE, 0, new List<string>(), NullSpecOpt.Null) },
                 };
             var table = new Table(new TableMetaInf(tableName) { ColumnPool = columns });
             var result = _dataStorage.AddTable(table);
@@ -97,7 +98,7 @@ namespace DataBaseEngineUnitTest
             var count = 0;
             var row2 = table.CreateRowFormStr(new string[] { "Ivan", "IvanovIvanovIvanov", "23", "44.345" });
             for (var i = 0; i < 10; ++i)
-            { 
+            {
                 Assert.AreEqual(row2.State, ExecutionState.performed);
                 _dataStorage.InsertRow(tableName, row2.Result);
                 count++;
@@ -117,7 +118,7 @@ namespace DataBaseEngineUnitTest
         }
 
         [TestMethod]
-        public void UpdateRowsTest()
+        public void UpdateRowsTest ()
         {
             const string testPath = "StorageTestUpdateRowsTest";
             if (Directory.Exists(testPath))
@@ -126,12 +127,12 @@ namespace DataBaseEngineUnitTest
             }
             _dataStorage = new DataStorageInFiles(testPath, 805);
 
-            var tableName = new List<string>() { "Table1" };
-            var columns = new Dictionary<string, Column> {
-                { "Name",new Column(new List<string>(){"Name"}, DataType.CHAR, 25, new List<string>(), NullSpecOpt.Null) },
-                { "Soname",new Column(new List<string>(){"Soname"}, DataType.CHAR, 30, new List<string>(), NullSpecOpt.Null) },
-                { "Age",new Column(new List<string>(){"Age"}, DataType.INT, 0, new List<string>(), NullSpecOpt.Null) },
-                { "Rating",new Column(new List<string>(){"Rating" }, DataType.DOUBLE, 0, new List<string>(), NullSpecOpt.Null) },
+            var tableName = new Id(new List<string>() { "Table1" });
+            var columns = new List<Column> {
+                { new Column(new Id(new List<string>(){"Name"}), DataType.CHAR, 25, new List<string>(), NullSpecOpt.Null) },
+                { new Column(new Id(new List<string>(){"Soname"}), DataType.CHAR, 30, new List<string>(), NullSpecOpt.Null) },
+                { new Column(new Id(new List<string>(){"Age"}), DataType.INT, 0, new List<string>(), NullSpecOpt.Null) },
+                {new Column(new Id(new List<string>(){"Rating" }), DataType.DOUBLE, 0, new List<string>(), NullSpecOpt.Null) },
                 };
             var table = new Table(new TableMetaInf(tableName) { ColumnPool = columns });
             var result = _dataStorage.AddTable(table);
@@ -181,7 +182,7 @@ namespace DataBaseEngineUnitTest
         }
 
         [TestMethod]
-        public void DeleteRowsTest()
+        public void DeleteRowsTest ()
         {
             const string testPath = "StorageTestDeleteRowsTest";
             if (Directory.Exists(testPath))
@@ -190,12 +191,12 @@ namespace DataBaseEngineUnitTest
             }
             _dataStorage = new DataStorageInFiles(testPath, 805);
 
-            var tableName = new List<string>() { "Table1" };
-            var columns = new Dictionary<string, Column> {
-                { "Name",new Column(new List<string>(){"Name"}, DataType.CHAR, 25, new List<string>(), NullSpecOpt.Null) },
-                { "Soname",new Column(new List<string>(){"Soname"}, DataType.CHAR, 30, new List<string>(), NullSpecOpt.Null) },
-                { "Age",new Column(new List<string>(){"Age"}, DataType.INT, 0, new List<string>(), NullSpecOpt.Null) },
-                { "Rating",new Column(new List<string>(){"Rating" }, DataType.DOUBLE, 0, new List<string>(), NullSpecOpt.Null) },
+            var tableName = new Id(new List<string>() { "Table1" });
+            var columns = new List<Column> {
+                { new Column(new Id(new List<string>(){"Name"}), DataType.CHAR, 25, new List<string>(), NullSpecOpt.Null) },
+                { new Column(new Id(new List<string>(){"Soname"}), DataType.CHAR, 30, new List<string>(), NullSpecOpt.Null) },
+                { new Column(new Id(new List<string>(){"Age"}), DataType.INT, 0, new List<string>(), NullSpecOpt.Null) },
+                {new Column(new Id(new List<string>(){"Rating" }), DataType.DOUBLE, 0, new List<string>(), NullSpecOpt.Null) },
                 };
             var table = new Table(new TableMetaInf(tableName) { ColumnPool = columns });
             var result = _dataStorage.AddTable(table);
@@ -215,7 +216,7 @@ namespace DataBaseEngineUnitTest
                 Assert.AreEqual(_dataStorage.InsertRow(tableName, row2.Result).State, ExecutionState.performed);
             }
             _dataStorage.InsertRow(tableName, row1.Result);
-            _dataStorage.RemoveAllRow(table.TableMetaInf.Name,(Row f)=> ((FieldChar)(f.Fields[0])).Value == ((FieldChar)(row2.Result.Fields[0])).Value );
+            _dataStorage.RemoveAllRow(table.TableMetaInf.Name, (Row f) => ((FieldChar)(f.Fields[0])).Value == ((FieldChar)(row2.Result.Fields[0])).Value);
             _dataStorage.InsertRow(tableName, row1.Result);
 
             var resultTable = _dataStorage.LoadTable(table.TableMetaInf.Name);
@@ -255,7 +256,7 @@ namespace DataBaseEngineUnitTest
             Assert.AreEqual(count, 0);
         }
 
-            void CheckRow(Row a,Row b)
+        private void CheckRow (Row a, Row b)
         {
             Assert.AreEqual(a.Fields.Length, b.Fields.Length);
             for (var i = 0; i < b.Fields.Length; i++)

@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 using ProtoBuf;
+
+using ZeroFormatter;
 
 namespace DataBaseType
 {
@@ -16,7 +19,8 @@ namespace DataBaseType
         Empty,
         Inner,
         Left,
-        Right
+        Right,
+        Full
     }
 
 
@@ -118,38 +122,64 @@ namespace DataBaseType
         NTEXT
     }
 
+    [Obsolete]
     public class Variable
     {
         public dynamic Data { get; set; }
-        public List<string> Name { get; set; }
+        public Id Name { get; set; }
+    }
+
+    [ZeroFormattable]
+    [ProtoContract]
+    public class Id
+    {
+        [ProtoMember(1)]
+        [Index(1)]
+        public virtual List<string> SimpleIds { get; set; }
+
+        public Id (List<string> simpleIds) => SimpleIds = simpleIds ?? throw new ArgumentNullException(nameof(simpleIds));
+
+        public Id ()
+        {
+
+        }
+
+        public override string ToString ()
+        {
+            var stringBuilder = new StringBuilder();
+
+            foreach (var simpleId in SimpleIds)
+            {
+                stringBuilder.Append(simpleId + ".");
+            }
+            stringBuilder.Remove(stringBuilder.Length - 1, 1);
+
+            return stringBuilder.ToString();
+        }
     }
 
     public class ExpressionFunction
     {
-        public Func<dynamic> CalcFunc { get; set; }
-        public Dictionary<List<string>, Variable> Variables { get; set; }
+        public Func<Dictionary<Id, dynamic>, dynamic> CalcFunc { get; private set; }
+        public List<Id> VariablesNames { get; set; }
 
-        public ExpressionFunction ()
-        {
-        }
-
-        public ExpressionFunction (Func<dynamic> calcFunc, Dictionary<List<string>, Variable> variables)
+        public ExpressionFunction (Func<Dictionary<Id, dynamic>, dynamic> calcFunc, List<Id> variablesNames)
         {
             CalcFunc = calcFunc ?? throw new ArgumentNullException(nameof(calcFunc));
-            Variables = variables ?? throw new ArgumentNullException(nameof(variables));
+            VariablesNames = variablesNames ?? throw new ArgumentNullException(nameof(variablesNames));
         }
     }
 
     public class Assigment
     {
-        public List<string> Id { get; set; }
+        public Id Id { get; set; }
         public ExpressionFunction EpressionFunction { get; set; }
 
         public Assigment ()
         {
         }
 
-        public Assigment (List<string> id, ExpressionFunction epressionFunction)
+        public Assigment (Id id, ExpressionFunction epressionFunction)
         {
             Id = id ?? throw new ArgumentNullException(nameof(id));
             EpressionFunction = epressionFunction ?? throw new ArgumentNullException(nameof(epressionFunction));

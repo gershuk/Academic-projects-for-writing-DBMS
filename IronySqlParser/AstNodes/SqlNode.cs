@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
+using DataBaseType;
+
 using Irony.Ast;
 using Irony.Parsing;
 
@@ -33,8 +35,6 @@ namespace IronySqlParser.AstNodes
         ISqlNode Parent { get; }
         IEnumerable<ISqlNode> ChildNodes { get; }
         IEnumerable<Token> Tokens { get; }
-
-        //public object Accept (Guid id, ISqlNodeExecutor sqlNodeVisitor);
     }
 
     public interface ISqlChildNode : ISqlNode
@@ -75,7 +75,6 @@ namespace IronySqlParser.AstNodes
         IEnumerable<Token> ISqlNode.Tokens => new Token[] { _token };
         void ISqlChildNode.SetParent (ISqlNode node) => _parent = node;
         public string Text { get; private set; }
-        public object Accept (Guid id, ISqlNodeExecutor sqlNodeVisitor) => null;
     }
 
     public class SqlNode : ISqlNode, IAstNodeInit
@@ -211,16 +210,14 @@ namespace IronySqlParser.AstNodes
                 CommnadsForNode.Add(thisCommand);
             }
         }
-
-        //public object Accept (Guid id, ISqlNodeExecutor sqlNodeVisitor) => sqlNodeVisitor.ExecuteSqlNode(id, this);
     }
 
     public abstract class SqlCommandNode : SqlNode
     {
-        public List<string> ReturnedTableName { get; private set; } = new List<string>();
+        public Id ReturnedTableName { get; private set; } = new Id(new List<string>());
 
         public abstract List<TableLock> GetTableLocks ();
 
-        public void SetReturnedTableName (List<string> name) => ReturnedTableName.AddRange(name);
+        public void SetReturnedTableName (Id name) => ReturnedTableName.SimpleIds.AddRange(name.SimpleIds);
     }
 }

@@ -84,6 +84,7 @@ namespace DataBaseEngine
 
         public DataBaseEngineMain (string pathDataBaseStorage, int blockSize = _blockSizeDefault)
         {
+            _path = pathDataBaseStorage;
             _dataStorage = new DataStorageInFiles(pathDataBaseStorage, blockSize);
             _idLocker = new object();
             _dbEngineMetaInf = CheckRestoreDb();

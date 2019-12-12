@@ -285,8 +285,8 @@ namespace DataBaseEngine
                 return new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(tableName.ToString()));
             }
             var table = tr.NewTables[tableName.ToString()];
-            table.AddColumn(column);
-            return new OperationResult<Table>(ExecutionState.performed, table);
+            var res = table.AddColumn(column);
+            return new OperationResult<Table>(res.State, table,res.OperationError);
         }
 
         public OperationResult<Table> GetTableCommand (Guid transactionGuid, Id name)

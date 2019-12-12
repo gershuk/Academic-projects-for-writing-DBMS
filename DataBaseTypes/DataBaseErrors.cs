@@ -39,6 +39,18 @@ namespace DataBaseType
     }
 
     [ProtoContract]
+    public class ExpressionCalculateError : DBError
+    {
+        public ExpressionCalculateError ()
+        {
+        }
+
+        public ExpressionCalculateError (string message)
+            : base(message)
+        { }
+    }
+
+    [ProtoContract]
     public class NullError : DBError
     {
         public NullError ()
@@ -119,6 +131,18 @@ namespace DataBaseType
 
         public ColumnNotExistError (string columnName, string tableName)
             : base($"Error, Column with name {columnName} not exist in Table {tableName}")
+        { }
+    }
+
+    [ProtoContract]
+    public class ColumnTooMachError : DBError
+    {
+        public ColumnTooMachError ()
+        {
+        }
+
+        public ColumnTooMachError (string tableName)
+            : base($"Error, Too mach Columns from user for Table {tableName}")
         { }
     }
 

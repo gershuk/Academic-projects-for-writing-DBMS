@@ -89,14 +89,10 @@ namespace DataBaseEngineUnitTest
             var result = _dataStorage.AddTable(table);
             Assert.AreEqual(result.State, ExecutionState.performed);
 
-            //var row1 = table.CreateDefaultRow();
-            //for (int i = 0; i < 10; ++i)
-            //{
-            //    Assert.AreEqual(row1.State, ExecutionState.performed);
-            //    dataStorage.InsertRow(tableName, row1.Result);
-            //}
             var count = 0;
             var row2 = table.CreateRowFormStr(new string[] { "Ivan", "IvanovIvanovIvanov", "23", "44.345" });
+            var rowNull = new Row(new Field[table.TableMetaInf.ColumnPool.Count]);
+
             for (var i = 0; i < 10; ++i)
             {
                 Assert.AreEqual(row2.State, ExecutionState.performed);
@@ -113,9 +109,9 @@ namespace DataBaseEngineUnitTest
                 count++;
             }
             Assert.AreEqual(count, 10);
-
-
         }
+
+
 
         [TestMethod]
         public void UpdateRowsTest ()

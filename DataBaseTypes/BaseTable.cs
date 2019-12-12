@@ -17,6 +17,26 @@ namespace DataBaseType
         [ProtoMember(1)]
         [UnionKey]
         public abstract DataType Type { get; }
+
+        public static OperationResult<bool> Compare (Field a, Field b)
+        {
+            if (a.Type != b.Type)
+            {
+                return new OperationResult<bool>(ExecutionState.failed, false);
+            }
+            switch (a.Type)
+            {
+                case DataType.INT:
+                    return new OperationResult<bool>(ExecutionState.performed, ((FieldInt)a).Value == ((FieldInt)b).Value);
+                case DataType.DOUBLE:
+                    return new OperationResult<bool>(ExecutionState.performed, ((FieldDouble)a).Value == ((FieldDouble)b).Value);
+                case DataType.CHAR:
+                    return new OperationResult<bool>(ExecutionState.performed, ((FieldChar)a).Value == ((FieldChar)b).Value);
+                default:
+                    break;
+            }
+            return new OperationResult<bool>(ExecutionState.failed, false);
+        }
     }
 
     [ProtoContract]
@@ -36,6 +56,10 @@ namespace DataBaseType
         public FieldInt ()
         {
         }
+        public FieldInt (int val)
+        {
+            Value = val;
+        }
 
         public override string ToString () => Value.ToString();
     }
@@ -54,6 +78,10 @@ namespace DataBaseType
         public FieldDouble ()
         {
 
+        }
+        public FieldDouble (double val)
+        {
+            Value = val;
         }
 
         public override string ToString () => Value.ToString();
@@ -118,8 +146,13 @@ namespace DataBaseType
         public Row (Field[] fields)
         {
             Fields = fields;
-            TrStart = 0;
-            TrEnd = 0;
+            TrStart = -1;
+            TrEnd = -2;
+        }
+        public Row SetTrEnd (long trEnd)
+        {
+            TrEnd = trEnd;
+            return this;
         }
     }
 
@@ -129,7 +162,7 @@ namespace DataBaseType
     {
         [ProtoMember(1)]
         [Index(0)]
-        public virtual string Name { get; set; }
+        public virtual Id Name { get; set; }
 
         [ProtoMember(2)]
         [Index(1)]
@@ -153,26 +186,28 @@ namespace DataBaseType
 
         public Column () { }
 
-        public Column (Id name) => Name = name.ToString();
-
+        public Column (Id name) => Name = name;
+        public Column (Column col)
+        {
+            if(col == null)
+            {
+                throw new NullReferenceException();
+            }
+            Name = col.Name;
+            DataType = col.DataType;
+            DataParam = col.DataParam;
+            Constrains = col.Constrains;
+            TypeState = col.TypeState;
+        }
         public Column (Id name, DataType dataType, double? dataParam, List<string> constrains, NullSpecOpt typeState)
         {
-            Name = name.ToString();
+            Name = name;
             DataType = dataType;
             DataParam = dataParam;
             Constrains = constrains;
             TypeState = typeState;
         }
-        private static string GetFullName (List<string> Name)
-        {
-            _ = Name ?? throw new ArgumentNullException(nameof(Name));
-            var sb = new StringBuilder();
-            foreach (var n in Name)
-            {
-                sb.Append(n);
-            }
-            return sb.ToString();
-        }
+
         public OperationResult<Field> CreateField (dynamic data)
         {
 
@@ -186,7 +221,7 @@ namespace DataBaseType
                     }
                     catch (FormatException)
                     {
-                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name, DataType.ToString(), data));
+                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name.ToString(), DataType.ToString(), data));
                     }
                 case DataType.DOUBLE:
                     try
@@ -196,14 +231,14 @@ namespace DataBaseType
                     }
                     catch (FormatException)
                     {
-                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name, DataType.ToString(), data));
+                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name.ToString(), DataType.ToString(), data));
                     }
                 case DataType.CHAR:
                     return new OperationResult<Field>(ExecutionState.performed, new FieldChar(data, (int)DataParam));
 
             }
 
-            return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name, DataType.ToString(), data));
+            return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name.ToString(), DataType.ToString(), data));
         }
         public OperationResult<Field> CreateField (string data)
         {
@@ -217,7 +252,7 @@ namespace DataBaseType
                     }
                     catch (FormatException)
                     {
-                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name, DataType.ToString(), data));
+                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name.ToString(), DataType.ToString(), data));
                     }
                 case DataType.DOUBLE:
                     try
@@ -227,14 +262,14 @@ namespace DataBaseType
                     }
                     catch (FormatException)
                     {
-                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name, DataType.ToString(), data));
+                        return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name.ToString(), DataType.ToString(), data));
                     }
                 case DataType.CHAR:
                     return new OperationResult<Field>(ExecutionState.performed, new FieldChar(data, (int)DataParam));
 
             }
 
-            return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name, DataType.ToString(), data));
+            return new OperationResult<Field>(ExecutionState.failed, null, new CastFieldError(Name.ToString(), DataType.ToString(), data));
         }
     }
 
@@ -259,6 +294,9 @@ namespace DataBaseType
         public virtual long CreatedTrId { get; set; }
         [ProtoMember(5)]
         [Index(4)]
+        public virtual long DeletedTrId { get; set; }
+        [ProtoMember(6)]
+        [Index(5)]
         public virtual bool Versioning { get; set; } = false;
 
         public TableMetaInf () { }
@@ -306,13 +344,13 @@ namespace DataBaseType
             {
                 return new OperationResult<Table>(ExecutionState.failed, null, new NullError(nameof(column)));
             }
-            if (TableMetaInf.ColumnPool.FindIndex((Column c) => c.Name == column.Name) >= 0)
+            if (TableMetaInf.ColumnPool.FindIndex((Column c) => c.Name == column.Name) < 0)
             {
                 TableMetaInf.ColumnPool.Add(column);
             }
             else
             {
-                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnAlreadyExistError(column.Name, TableMetaInf.Name.ToString()));
+                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnAlreadyExistError(column.Name.ToString(), TableMetaInf.Name.ToString()));
             }
 
             return new OperationResult<Table>(ExecutionState.performed, this);
@@ -321,7 +359,7 @@ namespace DataBaseType
 
         public override string ToString () => TableData == null ? ShowCreateTable().Result : ShowDataTable().Result;
 
-        public OperationResult<string> ShowDataTable ()
+        public OperationResult<string> ShowDataTable ()//To do Сделать красивый вывод таблички
         {
             using var sw = new StringWriter();
 
@@ -330,17 +368,20 @@ namespace DataBaseType
             foreach (var key in TableMetaInf.ColumnPool)
             {
                 var column = key;
-                sw.Write("{0} ", column.Name);
+                sw.Write("{0,-15} ", column.Name);
             }
-
+            sw.Write("{0,-15} ", "TrStart");
+            sw.Write("{0,-15} ", "TrEnd");
             sw.Write("\n");
 
             foreach (var row in TableData)
             {
                 foreach (var field in row.Fields)
                 {
-                    sw.Write("{0} ", field.ToString());
+                    sw.Write("{0,-15} ", field == null? "NULL": field.ToString().Trim(' '));
                 }
+                sw.Write("{0,-15} ", row.TrStart);
+                sw.Write("{0,-15} ", row.TrEnd == long.MaxValue ? "inf" : "" + row.TrEnd);
                 sw.Write("\n");
             }
 

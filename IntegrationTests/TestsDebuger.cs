@@ -16,8 +16,8 @@ namespace IntegrationTests
             test1.TestCreateCommandSynax();
             Console.ReadKey();
             */
-            var test = new Insert_Delete(true);
-            test.InsertTest();
+            var test = new Test_Errors(true);
+            test.MainTest();
         }
     }
 }

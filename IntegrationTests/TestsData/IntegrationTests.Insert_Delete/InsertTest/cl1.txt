@@ -226,6 +226,9 @@ Failed
 Performed
 
 Name            UnitMeasureCode ModifiedDate    TrStart         TrEnd           
+FT2             Square Feet     22              15              inf             
+Y               Yards           40              15              inf             
+Y3              Cubic Yards     24              15              inf             
 FT2             Square Feet     20080923        3               13              
 Y               Yards           20080923        3               13              
 Y3              Cubic Yards     20080923        3               13              
@@ -246,5 +249,38 @@ Y3              Cubic Yards     55              8               inf
 
 
 "
-"Error
-Syntax error, expected: FOR (1:134)
+"cl1
+---------------------------------------
+Performed
+
+Name            UnitMeasureCode ModifiedDate    TrStart         TrEnd           
+FT2             Square Feet     22              15              inf             
+Y               Yards           40              15              inf             
+Y3              Cubic Yards     24              15              inf             
+FT2             Square Feet     20080923        3               13              
+Y               Yards           20080923        3               13              
+Y3              Cubic Yards     20080923        3               13              
+FT2             Square Feet     20080923        4               13              
+Y               Yards           20080923        4               13              
+Y3              Cubic Yards     20080923        4               13              
+FT2             Square Feet     20080923        5               13              
+Y               Yards           20080923        5               13              
+Y3              Cubic Yards     20080923        5               13              
+FT2             Square Feet     22              6               11              
+Y               Yards           40              6               10              
+Y3              Cubic Yards     24              6               inf             
+FT2             Square Feet     55              8               inf             
+Y               Yards           55              8               inf             
+Y3              Cubic Yards     55              8               inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Failed
+Error, Column with name UnitMeasure.name not exist in Table UnitMeasure.UnitMeasure2
+---------------------------------------
+
+

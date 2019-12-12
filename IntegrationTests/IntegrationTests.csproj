@@ -61,6 +61,7 @@
     <Compile Include="TestApi\TestData.cs" />
     <Compile Include="TestApi\TestExeptions.cs" />
     <Compile Include="TestApi\TestApServer.cs" />
+    <Compile Include="TestErrors.cs" />
     <Compile Include="TestsDebuger.cs" />
   </ItemGroup>
   <ItemGroup>

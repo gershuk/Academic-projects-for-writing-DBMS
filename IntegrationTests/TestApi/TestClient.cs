@@ -15,7 +15,7 @@ namespace IntegrationTests.TestApi
         private readonly DataBase _core;
         public readonly string Name;
 
-        public TestClient(string name, DataBase core)
+        public TestClient (string name, DataBase core)
         {
             _core = core;
             Name = name.Trim();
@@ -53,5 +53,15 @@ namespace IntegrationTests.TestApi
             }
             return result.ToString();
         }
+        private List<string> _queries;
+        public void SendAsyncQuery (string sqlquery)
+        {
+            _queries.Add(sqlquery);
+        }
+        public Task<string> ExecuteAsyncQuery ()
+        {
+            return Task.Run(() => SendQuery(string.Join("\n", _queries)));
+        }
+
     }
 }

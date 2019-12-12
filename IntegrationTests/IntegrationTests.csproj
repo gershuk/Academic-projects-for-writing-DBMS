@@ -6,7 +6,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{BEE96720-8EAA-451B-8EF3-42FAFF873627}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>IntegrationTests</RootNamespace>
     <AssemblyName>IntegrationTests</AssemblyName>
@@ -38,6 +38,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>IntegrationTests.TestsDebuger</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\MSTest.TestFramework.1.3.2\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.dll</HintPath>
@@ -49,15 +52,35 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseSQLTest.cs" />
     <Compile Include="Create_ShowCreate.cs" />
+    <Compile Include="Insert_Delete.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestServer.cs" />
+    <Compile Include="TestApi\TestApClient.cs" />
+    <Compile Include="TestApi\TestClient.cs" />
+    <Compile Include="TestApi\TestData.cs" />
+    <Compile Include="TestApi\TestExeptions.cs" />
+    <Compile Include="TestApi\TestApServer.cs" />
+    <Compile Include="TestErrors.cs" />
+    <Compile Include="TestsDebuger.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DataBaseEngine\DataBaseEngine.csproj">
+      <Project>{663469A0-7E1D-429A-B243-17502EF9447A}</Project>
+      <Name>DataBaseEngine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DataBaseTypes\DataBaseTypes.csproj">
+      <Project>{C0635319-ED1D-4BC7-91A5-4E5B9FBD5076}</Project>
+      <Name>DataBaseTypes</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SunflowerDataBase\SunflowerDataBase.csproj">
+      <Project>{21c8c4f5-5a41-4004-af35-66c3eda98cad}</Project>
+      <Name>SunflowerDataBase</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SunflowerDBClient\SunflowerDBClient.csproj">
       <Project>{09578aa0-a252-41e1-a38c-a4013dea49ce}</Project>
       <Name>SunflowerDBClient</Name>
@@ -66,6 +89,13 @@
       <Project>{41115547-c67a-4385-9b39-19d427219fe2}</Project>
       <Name>SunflowerDBServer</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TransactionManagement\TransactionManagement\TransactionManagement.csproj">
+      <Project>{34E97B73-A6E8-49C5-A7ED-00B540B29551}</Project>
+      <Name>TransactionManagement</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="TestsData\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

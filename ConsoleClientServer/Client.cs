@@ -11,17 +11,16 @@ namespace ConsoleClientServer
     {
         void Connect ();
         void Dispose ();
-        void SendResieveMessage<T> ();
-        string ConvertMessageToString<T> (T value);
+        void SendResieveMessage ();
+        string ConvertMessageToString (byte[] value);
     }
 
     public abstract class Client : IDisposable, IClient
     {
         private readonly string _host;
         private readonly int _port;
-        private readonly TcpClient _client;
+        private TcpClient _client;
         private NetworkStream _stream;
-        private readonly Thread _receiveThread;
         private bool _disposed = false;
         private bool _stopworking = false;
 
@@ -31,11 +30,10 @@ namespace ConsoleClientServer
             _port = port;
             _client = new TcpClient();
         }
-        public void Connect ()
+        public void Connect()
         {
-            var tries = 0;
             var connected = false;
-
+            var tries = 0;
             while (!connected)
             {
                 try
@@ -45,13 +43,13 @@ namespace ConsoleClientServer
                     connected = true;
                     Console.WriteLine($"Conection to {_host}:{_port} established");
                 }
-                catch (Exception)
+                catch
                 {
 
                     tries++;
-                    System.Threading.Thread.Sleep(500);
+                    System.Threading.Thread.Sleep(200);
                     Console.WriteLine($"Conection to {_host}:{_port} failed");
-                    if (tries == 5)
+                    if (tries >= 5)
                     {
                         Console.WriteLine("Try again?(Y/N)");
 
@@ -61,7 +59,7 @@ namespace ConsoleClientServer
                         }
                         else
                         {
-                            break;
+                            Disconnect();
                         }
                     }
                 }
@@ -69,24 +67,33 @@ namespace ConsoleClientServer
         }
 
         // отправка сообщений
-        public abstract string ConvertMessageToString<T> (T value);
+        public abstract string ConvertMessageToString (byte[] value);
 
-        public void SendResieveMessage<T> ()
+        public void SendResieveMessage ()
         {
             if (_stream == null)
             {
                 Connect();
             }
-
             while (!_stopworking)
             {
                 try
                 {
                     {
                         var message = Console.ReadLine();
+                        if (message == "test")
+                        {
+                            Console.WriteLine("test");
+                            continue;
+                        }
+                        if (message.Length==0)
+                        {
+                            continue;
+                        }
                         var data = Encoding.Unicode.GetBytes(message);
                         _stream.Write(data, 0, data.Length);
                     }
+                    System.Threading.Thread.Sleep(10);
                     {
                         var data = new byte[64]; // буфер для получаемых данных
                         var bytes = 0;
@@ -97,17 +104,13 @@ namespace ConsoleClientServer
                             binaryData.Write(data, 0, bytes);
                         }
                         while (_stream.DataAvailable);
-
-                        var formatter = new BinaryFormatter();
-                        var value = (T)formatter.Deserialize(binaryData);
-                        var result = ConvertMessageToString<T>(value);
+                        var result = ConvertMessageToString(binaryData.ToArray());
                         Console.WriteLine(result);//вывод сообщения
                     }
                 }
                 catch
                 {
                     Console.WriteLine("Подключение прервано!"); //соединение было прервано
-                    Console.ReadLine();
                     Disconnect();
                 }
             }
@@ -150,7 +153,6 @@ namespace ConsoleClientServer
             {
                 _client?.Dispose();
                 _stream?.Dispose();
-                _receiveThread?.Join();
             }
 
             _disposed = true;

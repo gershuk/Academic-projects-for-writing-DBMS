@@ -1,0 +1,286 @@
+cl1
+---------------------------------------
+Performed
+CREATE TABLE UnitMeasure (Name CHAR (50),UnitMeasureCode CHAR (50),ModifiedDate INT ());
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+CREATE TABLE UnitMeasure2 (Name CHAR (50),UnitMeasureCode CHAR (50),ModifiedDate INT ());
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+Name            UnitMeasureCode ModifiedDate    TrStart         TrEnd           
+FT2             Square Feet     20080923        3               inf             
+Y               Yards           20080923        3               inf             
+Y3              Cubic Yards     20080923        3               inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+Name            UnitMeasureCode ModifiedDate    TrStart         TrEnd           
+FT2             Square Feet     20080923        3               inf             
+Y               Yards           20080923        3               inf             
+Y3              Cubic Yards     20080923        3               inf             
+FT2             Square Feet     20080923        4               inf             
+Y               Yards           20080923        4               inf             
+Y3              Cubic Yards     20080923        4               inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+Name            UnitMeasureCode ModifiedDate    TrStart         TrEnd           
+FT2             Square Feet     20080923        3               inf             
+Y               Yards           20080923        3               inf             
+Y3              Cubic Yards     20080923        3               inf             
+FT2             Square Feet     20080923        4               inf             
+Y               Yards           20080923        4               inf             
+Y3              Cubic Yards     20080923        4               inf             
+FT2             Square Feet     20080923        5               inf             
+Y               Yards           20080923        5               inf             
+Y3              Cubic Yards     20080923        5               inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+Name            UnitMeasureCode ModifiedDate    TrStart         TrEnd           
+FT2             Square Feet     20080923        3               inf             
+Y               Yards           20080923        3               inf             
+Y3              Cubic Yards     20080923        3               inf             
+FT2             Square Feet     20080923        4               inf             
+Y               Yards           20080923        4               inf             
+Y3              Cubic Yards     20080923        4               inf             
+FT2             Square Feet     20080923        5               inf             
+Y               Yards           20080923        5               inf             
+Y3              Cubic Yards     20080923        5               inf             
+FT2             Square Feet     22              6               inf             
+Y               Yards           40              6               inf             
+Y3              Cubic Yards     24              6               inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Failed
+Попытка деления на нуль.
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+Name            UnitMeasureCode ModifiedDate    TrStart         TrEnd           
+FT2             Square Feet     20080923        3               inf             
+Y               Yards           20080923        3               inf             
+Y3              Cubic Yards     20080923        3               inf             
+FT2             Square Feet     20080923        4               inf             
+Y               Yards           20080923        4               inf             
+Y3              Cubic Yards     20080923        4               inf             
+FT2             Square Feet     20080923        5               inf             
+Y               Yards           20080923        5               inf             
+Y3              Cubic Yards     20080923        5               inf             
+FT2             Square Feet     22              6               inf             
+Y               Yards           40              6               inf             
+Y3              Cubic Yards     24              6               inf             
+FT2             Square Feet     55              8               inf             
+Y               Yards           55              8               inf             
+Y3              Cubic Yards     55              8               inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+Name            UnitMeasureCode ModifiedDate    TrStart         TrEnd           
+FT2             Square Feet     77              9               inf             
+Y               Yards           77              9               inf             
+Y3              Cubic Yards     77              9               inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+Name            UnitMeasureCode ModifiedDate    TrStart         TrEnd           
+FT2             Square Feet     20080923        3               inf             
+Y               Yards           20080923        3               inf             
+Y3              Cubic Yards     20080923        3               inf             
+FT2             Square Feet     20080923        4               inf             
+Y               Yards           20080923        4               inf             
+Y3              Cubic Yards     20080923        4               inf             
+FT2             Square Feet     20080923        5               inf             
+Y               Yards           20080923        5               inf             
+Y3              Cubic Yards     20080923        5               inf             
+FT2             Square Feet     22              6               inf             
+Y               Yards           40              6               10              
+Y3              Cubic Yards     24              6               inf             
+FT2             Square Feet     55              8               inf             
+Y               Yards           55              8               inf             
+Y3              Cubic Yards     55              8               inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+Name            UnitMeasureCode ModifiedDate    TrStart         TrEnd           
+FT2             Square Feet     20080923        3               inf             
+Y               Yards           20080923        3               inf             
+Y3              Cubic Yards     20080923        3               inf             
+FT2             Square Feet     20080923        4               inf             
+Y               Yards           20080923        4               inf             
+Y3              Cubic Yards     20080923        4               inf             
+FT2             Square Feet     20080923        5               inf             
+Y               Yards           20080923        5               inf             
+Y3              Cubic Yards     20080923        5               inf             
+FT2             Square Feet     22              6               11              
+Y               Yards           40              6               10              
+Y3              Cubic Yards     24              6               inf             
+FT2             Square Feet     55              8               inf             
+Y               Yards           55              8               inf             
+Y3              Cubic Yards     55              8               inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Failed
+Unknown variable RandomVar
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+Name            UnitMeasureCode ModifiedDate    TrStart         TrEnd           
+FT2             Square Feet     20080923        3               13              
+Y               Yards           20080923        3               13              
+Y3              Cubic Yards     20080923        3               13              
+FT2             Square Feet     20080923        4               13              
+Y               Yards           20080923        4               13              
+Y3              Cubic Yards     20080923        4               13              
+FT2             Square Feet     20080923        5               13              
+Y               Yards           20080923        5               13              
+Y3              Cubic Yards     20080923        5               13              
+FT2             Square Feet     22              6               11              
+Y               Yards           40              6               10              
+Y3              Cubic Yards     24              6               inf             
+FT2             Square Feet     55              8               inf             
+Y               Yards           55              8               inf             
+Y3              Cubic Yards     55              8               inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Failed
+Попытка деления на нуль.
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+Name            UnitMeasureCode ModifiedDate    TrStart         TrEnd           
+FT2             Square Feet     22              15              inf             
+Y               Yards           40              15              inf             
+Y3              Cubic Yards     24              15              inf             
+FT2             Square Feet     20080923        3               13              
+Y               Yards           20080923        3               13              
+Y3              Cubic Yards     20080923        3               13              
+FT2             Square Feet     20080923        4               13              
+Y               Yards           20080923        4               13              
+Y3              Cubic Yards     20080923        4               13              
+FT2             Square Feet     20080923        5               13              
+Y               Yards           20080923        5               13              
+Y3              Cubic Yards     20080923        5               13              
+FT2             Square Feet     22              6               11              
+Y               Yards           40              6               10              
+Y3              Cubic Yards     24              6               inf             
+FT2             Square Feet     55              8               inf             
+Y               Yards           55              8               inf             
+Y3              Cubic Yards     55              8               inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+Name            UnitMeasureCode ModifiedDate    TrStart         TrEnd           
+FT2             Square Feet     22              15              inf             
+Y               Yards           40              15              inf             
+Y3              Cubic Yards     24              15              inf             
+FT2             Square Feet     20080923        3               13              
+Y               Yards           20080923        3               13              
+Y3              Cubic Yards     20080923        3               13              
+FT2             Square Feet     20080923        4               13              
+Y               Yards           20080923        4               13              
+Y3              Cubic Yards     20080923        4               13              
+FT2             Square Feet     20080923        5               13              
+Y               Yards           20080923        5               13              
+Y3              Cubic Yards     20080923        5               13              
+FT2             Square Feet     22              6               11              
+Y               Yards           40              6               10              
+Y3              Cubic Yards     24              6               inf             
+FT2             Square Feet     55              8               inf             
+Y               Yards           55              8               inf             
+Y3              Cubic Yards     55              8               inf             
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Failed
+Error, Column with name UnitMeasure.name not exist in Table UnitMeasure.UnitMeasure2
+---------------------------------------
+
+

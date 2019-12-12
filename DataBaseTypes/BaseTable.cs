@@ -36,6 +36,10 @@ namespace DataBaseType
         public FieldInt ()
         {
         }
+        public FieldInt (int val)
+        {
+            Value = val;
+        }
 
         public override string ToString () => Value.ToString();
     }
@@ -54,6 +58,10 @@ namespace DataBaseType
         public FieldDouble ()
         {
 
+        }
+        public FieldDouble (double val)
+        {
+            Value = val;
         }
 
         public override string ToString () => Value.ToString();
@@ -121,6 +129,11 @@ namespace DataBaseType
             TrStart = 0;
             TrEnd = 0;
         }
+        public Row SetTrEnd (long trEnd)
+        {
+            TrEnd = trEnd;
+            return this;
+        }
     }
 
     [ProtoContract]
@@ -163,16 +176,7 @@ namespace DataBaseType
             Constrains = constrains;
             TypeState = typeState;
         }
-        private static string GetFullName (List<string> Name)
-        {
-            _ = Name ?? throw new ArgumentNullException(nameof(Name));
-            var sb = new StringBuilder();
-            foreach (var n in Name)
-            {
-                sb.Append(n);
-            }
-            return sb.ToString();
-        }
+
         public OperationResult<Field> CreateField (dynamic data)
         {
 
@@ -259,6 +263,9 @@ namespace DataBaseType
         public virtual long CreatedTrId { get; set; }
         [ProtoMember(5)]
         [Index(4)]
+        public virtual long DeletedTrId { get; set; }
+        [ProtoMember(6)]
+        [Index(5)]
         public virtual bool Versioning { get; set; } = false;
 
         public TableMetaInf () { }
@@ -306,7 +313,7 @@ namespace DataBaseType
             {
                 return new OperationResult<Table>(ExecutionState.failed, null, new NullError(nameof(column)));
             }
-            if (TableMetaInf.ColumnPool.FindIndex((Column c) => c.Name == column.Name) >= 0)
+            if (TableMetaInf.ColumnPool.FindIndex((Column c) => c.Name == column.Name) < 0)
             {
                 TableMetaInf.ColumnPool.Add(column);
             }
@@ -321,7 +328,7 @@ namespace DataBaseType
 
         public override string ToString () => TableData == null ? ShowCreateTable().Result : ShowDataTable().Result;
 
-        public OperationResult<string> ShowDataTable ()
+        public OperationResult<string> ShowDataTable ()//To do Сделать красивый вывод таблички
         {
             using var sw = new StringWriter();
 
@@ -330,17 +337,20 @@ namespace DataBaseType
             foreach (var key in TableMetaInf.ColumnPool)
             {
                 var column = key;
-                sw.Write("{0} ", column.Name);
+                sw.Write("{0,-15} ", column.Name);
             }
-
+            sw.Write("{0,-15} ", "TrStart");
+            sw.Write("{0,-15} ",  "TrEnd");
             sw.Write("\n");
 
             foreach (var row in TableData)
             {
                 foreach (var field in row.Fields)
                 {
-                    sw.Write("{0} ", field.ToString());
+                    sw.Write("{0,-15} ", field.ToString().Trim(' '));
                 }
+                sw.Write("{0,-15} ", row.TrStart);
+                sw.Write("{0,-15} ", row.TrEnd == long.MaxValue ? "inf": ""+row.TrEnd);
                 sw.Write("\n");
             }
 

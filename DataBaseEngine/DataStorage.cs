@@ -19,6 +19,7 @@ namespace StorageEngine
         OperationResult<string> RemoveTable (Id tableName);
 
         OperationResult<string> UpdateAllRow (Id tableName, Row newRow, Predicate<Row> match);
+        OperationResult<string> UpdateAllRow (Id tableName, Func<Row,Row> match);
         OperationResult<string> InsertRow (Id tableName, Row fields);
         OperationResult<string> RemoveAllRow (Id tableName, Predicate<Row> match);
     }
@@ -98,6 +99,26 @@ namespace StorageEngine
                 while (isnLast)
                 {
                     isnLast = match(tableData.Current) ? tableData.UpdateCurrentRow(newRow) : tableData.MoveNext();
+                }
+            }
+
+            return new OperationResult<string>(ExecutionState.performed, "");
+        }
+        public OperationResult<string> UpdateAllRow (Id tableName, Func<Row, Row> match)
+        {
+            if (!File.Exists(GetTableFileName(tableName)))
+            {
+                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
+            }
+
+            using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
+            {
+                using var tableData = new DataStorageRowsInFilesEnumerator(manager);
+                var isnLast = tableData.MoveNext();
+                while (isnLast)
+                {
+                    var data = match(tableData.Current);
+                    isnLast = data != null ? tableData.UpdateCurrentRow(data) : tableData.MoveNext();
                 }
             }
 

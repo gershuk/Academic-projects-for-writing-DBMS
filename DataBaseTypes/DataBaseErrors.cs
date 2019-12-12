@@ -135,6 +135,18 @@ namespace DataBaseType
     }
 
     [ProtoContract]
+    public class ColumnNotExistInInsert : DBError
+    {
+        public ColumnNotExistInInsert ()
+        {
+        }
+
+        public ColumnNotExistInInsert (string columnName)
+            : base($"Error, Column with name {columnName} not exist in insert column list")
+        { }
+    }
+
+    [ProtoContract]
     public class ColumnTooMachError : DBError
     {
         public ColumnTooMachError ()

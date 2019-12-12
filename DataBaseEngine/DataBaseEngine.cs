@@ -389,14 +389,17 @@ namespace DataBaseEngine
             var updatedRows = new List<Row>();
             foreach (var row in table.TableData)
             {
-                var exprRes = false;
-                try
+                var exprRes = true;
+                if (expressionFunction != null)
                 {
-                    exprRes = expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, row, table.TableMetaInf.ColumnPool)) && ChekRowVersion(transactionGuid, row);
-                }
-                catch (Exception ex)
-                {
-                    return new OperationResult<Table>(ExecutionState.failed, null, new ExpressionCalculateError(ex.Message));
+                    try
+                    {
+                        exprRes = expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, row, table.TableMetaInf.ColumnPool)) && ChekRowVersion(transactionGuid, row);
+                    }
+                    catch (Exception ex)
+                    {
+                        return new OperationResult<Table>(ExecutionState.failed, null, new ExpressionCalculateError(ex.Message));
+                    }
                 }
                 if (exprRes)
                 {

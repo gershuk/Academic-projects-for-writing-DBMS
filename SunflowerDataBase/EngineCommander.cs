@@ -156,7 +156,7 @@ namespace SunflowerDB
                 assignmentsList.Add(assigmnet);
             }
 
-            var expression = new ExpressionFunction(node.WhereExpression.Calc, node.WhereExpression.VariablesNames);
+            var expression = node.WhereExpression!=null ? new ExpressionFunction(node.WhereExpression.Calc, node.WhereExpression.VariablesNames) :null;
 
             var updateResult = Engine.UpdateCommand(id, node.TableName, assignmentsList, expression);
 

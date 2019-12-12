@@ -187,7 +187,18 @@ namespace DataBaseType
         public Column () { }
 
         public Column (Id name) => Name = name;
-
+        public Column (Column col)
+        {
+            if(col == null)
+            {
+                throw new NullReferenceException();
+            }
+            Name = col.Name;
+            DataType = col.DataType;
+            DataParam = col.DataParam;
+            Constrains = col.Constrains;
+            TypeState = col.TypeState;
+        }
         public Column (Id name, DataType dataType, double? dataParam, List<string> constrains, NullSpecOpt typeState)
         {
             Name = name;
@@ -367,7 +378,7 @@ namespace DataBaseType
             {
                 foreach (var field in row.Fields)
                 {
-                    sw.Write("{0,-15} ", field.ToString().Trim(' '));
+                    sw.Write("{0,-15} ", field == null? "NULL": field.ToString().Trim(' '));
                 }
                 sw.Write("{0,-15} ", row.TrStart);
                 sw.Write("{0,-15} ", row.TrEnd == long.MaxValue ? "inf" : "" + row.TrEnd);

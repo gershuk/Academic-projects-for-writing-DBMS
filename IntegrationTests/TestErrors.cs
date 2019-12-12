@@ -77,21 +77,14 @@ namespace IntegrationTests
             SendSQLQuery(cl1, $"update qg2 set id = 3;", expected);
 
             SendSQLQuery(cl1, $"CREATE TABLE qg(id int unique, name char(50));", expected);
-            SendSQLQuery (cl1, $"insert into qg values (1, 'qwe');", expected);
-            SendSQLQuery (cl1, $"insert into qg values (2, 'ewq');", expected);
-            SendSQLQuery (cl1, $"select * from qg where id = name + 1;", expected);
+            SendSQLQuery(cl1, $"insert into qg values (1, 'qwe');", expected);
+            SendSQLQuery(cl1, $"insert into qg values (2, 'ewq');", expected);
+            SendSQLQuery(cl1, $"select * from qg where id = name + 1;", expected);
 
             SendSQLQuery(cl1, $"CREATE TABLE fn(id INT NOT NULL , age double, name char(150));", expected);
-            SendSQLQuery (cl1, $"INSERT INTO fn values(1, 2.9, 'sfsf');", expected);
-            SendSQLQuery (cl1, $"INSERT INTO fn values(2, 3.789, 'qwerty');", expected);
-            SendSQLQuery (cl1, $"SELECT * from (fn join nf on fn.id = nf.id);", expected);
-
-            SendSQLQuery (cl1, $"select * from( t join tt);", expected);
-            SendSQLQuery(cl1, $"select * from t jon tt on t.id = tt.id;", expected);
-            SendSQLQuery(cl1, $"select * from t as join tt on t.id = tt.id;", expected);
-            SendSQLQuery(cl1, $"select * from t a t1 join tt on t.id = tt.id;", expected);
-            SendSQLQuery(cl1, $"select * from t as t1 join tt t.id = tt.id;", expected);
-            SendSQLQuery(cl1, $"select * from t unon select * from t1;", expected);
+            SendSQLQuery(cl1, $"INSERT INTO fn values(1, 2.9, 'sfsf');", expected);
+            SendSQLQuery(cl1, $"INSERT INTO fn values(2, 3.789, 'qwerty');", expected);
+            SendSQLQuery(cl1, $"SELECT * from (fn join nf on fn.id = nf.id);", expected);
 
             SendSQLQuery(cl1, $"select * from( t join tt);", expected);
             SendSQLQuery(cl1, $"select * from t jon tt on t.id = tt.id;", expected);
@@ -100,13 +93,43 @@ namespace IntegrationTests
             SendSQLQuery(cl1, $"select * from t as t1 join tt t.id = tt.id;", expected);
             SendSQLQuery(cl1, $"select * from t unon select * from t1;", expected);
 
+            SendSQLQuery(cl1, $"select * from( t join tt);", expected);
+            SendSQLQuery(cl1, $"select * from (t jon tt on t.id = tt.id);", expected);
+            SendSQLQuery(cl1, $"select * from (t as join tt on t.id = tt.id);", expected);
+            SendSQLQuery(cl1, $"select * from (t a t1 join tt on t.id = tt.id);", expected);
+            SendSQLQuery(cl1, $"select * from (t as t1 join tt t.id = tt.id);", expected);
+            SendSQLQuery(cl1, $"select * from (t unon select * from t1);", expected);
+
+            SendSQLQuery(cl1, $"INSERT INTO fn values(1, 2.9, 'sfsf');", expected);
+            SendSQLQuery(cl1, $"INSERT INTO fn values(2, 3.789, 'qwerty');", expected);
+            SendSQLQuery(cl1, $"SELECT * from (fn join qg on fn.id = fn.id11);", expected);
+            SendSQLQuery(cl1, $"SELECT * from (SELECT * from qg);", expected);
+            SendSQLQuery(cl1, $"drop table fn", expected);
+
+            SendSQLQuery(cl1, $"CREATE TABLE fn(id INT NOT NULL , age double, name char(150));", expected);
+            SendSQLQuery(cl1, $"INSERT INTO fn values(1, 2.9, 'sfsf');", expected);
+            SendSQLQuery(cl1, $"SELECT dgdfg, id from fn;", expected);
+
+            SendSQLQuery(cl1, $"CREATE TABLE table1(id INT NOT NULL, age DOUBLE, name char(150));", expected);
+            SendSQLQuery (cl1, $"CREATE TABLE table2(id INT NOT NULL, age DOUBLE);", expected);
+            SendSQLQuery (cl1, $"INSERT INTO table1 values(1, 2.9, 'sfsf');", expected);
+            SendSQLQuery (cl1, $"INSERT INTO table2 values(1, 3.5);", expected);
+            //SendSQLQuery (cl1, $"SELECT age from table1 UNION SELECT id from table2;", expected);
 
 
-            SendSQLQuery(cl1, $"select * from t unon select * from t1;", expected);
-            SendSQLQuery(cl1, $"select * from t unon select * from t1;", expected);
-            SendSQLQuery(cl1, $"select * from t unon select * from t1;", expected);
-            SendSQLQuery(cl1, $"select * from t unon select * from t1;", expected);
+            SendSQLQuery(cl1, $"create table t ();", expected);
+            SendSQLQuery (cl1, $"creat table t (id int);", expected);
+            SendSQLQuery (cl1, $"create tale t (id int);", expected);
+            SendSQLQuery (cl1, $"create table 555 (id int);", expected);
+            //SendSQLQuery (cl1, $"SELECT age from table1 INTERSECT SELECT id from table2;", expected);
 
+            /*
+            SendSQLQuery (cl1, $"SELECT * from (fn join fn on fn.id = fn.id);", expected);
+            SendSQLQuery (cl1, $"select * from t unon select * from t1;", expected);
+            SendSQLQuery(cl1, $"select * from t unon select * from t1;", expected);
+            SendSQLQuery(cl1, $"select * from t unon select * from t1;", expected);
+            SendSQLQuery(cl1, $"select * from t unon select * from t1;", expected);
+            */
 
 
         }

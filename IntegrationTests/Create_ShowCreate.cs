@@ -21,20 +21,6 @@ namespace IntegrationTests
         {
         }
 
-        [TestMethod]
-        public void TestTest ()
-        {
-            var results = GetTestData();
-            var client1 = new TestClient("test");
-            var test = results.GetResult(client1);
-            Assert.AreEqual("test1", test);
-            results.FixResult("test1", client1);
-            results.Next(client1);
-            test = results.GetResult(client1);
-            Assert.AreEqual("test2", test);
-            results.FixResult("test2", client1);
-            results.Save();
-        }
 
         [TestMethod]
         public void TestCreateCommandSynax ()

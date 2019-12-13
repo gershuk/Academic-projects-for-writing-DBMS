@@ -313,7 +313,7 @@ Performed
 
 id              age             name            TrStart         TrEnd           
 1               2,9             sfsf            32              inf             
-2               3,789           qwerty          33              inf             
+3               3,789           qwerty          33              inf             
 
 ---------------------------------------
 
@@ -327,8 +327,29 @@ Error, Table named nf doesn't exist
 
 
 "
-"Error
-Syntax error, expected: ON (1:25)
+"cl1
+---------------------------------------
+Performed
+
+id              age             name            TrStart         TrEnd           
+1               2,9             sfsf            -1              -2              
+3               3,789           qwerty          -1              -2              
+
+---------------------------------------
+
+
+"
+"cl1
+---------------------------------------
+Performed
+
+id              TrStart         TrEnd           
+3               -1              -2              
+3               -1              -2              
+
+---------------------------------------
+
+
 "
 "Error
 Syntax error, expected: ., FOR, WHERE, GROUP, HAVING, ORDER, ;, COMMIT, ROLLBACK, CREATE, ALTER, DELETE, DROP, SHOW, SELECT, UPDATE, INSERT, ), BEGIN TRANSACTION, INNER, LEFT, RIGHT, Full, UNION, INTERSECT, EXCEPT, JOIN, ON (1:17)
@@ -369,8 +390,8 @@ Performed
 
 id              age             name            TrStart         TrEnd           
 1               2,9             sfsf            32              inf             
-2               3,789           qwerty          33              inf             
-1               2,9             sfsf            35              inf             
+3               3,789           qwerty          33              inf             
+1               2,9             sfsf            36              inf             
 
 ---------------------------------------
 
@@ -382,9 +403,9 @@ Performed
 
 id              age             name            TrStart         TrEnd           
 1               2,9             sfsf            32              inf             
-2               3,789           qwerty          33              inf             
-1               2,9             sfsf            35              inf             
-2               3,789           qwerty          36              inf             
+3               3,789           qwerty          33              inf             
+1               2,9             sfsf            36              inf             
+2               3,789           qwerty          37              inf             
 
 ---------------------------------------
 
@@ -406,14 +427,6 @@ id              name            TrStart         TrEnd
 1               qwe             -1              -2              
 2               ewq             -1              -2              
 
----------------------------------------
-
-
-"
-"cl1
----------------------------------------
-Performed
-CREATE TABLE fn (id INT (),age DOUBLE (),name CHAR (150));
 ---------------------------------------
 
 

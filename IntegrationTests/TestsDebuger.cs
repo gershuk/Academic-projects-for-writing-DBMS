@@ -18,6 +18,7 @@ namespace IntegrationTests
             */
             var test = new Test_Errors(true);
             test.MainTest();
+            Console.ReadKey();
         }
     }
 }

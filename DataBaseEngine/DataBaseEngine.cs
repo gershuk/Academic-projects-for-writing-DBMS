@@ -401,6 +401,10 @@ namespace DataBaseEngine
                         return new OperationResult<Table>(ExecutionState.failed, null, new ExpressionCalculateError(ex.Message));
                     }
                 }
+                else
+                {
+                    exprRes = ChekRowVersion(transactionGuid, row);
+                }
                 if (exprRes)
                 {
                     foreach (var ass in assigmentList)
@@ -716,6 +720,10 @@ namespace DataBaseEngine
                     {
                         return new OperationResult<Table>(ExecutionState.failed, null, new ExpressionCalculateError(ex.Message));
                     }
+                }
+                else
+                {
+                    exprRes = ChekRowVersion(transactionGuid, row);
                 }
                 if (exprRes)
                 {

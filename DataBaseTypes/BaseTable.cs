@@ -147,7 +147,7 @@ namespace DataBaseType
         {
             Fields = fields;
             TrStart = -1;
-            TrEnd = -2;
+            TrEnd = long.MaxValue;
         }
         public Row SetTrEnd (long trEnd)
         {

@@ -89,12 +89,6 @@ namespace IntegrationTests
             SendSQLQuery(cl1, $"SELECT * from qg2;", expected);
             SendSQLQuery(cl1, $"SELECT * from (fn join qg2 on fn.id = qg2.id);", expected);
 
-            SendSQLQuery(cl1, $"select * from( t join tt);", expected);
-            SendSQLQuery(cl1, $"select * from t jon tt on t.id = tt.id;", expected);
-            SendSQLQuery(cl1, $"select * from t as join tt on t.id = tt.id;", expected);
-            SendSQLQuery(cl1, $"select * from t a t1 join tt on t.id = tt.id;", expected);
-            SendSQLQuery(cl1, $"select * from t as t1 join tt t.id = tt.id;", expected);
-            SendSQLQuery(cl1, $"select * from t unon select * from t1;", expected);
 
             SendSQLQuery(cl1, $"select * from( t join tt);", expected);
             SendSQLQuery(cl1, $"select * from (t jon tt on t.id = tt.id);", expected);

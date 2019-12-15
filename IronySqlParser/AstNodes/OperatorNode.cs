@@ -12,10 +12,7 @@ namespace IronySqlParser.AstNodes
 
         public abstract dynamic Calc (Dictionary<Id, dynamic> variables);
 
-        public OperatorNode ()
-        {
-            VariablesNames = new List<Id>();
-        }
+        public OperatorNode () => VariablesNames = new List<Id>();
 
         protected void GetAllValuesNamesFromNode (OperatorNode expNode)
         {

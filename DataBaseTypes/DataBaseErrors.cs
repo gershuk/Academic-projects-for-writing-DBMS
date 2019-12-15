@@ -1,5 +1,4 @@
-﻿
-using ProtoBuf;
+﻿using ProtoBuf;
 
 namespace DataBaseType
 {

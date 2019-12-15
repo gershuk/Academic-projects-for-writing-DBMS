@@ -1,9 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net.Sockets;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using System.Threading;
 
 namespace ConsoleClientServer
 {
@@ -19,7 +17,7 @@ namespace ConsoleClientServer
     {
         private readonly string _host;
         private readonly int _port;
-        private TcpClient _client;
+        private readonly TcpClient _client;
         private NetworkStream _stream;
         private bool _disposed = false;
         private bool _stopworking = false;
@@ -30,7 +28,7 @@ namespace ConsoleClientServer
             _port = port;
             _client = new TcpClient();
         }
-        public void Connect()
+        public void Connect ()
         {
             var connected = false;
             var tries = 0;
@@ -86,7 +84,7 @@ namespace ConsoleClientServer
                             Console.WriteLine("test");
                             continue;
                         }
-                        if (message.Length==0)
+                        if (message.Length == 0)
                         {
                             continue;
                         }

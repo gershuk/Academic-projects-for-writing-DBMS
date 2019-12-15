@@ -411,7 +411,7 @@ id              age             name            TrStart         TrEnd
 "cl1
 ---------------------------------------
 Failed
-Error, Column with name fn.id11 not exist in Table fn.qg
+Unknown variable fn.id11
 ---------------------------------------
 
 

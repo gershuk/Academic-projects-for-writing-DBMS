@@ -109,9 +109,9 @@ namespace IronySqlParser
             var forClauseOpt = new NonTerminal("forClauseOpt", typeof(SqlNode));
             var systemTimeOpt = new NonTerminal("systemTimeOpt", typeof(SqlNode));
             var fromClauseOpt = new NonTerminal("fromClauseOpt", typeof(FromClauseNode));
-            var betweenSelector = new NonTerminal("betweenSelector", typeof(SqlNode));
-            var fromToSelector = new NonTerminal("fromToSelector", typeof(SqlNode));
-            var asOfSelector = new NonTerminal("asOfSelector", typeof(SqlNode));
+            var betweenTimeSelector = new NonTerminal("betweenSelector", typeof(BetweenTimeSelectorNode));
+            var fromToTimeSelector = new NonTerminal("fromToSelector", typeof(FromToTimeSelectorNode));
+            var asOfTimeSelector = new NonTerminal("asOfSelector", typeof(AsOfTimeSelectorNode));
             var groupClauseOpt = new NonTerminal("groupClauseOpt", typeof(SqlNode));
             var havingClauseOpt = new NonTerminal("havingClauseOpt", typeof(SqlNode));
             var orderClauseOpt = new NonTerminal("orderClauseOpt", typeof(SqlNode));
@@ -245,10 +245,10 @@ namespace IronySqlParser
             aggregateName.Rule = COUNT | "Avg" | "Min" | "Max" | "StDev" | "StDevP" | "Sum" | "Var" | "VarP";
             intoClauseOpt.Rule = Empty | INTO + id;
             forClauseOpt.Rule = Empty | FOR + systemTimeOpt;
-            systemTimeOpt.Rule = SYSTEM_TIME + betweenSelector | SYSTEM_TIME + fromToSelector | SYSTEM_TIME + asOfSelector;
-            betweenSelector.Rule = BETWEEN + dateTime + AND + dateTime;
-            fromToSelector.Rule = FROM + dateTime + TO + dateTime;
-            asOfSelector.Rule = AS + OF + dateTime;
+            systemTimeOpt.Rule = SYSTEM_TIME + betweenTimeSelector | SYSTEM_TIME + fromToTimeSelector | SYSTEM_TIME + asOfTimeSelector;
+            betweenTimeSelector.Rule = BETWEEN + dateTime + AND + dateTime;
+            fromToTimeSelector.Rule = FROM + dateTime + TO + dateTime;
+            asOfTimeSelector.Rule = AS + OF + dateTime;
             fromClauseOpt.Rule = Empty | FROM + idLink;
             whereClauseOpt.Rule = Empty | "WHERE" + expression;
             groupClauseOpt.Rule = Empty | "GROUP" + BY + idList;

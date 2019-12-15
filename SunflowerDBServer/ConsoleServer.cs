@@ -56,9 +56,11 @@ namespace SunflowerDB
                     Serializer.Serialize(binaryData, _core.ExecuteSqlSequence(query));
                 }catch(Exception ex)
                 {
-                    var res = new OperationResult<SqlSequenceResult>();
-                    res.State = ExecutionState.failed;
-                    res.OperationError = new DataBaseIsCorruptError("\b\b\b\b\b\bNot implemented");
+                    var res = new OperationResult<SqlSequenceResult>
+                    {
+                        State = ExecutionState.failed,
+                        OperationError = new DataBaseIsCorruptError("\b\b\b\b\b\bNot implemented")
+                    };
                     Serializer.Serialize(binaryData, res);
                 }
                 return binaryData.ToArray();

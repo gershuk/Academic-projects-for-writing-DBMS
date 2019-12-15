@@ -8,5 +8,9 @@ namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes
 {
     class UpdateNode : IBaseNode
     {
+        public override string ToString ()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

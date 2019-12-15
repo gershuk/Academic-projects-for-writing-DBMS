@@ -14,5 +14,10 @@ namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes
         {
             _ns = ns;
         }
+
+        public override string ToString ()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

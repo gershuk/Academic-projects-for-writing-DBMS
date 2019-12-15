@@ -4,6 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DataBaseEngine;
+using IntegrationTests.TestApi.QueryGenerator;
+using SunflowerDB;
+using TransactionManagement;
 
 namespace IntegrationTests
 {
@@ -18,6 +22,15 @@ namespace IntegrationTests
             */
             var test = new Test_Errors(true);
             test.MainTest();
+            var _core = new DataBase(20, new DataBaseEngineMain(), new TransactionScheduler());
+
+            var gen = new QueryGenerator();
+            for(var i = 0; i < 100; i++)
+            {
+                var res = gen.GenerateQuery();
+                Console.WriteLine($"{res}\n\n\n{_core.ExecuteSqlSequence(res)}{gen.Expression()}");
+                Console.ReadKey();
+            }
             Console.ReadKey();
         }
     }

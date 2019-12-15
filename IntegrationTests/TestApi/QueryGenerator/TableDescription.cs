@@ -11,11 +11,11 @@ namespace IntegrationTests.TestApi.QueryGenerator
        
         
         public string Name;
-        private List<Column> _columns;
-        private List<Column> _intcolumns;
-        private List<Column> _doublecolumns;
-        private List<Column> _charcolumns;
-        private static Random _generator = default;
+        private readonly List<Column> _columns = new List<Column>();
+        private readonly List<Column> _intcolumns = new List<Column>();
+        private readonly List<Column> _doublecolumns = new List<Column>();
+        private readonly List<Column> _charcolumns = new List<Column>();
+        private static Random _generator = new Random();
 
         public TableDescription (string name)
         {
@@ -24,18 +24,21 @@ namespace IntegrationTests.TestApi.QueryGenerator
 
         public void AddColumn(string name,ColumnType type)
         {
-            _columns.Add(new Column(name,type));
-            switch (type)
+            if (!_columns.Exists(i => i._name == name))
             {
-                case ColumnType.Double:
-                    _doublecolumns.Add(_columns.Last());
-                    break;
-                case ColumnType.Int:
-                    _intcolumns.Add(_columns.Last());
-                    break;
-                case ColumnType.Char:
-                    _charcolumns.Add(_columns.Last());
-                    break;
+                _columns.Add(new Column(name, type));
+                switch (type)
+                {
+                    case ColumnType.Double:
+                        _doublecolumns.Add(_columns.Last());
+                        break;
+                    case ColumnType.Int:
+                        _intcolumns.Add(_columns.Last());
+                        break;
+                    case ColumnType.Char:
+                        _charcolumns.Add(_columns.Last());
+                        break;
+                }
             }
         }
 

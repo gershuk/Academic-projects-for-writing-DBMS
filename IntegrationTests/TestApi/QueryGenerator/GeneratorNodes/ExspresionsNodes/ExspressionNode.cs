@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 
 namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes.ExspresionsNodes
 {
-    public partial class ExspresionNode : IBaseNode
+    public partial class ExspressionNode : IBaseNode
     {
         protected string _exspresion;
-        protected static Random _generator = default;
+        protected static Random _generator = new Random();
         protected const double valuechance = 0.3;
-        private readonly double _bracerschance = 0.3;
+        private readonly double _bracerschance = 0.1;
         protected readonly bool _inbracers;
-        ExspresionNode (bool isneedbracers)
+        ExspressionNode (bool isneedbracers)
         {
             _inbracers = isneedbracers ? true : _generator.NextDouble() < _bracerschance;  
         }
-        ExspresionNode (NameSpace ns, int maxdepth, ColumnType type = ColumnType.Bool, bool isusingid = false, string table = "")
+        public ExspressionNode (NameSpace ns, int maxdepth, ColumnType type = ColumnType.Bool, bool isusingid = false, string table = "")
         {
             switch (type)
             {

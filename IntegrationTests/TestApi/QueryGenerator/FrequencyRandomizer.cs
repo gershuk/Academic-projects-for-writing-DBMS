@@ -8,11 +8,11 @@ namespace IntegrationTests.TestApi.QueryGenerator
 {
     public class FrequencyRandomizer
     {
-        private List<int> _values = default;
-        private static Random _generator = default;
+        private List<int> _values = new List<int>();
+        private static Random _generator = new Random();
         public void Insert(int value,int frequency = 1)
         {
-            for(int i = 0; i< frequency*3; i++)
+            for(var i = 0; i< frequency*3; i++)
             {
                 _values.Add(value);
             }

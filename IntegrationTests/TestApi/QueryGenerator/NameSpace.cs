@@ -32,7 +32,7 @@ namespace IntegrationTests.TestApi.QueryGenerator
         private bool CanEditTables => _tables.Count > 0;
         private readonly HashSet<string> _tables;
         private readonly Dictionary<string, TableDescription> _descriptions;
-        private static Random _generator = default;
+        private static Random _generator = new Random();
 
         NameSpace (HashSet<string> tables = default, Dictionary<string, TableDescription> descriptions = default)
         {
@@ -54,6 +54,10 @@ namespace IntegrationTests.TestApi.QueryGenerator
             }
         }
 
+        public NameSpace () : this(new HashSet<string>(), new Dictionary<string, TableDescription>())
+        {
+        }
+
         private static string RandomString ()
         {
             var length = _generator.Next(5, 255);
@@ -61,15 +65,28 @@ namespace IntegrationTests.TestApi.QueryGenerator
             return new string(Enumerable.Range(1, length).Select(_ => chars[_generator.Next(chars.Length)]).ToArray());
         }
 
-        private string GetRandomName ()
+        public string GetRandomName ()
         {
-            var str = RandomString();
-            return str.Substring(0, Math.Min(str.Length - 1, _generator.Next(5, 10)));
+            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+            var str = chars[_generator.Next(chars.Length)] + RandomString();
+            var res = str.Substring(0, Math.Min(str.Length - 1, _generator.Next(5, 10)));
+            while (_tables.Contains(res))
+            {
+                res += "a";
+            }
+            return res;
         }
 
         public string GetTableName ()
         {
-            return _generator.NextDouble()*_tables.Count <= NotExistedParam * _tables.Count ? GetRandomName()  : _tables.ToArray()[_generator.Next(_tables.Count())];
+            if (NotExistedParam != 0)
+            {
+                return _generator.NextDouble() * _tables.Count <= NotExistedParam * _tables.Count ? GetRandomName() : _tables.ToArray()[_generator.Next(_tables.Count())];
+            }
+            else
+            {
+                return _tables.ToArray()[_generator.Next(_tables.Count())];
+            }
         }
 
         public Column GetTableColumn (string table)
@@ -79,7 +96,7 @@ namespace IntegrationTests.TestApi.QueryGenerator
 
         public Column GetIntTableColumn (string table)
         {
-            return _generator.NextDouble() < NotExistedParam ? new Column(GetRandomName()) : !_tables.Contains(table) ? null : _descriptions[table].GetIntTableColumn() ;
+            return _generator.NextDouble() < NotExistedParam ? new Column(GetRandomName()) : !_tables.Contains(table) ? null : _descriptions[table].GetIntTableColumn();
         }
 
         public Column GetDoubleTableColumn (string table)
@@ -98,9 +115,9 @@ namespace IntegrationTests.TestApi.QueryGenerator
             _descriptions[name] = new TableDescription(name);
         }
 
-        public void AddTableColumb (string table, string name, ColumnType type)
+        public void AddTableColumn (string table, string name, ColumnType type)
         {
-            _descriptions[name].AddColumn(name, type);
+            _descriptions[table].AddColumn(name, type);
         }
     }
 }

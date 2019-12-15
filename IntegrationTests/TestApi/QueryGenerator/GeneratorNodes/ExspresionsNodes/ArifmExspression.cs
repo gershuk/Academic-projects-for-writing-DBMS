@@ -1,8 +1,8 @@
 ﻿namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes.ExspresionsNodes
 {
-    public partial class ExspresionNode
+    public partial class ExspressionNode
     {
-        private class ArifmExspresion : ExspresionNode
+        private class ArifmExspresion : ExspressionNode
         {
             private readonly string[] _operators = { "+", "-", "*", "/", "%" };
             public ArifmExspresion (NameSpace ns, int maxdepth, bool isint, bool isneedbracers, bool isusingid = false, string table = ""):base(isneedbracers)
@@ -10,9 +10,9 @@
                 var chooser = new FrequencyRandomizer();
                 if (isusingid)
                 {
-                    chooser.Insert(0, 7);
+                    chooser.Insert(0, 7);//id
                 }
-                chooser.Insert(1, 3);
+                chooser.Insert(1, 3);//value
                 var value = isint ? _generator.Next().ToString() : (_generator.Next() * _generator.NextDouble()).ToString();
                 if (_generator.NextDouble() * maxdepth <= valuechance * maxdepth)
                 {
@@ -53,7 +53,7 @@
                             {
                                 _exspresion = $"{new ArifmExspresion(ns, maxdepth - 1, isint, op>1, true, table)}"
                                 + $"{_operators[op]}"
-                                + $"{new ArifmExspresion(ns, maxdepth - 1, op > 1, isint, true, table)}";
+                                + $"{new ArifmExspresion(ns, maxdepth - 1, isint, op > 1, true, table)}";
                                 break;
                             }
                         case 1:

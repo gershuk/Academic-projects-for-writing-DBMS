@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IntegrationTests.TestApi.QueryGenerator.GeneratorNodes;
+using IntegrationTests.TestApi.QueryGenerator.GeneratorNodes.ExspresionsNodes;
 
 namespace IntegrationTests.TestApi.QueryGenerator
 {
@@ -22,14 +24,22 @@ namespace IntegrationTests.TestApi.QueryGenerator
             set => _nameSpace.NotExistedParam = value;
         }
 
-        public QueryGenerator(NameSpace ns = default)
+        public QueryGenerator(NameSpace ns )
         {
             _nameSpace = ns;
+        }
+        public QueryGenerator ()
+        {
+            _nameSpace = new NameSpace();
         }
 
         public string GenerateQuery()
         {
-
+            return new CreateTableNode(_nameSpace,10).ToString(); 
+        }
+        public string Expression ()
+        {
+            return new ExspressionNode(_nameSpace, 5, ColumnType.Int,true, _nameSpace.GetTableName()).ToString()+"\n\n\n"+new ExspressionNode(_nameSpace, 5, ColumnType.Double, true, _nameSpace.GetTableName()).ToString();
         }
 
     }

@@ -8,5 +8,9 @@ namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes
 {
     class SelectNode : IBaseNode
     {
+        public override string ToString ()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

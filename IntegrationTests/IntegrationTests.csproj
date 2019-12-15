@@ -60,7 +60,12 @@
     <Compile Include="TestApi\QueryGenerator\GeneratorNodes\CreateTableNode.cs" />
     <Compile Include="TestApi\QueryGenerator\GeneratorNodes\DeleteNode.cs" />
     <Compile Include="TestApi\QueryGenerator\GeneratorNodes\DropTableNode.cs" />
-    <Compile Include="TestApi\QueryGenerator\GeneratorNodes\ExspresionNode.cs" />
+    <Compile Include="TestApi\QueryGenerator\GeneratorNodes\ExspresionsNodes\ArifmExspression.cs" />
+    <Compile Include="TestApi\QueryGenerator\GeneratorNodes\ExspresionsNodes\CompExspression.cs" />
+    <Compile Include="TestApi\QueryGenerator\GeneratorNodes\ExspresionsNodes\ExspressionNode.cs" />
+    <Compile Include="TestApi\QueryGenerator\GeneratorNodes\ExspresionsNodes\LogicExspression.cs" />
+    <Compile Include="TestApi\QueryGenerator\GeneratorNodes\ExspresionsNodes\RnExspression.cs" />
+    <Compile Include="TestApi\QueryGenerator\GeneratorNodes\ExspresionsNodes\StringExspression.cs" />
     <Compile Include="TestApi\QueryGenerator\GeneratorNodes\IBaseNode.cs" />
     <Compile Include="TestApi\QueryGenerator\GeneratorNodes\InsertNode.cs" />
     <Compile Include="TestApi\QueryGenerator\GeneratorNodes\SelectNode.cs" />

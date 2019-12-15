@@ -56,10 +56,7 @@ namespace DataBaseType
         public FieldInt ()
         {
         }
-        public FieldInt (int val)
-        {
-            Value = val;
-        }
+        public FieldInt (int val) => Value = val;
 
         public override string ToString () => Value.ToString();
     }
@@ -79,10 +76,7 @@ namespace DataBaseType
         {
 
         }
-        public FieldDouble (double val)
-        {
-            Value = val;
-        }
+        public FieldDouble (double val) => Value = val;
 
         public override string ToString () => Value.ToString();
     }
@@ -147,7 +141,7 @@ namespace DataBaseType
         {
             Fields = fields;
             TrStart = -1;
-            TrEnd = -2;
+            TrEnd = long.MaxValue;
         }
         public Row SetTrEnd (long trEnd)
         {
@@ -189,7 +183,7 @@ namespace DataBaseType
         public Column (Id name) => Name = name;
         public Column (Column col)
         {
-            if(col == null)
+            if (col == null)
             {
                 throw new NullReferenceException();
             }
@@ -379,7 +373,7 @@ namespace DataBaseType
             {
                 foreach (var field in row.Fields)
                 {
-                    sw.Write("{0,-15} ", field == null? "NULL": field.ToString().Trim(' '));
+                    sw.Write("{0,-15} ", field == null ? "NULL" : field.ToString().Trim(' '));
                 }
                 sw.Write("{0,-15} ", row.TrStart);
                 sw.Write("{0,-15} ", row.TrEnd == long.MaxValue ? "inf" : "" + row.TrEnd);

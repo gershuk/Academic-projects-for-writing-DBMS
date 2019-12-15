@@ -19,7 +19,7 @@ namespace StorageEngine
         OperationResult<string> RemoveTable (Id tableName);
 
         OperationResult<string> UpdateAllRow (Id tableName, Row newRow, Predicate<Row> match);
-        OperationResult<string> UpdateAllRow (Id tableName, Func<Row,Row> match);
+        OperationResult<string> UpdateAllRow (Id tableName, Func<Row, Row> match);
         OperationResult<string> InsertRow (Id tableName, Row fields);
         OperationResult<string> RemoveAllRow (Id tableName, Predicate<Row> match);
     }

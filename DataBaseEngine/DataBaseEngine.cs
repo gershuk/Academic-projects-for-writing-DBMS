@@ -43,8 +43,7 @@ namespace DataBaseEngine
                                            Id leftId,
                                            Id rightId,
                                            JoinKind joinKind,
-                                           Id statmentLeftId,
-                                           Id statmentRightId);
+                                           ExpressionFunction expressionFunction);
 
         OperationResult<Table> UnionCommand (Guid transactionGuid, Id leftId, Id rightId, UnionKind unionKind);
 
@@ -213,7 +212,7 @@ namespace DataBaseEngine
             if (columnNames == null)
             {
                 columnNames = new List<Id>();
-                foreach(var col in table.TableMetaInf.ColumnPool)
+                foreach (var col in table.TableMetaInf.ColumnPool)
                 {
                     columnNames.Add(col.Name);
                 }
@@ -227,7 +226,7 @@ namespace DataBaseEngine
             {
                 return new OperationResult<Table>(ExecutionState.failed, null, new ColumnTooMachError(table.TableMetaInf.Name.ToString()));
             }
-            if(objectParams.Count > table.TableMetaInf.ColumnPool.Count)
+            if (objectParams.Count > table.TableMetaInf.ColumnPool.Count)
             {
                 return new OperationResult<Table>(ExecutionState.failed, null, new ColumnTooMachError(table.TableMetaInf.Name.ToString()));
             }
@@ -240,7 +239,7 @@ namespace DataBaseEngine
                 }
             }
 
-            if(columnNames.Count != objectParams.Count)
+            if (columnNames.Count != objectParams.Count)
             {
                 return new OperationResult<Table>(ExecutionState.failed, null, new DataCountNotEqualWithColumnCountInInsert(""));
             }
@@ -250,7 +249,7 @@ namespace DataBaseEngine
             for (var i = 0; i < colPool.Count; ++i)
             {
                 var index = columnNames.FindIndex((Id n) => colPool[i].Name.ToString() == n.ToString());
-                if(index < 0)
+                if (index < 0)
                 {
                     return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistInInsert(colPool[i].Name.ToString()));
                 }
@@ -291,7 +290,7 @@ namespace DataBaseEngine
             }
             var table = tr.NewTables[tableName.ToString()];
             var res = table.AddColumn(column);
-            return new OperationResult<Table>(res.State, table,res.OperationError);
+            return new OperationResult<Table>(res.State, table, res.OperationError);
         }
 
         public OperationResult<Table> GetTableCommand (Guid transactionGuid, Id name)
@@ -449,7 +448,7 @@ namespace DataBaseEngine
             try
             {
                 resUpdate = _dataStorage.UpdateAllRow(table.TableMetaInf.Name,
-                     (Row r) => (expressionFunction == null ? true: expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, r, table.TableMetaInf.ColumnPool))) && ChekRowVersion(transactionGuid, r) ? r.SetTrEnd(tr.Id) : null);
+                     (Row r) => (expressionFunction == null ? true : expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, r, table.TableMetaInf.ColumnPool))) && ChekRowVersion(transactionGuid, r) ? r.SetTrEnd(tr.Id) : null);
             }
             catch (Exception ex)
             {
@@ -503,7 +502,11 @@ namespace DataBaseEngine
             return r.TrStart <= tr.PrevVerId && r.TrEnd > tr.PrevVerId;
         }
 
-        public OperationResult<Table> JoinCommand (Guid transactionGuid, Id leftId, Id rightId, JoinKind joinKind, Id statmentLeftId, Id statmentRightId)
+        public OperationResult<Table> JoinCommand (Guid transactionGuid,
+                                           Id leftId,
+                                           Id rightId,
+                                           JoinKind joinKind,
+                                           ExpressionFunction expressionFunction)
         {
             var leftRes = GetTableCommand(transactionGuid, leftId);
             if (leftRes.State == ExecutionState.failed)
@@ -529,7 +532,7 @@ namespace DataBaseEngine
             {
                 var newColName = new List<string>(leftTable.TableMetaInf.Name.SimpleIds);
                 newColName.AddRange(col.Name.SimpleIds);
-                var newCol = new Column(new Id(newColName), col.DataType,col.DataParam, new List<string>(col.Constrains),col.TypeState);
+                var newCol = new Column(new Id(newColName), col.DataType, col.DataParam, new List<string>(col.Constrains), col.TypeState);
                 resulTableMetaInf.ColumnPool.Add(newCol);
             }
             foreach (var col in rightTable.TableMetaInf.ColumnPool)
@@ -542,18 +545,6 @@ namespace DataBaseEngine
             var resultTable = new Table(resulTableMetaInf);
             var resultTableData = new List<Row>();
 
-            var statmentLeftIndex = resultTable.TableMetaInf.ColumnPool.FindIndex((Column c) => statmentLeftId.ToString() == c.Name.ToString());
-            var statmentRightIndex = resultTable.TableMetaInf.ColumnPool.FindIndex((Column c) => statmentRightId.ToString() == c.Name.ToString());
-            if(statmentLeftIndex < 0)
-            {
-                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(statmentLeftId.ToString(), resultTable.TableMetaInf.Name.ToString()));
-            }
-            if (statmentRightIndex < 0)
-            {
-                return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(statmentRightId.ToString(), resultTable.TableMetaInf.Name.ToString()));
-            }
-            var leftIndex = statmentLeftIndex < leftTable.TableMetaInf.ColumnPool.Count ? statmentLeftIndex : statmentRightIndex;
-            var rightIndex = statmentLeftIndex < leftTable.TableMetaInf.ColumnPool.Count ? statmentRightIndex - (leftTable.TableMetaInf.ColumnPool.Count) : statmentLeftIndex - (leftTable.TableMetaInf.ColumnPool.Count);
             foreach (var leftRow in leftTable.TableData)
             {
                 if (ChekRowVersion(transactionGuid, leftRow))
@@ -562,30 +553,41 @@ namespace DataBaseEngine
                     {
                         if (ChekRowVersion(transactionGuid, rightRow))
                         {
-                            var stateCompare = Field.Compare(leftRow.Fields[leftIndex], rightRow.Fields[rightIndex]);
-                            if(stateCompare.State == ExecutionState.failed)
+                            var newRowFields = new Field[leftTable.TableMetaInf.ColumnPool.Count + rightTable.TableMetaInf.ColumnPool.Count];
+                            for (var i = 0; i < leftRow.Fields.Length; ++i)
                             {
-                                return new OperationResult<Table>(ExecutionState.failed, null, 
-                                           new CastFieldError( leftTable.TableMetaInf.ColumnPool[leftIndex].Name.ToString(), leftTable.TableMetaInf.ColumnPool[leftIndex].DataType.ToString(),""));
+                                newRowFields[i] = leftRow.Fields[i];
                             }
-                            if (stateCompare.Result)
+                            for (var i = 0; i < rightRow.Fields.Length; ++i)
                             {
-                                var newRowFields = new Field[leftTable.TableMetaInf.ColumnPool.Count + rightTable.TableMetaInf.ColumnPool.Count];
-                                for (var i = 0; i < leftRow.Fields.Length; ++i)
+                                newRowFields[i + leftTable.TableMetaInf.ColumnPool.Count] = rightRow.Fields[i];
+                            }
+                            var exprRes = true;
+                            if (expressionFunction != null)
+                            {
+                                try
                                 {
-                                    newRowFields[i] = leftRow.Fields[i];
+                                    exprRes = expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, new Row(newRowFields), resulTableMetaInf.ColumnPool));
                                 }
-                                for (var i = 0; i < rightRow.Fields.Length; ++i)
+                                catch (Exception ex)
                                 {
-                                    newRowFields[i + leftTable.TableMetaInf.ColumnPool.Count] = rightRow.Fields[i];
+                                    return new OperationResult<Table>(ExecutionState.failed, null, new ExpressionCalculateError(ex.Message));
                                 }
+                            }
+                            else
+                            {
+                                exprRes = true;
+                            }
+                            if (exprRes)
+                            {
+                                
                                 resultTableData.Add(new Row(newRowFields));
                             }
                         }
                     }
                 }
             }
-            if(joinKind == JoinKind.Left)
+            if (joinKind == JoinKind.Left)
             {
                 foreach (var leftRow in leftTable.TableData)
                 {
@@ -596,13 +598,32 @@ namespace DataBaseEngine
                         {
                             if (ChekRowVersion(transactionGuid, rightRow))
                             {
-                                var stateCompare = Field.Compare(leftRow.Fields[leftIndex], rightRow.Fields[rightIndex]);
-                                if (stateCompare.State == ExecutionState.failed)
+                                var newRowFields = new Field[leftTable.TableMetaInf.ColumnPool.Count + rightTable.TableMetaInf.ColumnPool.Count];
+                                for (var i = 0; i < leftRow.Fields.Length; ++i)
                                 {
-                                    return new OperationResult<Table>(ExecutionState.failed, null,
-                                               new CastFieldError(leftTable.TableMetaInf.ColumnPool[leftIndex].Name.ToString(), leftTable.TableMetaInf.ColumnPool[leftIndex].DataType.ToString(), ""));
+                                    newRowFields[i] = leftRow.Fields[i];
                                 }
-                                if (stateCompare.Result)
+                                for (var i = 0; i < rightRow.Fields.Length; ++i)
+                                {
+                                    newRowFields[i + leftTable.TableMetaInf.ColumnPool.Count] = rightRow.Fields[i];
+                                }
+                                var exprRes = true;
+                                if (expressionFunction != null)
+                                {
+                                    try
+                                    {
+                                        exprRes = expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, new Row(newRowFields), resulTableMetaInf.ColumnPool));
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        return new OperationResult<Table>(ExecutionState.failed, null, new ExpressionCalculateError(ex.Message));
+                                    }
+                                }
+                                else
+                                {
+                                    exprRes = true;
+                                }
+                                if (exprRes)
                                 {
                                     IsFind = true;
                                     break;
@@ -636,13 +657,32 @@ namespace DataBaseEngine
                         {
                             if (ChekRowVersion(transactionGuid, rightRow))
                             {
-                                var stateCompare = Field.Compare(leftRow.Fields[leftIndex], rightRow.Fields[rightIndex]);
-                                if (stateCompare.State == ExecutionState.failed)
+                                var newRowFields = new Field[leftTable.TableMetaInf.ColumnPool.Count + rightTable.TableMetaInf.ColumnPool.Count];
+                                for (var i = 0; i < leftRow.Fields.Length; ++i)
                                 {
-                                    return new OperationResult<Table>(ExecutionState.failed, null,
-                                               new CastFieldError(leftTable.TableMetaInf.ColumnPool[leftIndex].Name.ToString(), leftTable.TableMetaInf.ColumnPool[leftIndex].DataType.ToString(), ""));
+                                    newRowFields[i] = leftRow.Fields[i];
                                 }
-                                if (stateCompare.Result)
+                                for (var i = 0; i < rightRow.Fields.Length; ++i)
+                                {
+                                    newRowFields[i + leftTable.TableMetaInf.ColumnPool.Count] = rightRow.Fields[i];
+                                }
+                                var exprRes = true;
+                                if (expressionFunction != null)
+                                {
+                                    try
+                                    {
+                                        exprRes = expressionFunction.CalcFunc(CompileExpressionData(expressionFunction.VariablesNames, new Row(newRowFields), resulTableMetaInf.ColumnPool));
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        return new OperationResult<Table>(ExecutionState.failed, null, new ExpressionCalculateError(ex.Message));
+                                    }
+                                }
+                                else
+                                {
+                                    exprRes = true;
+                                }
+                                if (exprRes)
                                 {
                                     IsFind = true;
                                     break;
@@ -666,7 +706,7 @@ namespace DataBaseEngine
                 }
             }
 
-                resultTable.TableData = resultTableData;
+            resultTable.TableData = resultTableData;
             tr.TempTables.Add(resultTable.TableMetaInf.Name.ToString(), resultTable);
             return new OperationResult<Table>(ExecutionState.performed, resultTable);
         }
@@ -685,7 +725,7 @@ namespace DataBaseEngine
                 Name = new Id(new List<string>(table.TableMetaInf.Name.SimpleIds))
             };
             resulTableMetaInf.Name.SimpleIds.Add(transactionGuid.ToString());
-            if(columnNames == null || columnNames[0].ToString() == "*")
+            if (columnNames == null || columnNames[0].ToString() == "*")
             {
                 foreach (var col in table.TableMetaInf.ColumnPool)
                 {
@@ -695,10 +735,10 @@ namespace DataBaseEngine
             }
             else
             {
-                foreach(var colName in columnNames)
+                foreach (var colName in columnNames)
                 {
                     var index = table.TableMetaInf.ColumnPool.FindIndex((Column c) => c.Name.ToString() == colName.ToString());
-                    if(index < 0)
+                    if (index < 0)
                     {
                         return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistError(colName.ToString(), table.TableMetaInf.Name.ToString()));
                     }
@@ -747,8 +787,8 @@ namespace DataBaseEngine
         public OperationResult<TableMetaInf> GetTableMetaInfCommand (Guid transactionGuid, Id name) => throw new NotImplementedException();
 
         public OperationResult<Table> IntersectCommand (Guid transactionGuid, Id leftId, Id rightId) => throw new NotImplementedException();
-       
-   
+
+
         public OperationResult<Table> ShowTableCommand (Guid transactionGuid, Id tableName) => throw new NotImplementedException();
         public OperationResult<Table> UnionCommand (Guid transactionGuid, Id leftId, Id rightId, UnionKind unionKind) => throw new NotImplementedException();
 

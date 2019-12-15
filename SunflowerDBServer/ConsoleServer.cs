@@ -1,16 +1,15 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading;
 
 using ConsoleClientServer;
 
 using DataBaseEngine;
+
 using DataBaseType;
+
 using ProtoBuf;
+
 using TransactionManagement;
-using ZeroFormatter;
 
 namespace SunflowerDB
 {
@@ -54,7 +53,8 @@ namespace SunflowerDB
                 try
                 {
                     Serializer.Serialize(binaryData, _core.ExecuteSqlSequence(query));
-                }catch(Exception ex)
+                }
+                catch (Exception)
                 {
                     var res = new OperationResult<SqlSequenceResult>
                     {
@@ -98,7 +98,6 @@ namespace SunflowerDB
         private static void Main (string[] args)
         {
             SunflowerDBServer _server = default; // сервер
-            Thread _listenThread = default; // потока для прослушивания
 
             try
             {

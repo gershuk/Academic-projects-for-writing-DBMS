@@ -12,6 +12,11 @@ namespace DataBaseType
     [ProtoInclude(8, typeof(ColumnNotExistError))]
     [ProtoInclude(9, typeof(CastFieldError))]
     [ProtoInclude(10, typeof(ParsingRequestError))]
+    [ProtoInclude(11, typeof(ExpressionCalculateError))]
+    [ProtoInclude(12, typeof(NullError))]
+    [ProtoInclude(13, typeof(ColumnNotExistInInsert))]
+    [ProtoInclude(14, typeof(DataCountNotEqualWithColumnCountInInsert))]
+    [ProtoInclude(15, typeof(ColumnTooMachError))]
     public abstract class DBError
     {
         [ProtoMember(1)]
@@ -144,6 +149,7 @@ namespace DataBaseType
             : base($"Error, Column with name {columnName} not exist in insert column list")
         { }
     }
+
     [ProtoContract]
     public class DataCountNotEqualWithColumnCountInInsert : DBError
     {

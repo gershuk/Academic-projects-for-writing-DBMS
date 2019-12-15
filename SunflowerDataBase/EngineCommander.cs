@@ -170,12 +170,12 @@ namespace SunflowerDB
 
         public object ExecuteSqlNode (Guid id, JoinChainOptNode node)
         {
+            var expNode = node.JoinStatementNode.ExpressionNode;
+            var expression = new ExpressionFunction(expNode.Calc, expNode.VariablesNames);
             var joinResult = Engine.JoinCommand(id,
                                                 node.LeftId,
                                                 node.RightId,
-                                                node.JoinKind,
-                                                node.JoinStatementNode.LeftId,
-                                                node.JoinStatementNode.RightId);
+                                                expression);
 
             if (joinResult.State == ExecutionState.performed)
             {

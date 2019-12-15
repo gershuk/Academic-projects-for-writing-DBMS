@@ -42,9 +42,7 @@ namespace DataBaseEngine
         OperationResult<Table> JoinCommand (Guid transactionGuid,
                                            Id leftId,
                                            Id rightId,
-                                           JoinKind joinKind,
-                                           Id statmentLeftId,
-                                           Id statmentRightId);
+                                           ExpressionFunction expressionFunction);
 
         OperationResult<Table> UnionCommand (Guid transactionGuid, Id leftId, Id rightId, UnionKind unionKind);
 
@@ -745,6 +743,7 @@ namespace DataBaseEngine
         public OperationResult<Table> UnionCommand (Guid transactionGuid, Id leftId, Id rightId, UnionKind unionKind) => throw new NotImplementedException();
 
         public OperationResult<Table> DeleteColumnCommand (Guid transactionGuid, Id tableName, Id ColumnName) => throw new NotImplementedException();
+        public OperationResult<Table> JoinCommand (Guid transactionGuid, Id leftId, Id rightId, ExpressionFunction expressionFunction) => throw new NotImplementedException();
     }
 
     [ZeroFormattable]

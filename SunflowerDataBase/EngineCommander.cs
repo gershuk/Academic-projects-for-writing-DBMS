@@ -175,6 +175,7 @@ namespace SunflowerDB
             var joinResult = Engine.JoinCommand(id,
                                                 node.LeftId,
                                                 node.RightId,
+                                                node.JoinKind,
                                                 expression);
 
             if (joinResult.State == ExecutionState.performed)

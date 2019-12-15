@@ -49,8 +49,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AstNodes\AsOfTimeSelectorNode.cs" />
     <Compile Include="AstNodes\AssignListNode.cs" />
     <Compile Include="AstNodes\AssignmentNode.cs" />
+    <Compile Include="AstNodes\BetweenTimeSelectorNode.cs" />
     <Compile Include="AstNodes\BinExprNode.cs" />
     <Compile Include="AstNodes\BinOpNode.cs" />
     <Compile Include="AstNodes\ColumnItemListNode.cs" />
@@ -68,6 +70,7 @@
     <Compile Include="AstNodes\FieldDefListNode.cs" />
     <Compile Include="AstNodes\FieldDefNode.cs" />
     <Compile Include="AstNodes\FromClauseNode.cs" />
+    <Compile Include="AstNodes\FromToTimeSelectorNode.cs" />
     <Compile Include="AstNodes\IdLinkNode.cs" />
     <Compile Include="AstNodes\IdListNode.cs" />
     <Compile Include="AstNodes\IdNode.cs" />
@@ -91,6 +94,7 @@
     <Compile Include="AstNodes\StmtListNode.cs" />
     <Compile Include="AstNodes\StringLiteralNode.cs" />
     <Compile Include="AstNodes\TermNode.cs" />
+    <Compile Include="AstNodes\TimeSelectorNode.cs" />
     <Compile Include="AstNodes\TransactionBeginOptNode.cs" />
     <Compile Include="AstNodes\TransactionEndOptNode.cs" />
     <Compile Include="AstNodes\TransactionListNode.cs" />

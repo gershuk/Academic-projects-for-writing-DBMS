@@ -185,7 +185,7 @@ namespace IronySqlParser
             //Join
             joinChainOpt.Rule = idLink + joinKindOpt + JOIN + idLink + ON + joinStatement;
             joinKindOpt.Rule = Empty | "INNER" | "LEFT" | "RIGHT" | "Full";
-            joinStatement.Rule = "(" + id + "=" + id + ")" | id + "=" + id;
+            joinStatement.Rule = expressionInBrackets;//"(" + id + "=" + id + ")" | id + "=" + id;
 
             //Union
             unionChainOpt.Rule = idLink + UNION + unionKindOpt + idLink;
@@ -244,7 +244,7 @@ namespace IronySqlParser
             aggregateArg.Rule = expression | STAR;
             aggregateName.Rule = COUNT | "Avg" | "Min" | "Max" | "StDev" | "StDevP" | "Sum" | "Var" | "VarP";
             intoClauseOpt.Rule = Empty | INTO + id;
-            forClauseOpt.Rule = Empty |FOR + systemTimeOpt;
+            forClauseOpt.Rule = Empty | FOR + systemTimeOpt;
             systemTimeOpt.Rule = SYSTEM_TIME + betweenSelector | SYSTEM_TIME + fromToSelector | SYSTEM_TIME + asOfSelector;
             betweenSelector.Rule = BETWEEN + dateTime + AND + dateTime;
             fromToSelector.Rule = FROM + dateTime + TO + dateTime;

@@ -40,7 +40,7 @@ namespace ConsoleClientServer
                         var data = _server.ExecuteQuery(message);
                         Stream.Write(data, 0, data.Length); //передача данных всем
                     }
-                    catch(Exception ex)
+                    catch (Exception)
                     {
                         break;
                     }

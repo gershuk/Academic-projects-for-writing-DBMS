@@ -122,13 +122,6 @@ namespace DataBaseType
         NTEXT
     }
 
-    [Obsolete]
-    public class Variable
-    {
-        public dynamic Data { get; set; }
-        public Id Name { get; set; }
-    }
-
     [ZeroFormattable]
     [ProtoContract]
     public class Id

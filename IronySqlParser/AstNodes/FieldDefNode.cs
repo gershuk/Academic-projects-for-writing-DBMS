@@ -12,7 +12,7 @@ namespace IronySqlParser.AstNodes
         public List<string> ConstaraintList { get; set; }
         public NullSpecOpt NullSpecOpt { get; set; }
 
-        public override void CollectInfoFromChild ()
+        public override void CollectDataFromChildren ()
         {
             Id = new Id(FindFirstChildNodeByType<IdNode>().Id);
             FieldType = FindFirstChildNodeByType<TypeNameNode>().FieldType;

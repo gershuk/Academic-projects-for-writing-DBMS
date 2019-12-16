@@ -5,7 +5,7 @@ namespace IronySqlParser.AstNodes
     public class IdLinkNode : SqlNode
     {
         public Id TableName { get; private set; }
-        public override void CollectInfoFromChild ()
+        public override void CollectDataFromChildren ()
         {
             var sqlCommandNode = FindFirstChildNodeByType<SqlCommandNode>();
             TableName = sqlCommandNode?.ReturnedTableName;

@@ -62,6 +62,7 @@
     <Compile Include="AstNodes\ConstraintDefNode.cs" />
     <Compile Include="AstNodes\ConstraintListOptNodes.cs" />
     <Compile Include="AstNodes\CreateTableCommandNode.cs" />
+    <Compile Include="AstNodes\DateTimeNode.cs" />
     <Compile Include="AstNodes\DeleteCommandNode.cs" />
     <Compile Include="AstNodes\DropTableCommandNode.cs" />
     <Compile Include="AstNodes\ExceptChainOptNode.cs" />
@@ -69,6 +70,7 @@
     <Compile Include="AstNodes\ExpressionNode.cs" />
     <Compile Include="AstNodes\FieldDefListNode.cs" />
     <Compile Include="AstNodes\FieldDefNode.cs" />
+    <Compile Include="AstNodes\ForClauseOptNode.cs" />
     <Compile Include="AstNodes\FromClauseNode.cs" />
     <Compile Include="AstNodes\FromToTimeSelectorNode.cs" />
     <Compile Include="AstNodes\IdLinkNode.cs" />
@@ -93,6 +95,7 @@
     <Compile Include="AstNodes\StmtLineNode.cs" />
     <Compile Include="AstNodes\StmtListNode.cs" />
     <Compile Include="AstNodes\StringLiteralNode.cs" />
+    <Compile Include="AstNodes\SystemTimeOptNode.cs" />
     <Compile Include="AstNodes\TermNode.cs" />
     <Compile Include="AstNodes\TimeSelectorNode.cs" />
     <Compile Include="AstNodes\TransactionBeginOptNode.cs" />

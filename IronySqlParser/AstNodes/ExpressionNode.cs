@@ -31,7 +31,7 @@ namespace IronySqlParser.AstNodes
             return _cachedValue;
         }
 
-        public override void CollectInfoFromChild ()
+        public override void CollectDataFromChildren ()
         {
             VariablesNames = new List<Id>();
             ConstOnly = true;

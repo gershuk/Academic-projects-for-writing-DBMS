@@ -31,7 +31,7 @@ namespace DataBaseEngine
 
         OperationResult<Table> InsertCommand (Guid transactionGuid, Id tableName, List<Id> columnNames, List<ExpressionFunction> objectParams);
 
-        OperationResult<Table> SelectCommand (Guid transactionGuid, Id tableName, List<Id> columnNames, ExpressionFunction expression);
+        OperationResult<Table> SelectCommand (Guid transactionGuid, Id tableName, TimeSelectorDelegate timeSelector, List<Id> columnNames, ExpressionFunction expression);
 
         OperationResult<Table> UpdateCommand (Guid transactionGuid, Id tableName, List<Assigment> assigmentList, ExpressionFunction expressionFunction);
 
@@ -746,6 +746,7 @@ namespace DataBaseEngine
         public OperationResult<Table> DeleteColumnCommand (Guid transactionGuid, Id tableName, Id ColumnName) => throw new NotImplementedException();
         public OperationResult<Table> JoinCommand (Guid transactionGuid, Id leftId, Id rightId, ExpressionFunction expressionFunction) => throw new NotImplementedException();
         public OperationResult<Table> JoinCommand (Guid transactionGuid, Id leftId, Id rightId, JoinKind joinKind, ExpressionFunction expressionFunction) => throw new NotImplementedException();
+        public OperationResult<Table> SelectCommand (Guid transactionGuid, Id tableName, TimeSelectorDelegate timeSelector, List<Id> columnNames, ExpressionFunction expression) => throw new NotImplementedException();
     }
 
     [ZeroFormattable]

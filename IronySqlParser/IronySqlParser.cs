@@ -21,8 +21,8 @@ namespace IronySqlParser
             stringLiteral.AstConfig.NodeType = typeof(StringLiteralNode);
             var simpleId = TerminalFactory.CreateSqlExtIdentifier(this, "id_simple");
             simpleId.AstConfig.NodeType = typeof(SimpleIdNode);
-            var dateTime = new RegexBasedTerminal("date time", @"'\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d\d\d\d\d'");
-            dateTime.AstConfig.NodeType = typeof(SqlNode);
+            var dateTime = new RegexBasedTerminal("date time", @"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d\d\d\d\d");
+            dateTime.AstConfig.NodeType = typeof(DateTimeNode);
 
             var comma = ToTerm(",");
             var dot = ToTerm(".");
@@ -93,7 +93,7 @@ namespace IronySqlParser
 
             var alterStmt = new NonTerminal("AlterStmt", typeof(SqlNode));
             var alterCmd = new NonTerminal("alterCmd", typeof(SqlNode));
-            var expression = new NonTerminal("expression", typeof(ExpressionNode));
+            //var expressionWithoutBrackets = new NonTerminal("expression", typeof(ExpressionNode));
             var asOpt = new NonTerminal("asOpt", typeof(SqlNode));
             var aliasOpt = new NonTerminal("aliasOpt", typeof(SqlNode));
             var tuple = new NonTerminal("tuple", typeof(SqlNode));
@@ -106,8 +106,8 @@ namespace IronySqlParser
             var selRestrOpt = new NonTerminal("selRestrOpt", typeof(SqlNode));
             var selList = new NonTerminal("selList", typeof(SelListNode));
             var intoClauseOpt = new NonTerminal("intoClauseOpt", typeof(SqlNode));
-            var forClauseOpt = new NonTerminal("forClauseOpt", typeof(SqlNode));
-            var systemTimeOpt = new NonTerminal("systemTimeOpt", typeof(SqlNode));
+            var forClauseOpt = new NonTerminal("forClauseOpt", typeof(ForClauseOptNode));
+            var systemTimeOpt = new NonTerminal("systemTimeOpt", typeof(SystemTimeOptNode));
             var fromClauseOpt = new NonTerminal("fromClauseOpt", typeof(FromClauseNode));
             var betweenTimeSelector = new NonTerminal("betweenSelector", typeof(BetweenTimeSelectorNode));
             var fromToTimeSelector = new NonTerminal("fromToSelector", typeof(FromToTimeSelectorNode));
@@ -148,7 +148,7 @@ namespace IronySqlParser
             var assignment = new NonTerminal("assignment", typeof(AssignmentNode));
             var columnNames = new NonTerminal("columnNames", typeof(ColumnNamesNode));
 
-            var expressionInBrackets = new NonTerminal("expressionBrackets", typeof(SqlNode));
+            var expression = new NonTerminal("expression", typeof(ExpressionNode));
 
             var idOperator = new NonTerminal("idOperator", typeof(IdOperatorNode));
             var idLink = new NonTerminal("idLink", typeof(IdLinkNode));
@@ -185,7 +185,7 @@ namespace IronySqlParser
             //Join
             joinChainOpt.Rule = idLink + joinKindOpt + JOIN + idLink + ON + joinStatement;
             joinKindOpt.Rule = Empty | "INNER" | "LEFT" | "RIGHT" | "Full";
-            joinStatement.Rule = expressionInBrackets;//"(" + id + "=" + id + ")" | id + "=" + id;
+            joinStatement.Rule = expression;//"(" + id + "=" + id + ")" | id + "=" + id;
 
             //Union
             unionChainOpt.Rule = idLink + UNION + unionKindOpt + idLink;
@@ -271,17 +271,16 @@ namespace IronySqlParser
             assignList.Rule = MakePlusRule(assignList, comma, assignment);
             assignment.Rule = id + "=" + expression;
 
-
             //Expression
-            expressionList.Rule = MakePlusRule(expressionList, comma, expressionInBrackets);
-            expressionInBrackets.Rule = "(" + expression + ")" | expression;
-            expression.Rule = term | unExpr | binExpr;// Add betweenExpr
+            expressionList.Rule = MakePlusRule(expressionList, comma, expression);
+            //expression.Rule = /*"(" + expressionWithoutBrackets + ")" |*/ expressionWithoutBrackets;
+            expression.Rule = term | unExpr | binExpr | "(" + expression + ")";// Add betweenExpr
             term.Rule = id | stringLiteral | number; //| funCall | tuple | parSelectStmt;// | inStmt;
             tuple.Rule = "(" + expressionList + ")";
             parSelectStmt.Rule = "(" + selectStmt + ")";
-            unExpr.Rule = unOp + expressionInBrackets;
+            unExpr.Rule = unOp + expression;
             unOp.Rule = NOT | "+" | "-" | "~";
-            binExpr.Rule = expressionInBrackets + binOp + expressionInBrackets;
+            binExpr.Rule = expression + binOp + expression;
             binOp.Rule = ToTerm("+") | "-" | "*" | "/" | "%" | "&" | "|" | "^"
                        | "=" | ">" | "<" | ">=" | "<=" | "<>" | "!=" | "!<" | "!>"
                        | "AND" | "OR" | "LIKE" | NOT + "LIKE" | "IN" | NOT + "IN";
@@ -304,7 +303,7 @@ namespace IronySqlParser
             MarkPunctuation(",", "(", ")");
             MarkPunctuation(asOpt, semiOpt);
 
-            MarkTransient(sqlCommand, term, asOpt, aliasOpt, stmtLine, tuple, expressionInBrackets, idlistPar, idOperator);
+            MarkTransient(sqlCommand, term, asOpt, aliasOpt, stmtLine, tuple, /*expression,*/ idlistPar, idOperator);
             //LanguageFlags = LanguageFlags.CreateAst;
             binOp.SetFlag(TermFlags.InheritPrecedence);
         }

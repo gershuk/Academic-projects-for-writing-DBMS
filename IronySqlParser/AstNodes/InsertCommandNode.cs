@@ -12,7 +12,7 @@ namespace IronySqlParser.AstNodes
         public ColumnNamesNode ColumnNames { get; set; }
         public InsertDataNode InsertDataNode { get; set; }
 
-        public override void CollectInfoFromChild ()
+        public override void CollectDataFromChildren ()
         {
             TableName = new Id(FindFirstChildNodeByType<IdNode>().Id);
             ColumnNames = FindFirstChildNodeByType<ColumnNamesNode>();

@@ -10,29 +10,36 @@ namespace IronySqlParser.AstNodes
         private OperatorNode _childOperator;
         private UnOp _unOp;
 
-        public override dynamic Calc (Dictionary<Id, dynamic> variables) =>
-            _unOp switch
+        public override dynamic Calc (Dictionary<Id, dynamic> variables) 
+        {
+            if (!_wasСalculated || !ConstOnly)
             {
-                UnOp.Plus => +_childOperator?.Calc(variables),
-                UnOp.Minus => -_childOperator?.Calc(variables),
-                UnOp.Not => !_childOperator?.Calc(variables),
-                UnOp.Tilde => ~_childOperator?.Calc(variables),
-                _ => throw new NotImplementedException()
-            };
+                _cachedValue = _unOp switch
+                {
+                    UnOp.Plus => +_childOperator?.Calc(variables),
+                    UnOp.Minus => -_childOperator?.Calc(variables),
+                    UnOp.Not => !_childOperator?.Calc(variables),
+                    UnOp.Tilde => ~_childOperator?.Calc(variables),
+                    _ => throw new NotImplementedException()
+                };
+            }         
 
-
+            _wasСalculated = true;
+            return _cachedValue;
+        }
+            
         public override void CollectInfoFromChild ()
         {
             VariablesNames = new List<Id>();
 
             _unOp = FindFirstChildNodeByType<UnOpNode>().UnOp;
 
-            var operatorNode = FindAllChildNodesByType<OperatorNode>();
+            _childOperator = FindFirstChildNodeByType<OperatorNode>();
 
-            if (operatorNode.Count > 0)
+            if (_childOperator != null)
             {
-                _childOperator = operatorNode[0];
-                GetAllValuesNamesFromNode(operatorNode[0]);
+                ConstOnly = _childOperator.ConstOnly;
+                GetAllValuesNamesFromNode(_childOperator);
             }
         }
     }

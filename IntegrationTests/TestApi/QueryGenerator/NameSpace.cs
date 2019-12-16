@@ -58,7 +58,7 @@ namespace IntegrationTests.TestApi.QueryGenerator
         {
         }
 
-        private static string RandomString ()
+        public static string RandomString ()
         {
             var length = _generator.Next(5, 255);
             var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -79,14 +79,9 @@ namespace IntegrationTests.TestApi.QueryGenerator
 
         public string GetTableName ()
         {
-            if (NotExistedParam != 0)
-            {
-                return _generator.NextDouble() * _tables.Count <= NotExistedParam * _tables.Count ? GetRandomName() : _tables.ToArray()[_generator.Next(_tables.Count())];
-            }
-            else
-            {
-                return _tables.ToArray()[_generator.Next(_tables.Count())];
-            }
+            return NotExistedParam != 0
+                ? _generator.NextDouble() * _tables.Count <= NotExistedParam * _tables.Count ? GetRandomName() : _tables.ToArray()[_generator.Next(_tables.Count())]
+                : _tables.ToArray()[_generator.Next(_tables.Count())];
         }
 
         public Column GetTableColumn (string table)
@@ -109,10 +104,21 @@ namespace IntegrationTests.TestApi.QueryGenerator
             return _generator.NextDouble() < NotExistedParam ? new Column(GetRandomName()) : !_tables.Contains(table) ? null : _descriptions[table].GetCharTableColumn();
         }
 
+        public int GetColumnNum(string table)
+        {
+            return _tables.Contains(table) ? _descriptions[table].GetColumnNum() : 0;
+        }
+
         public void AddTable (string name)
         {
             _tables.Add(name);
             _descriptions[name] = new TableDescription(name);
+        }
+
+        public void RemoveTable (string name)
+        {
+            _tables.Remove(name);
+            _descriptions.Remove(name);
         }
 
         public void AddTableColumn (string table, string name, ColumnType type)

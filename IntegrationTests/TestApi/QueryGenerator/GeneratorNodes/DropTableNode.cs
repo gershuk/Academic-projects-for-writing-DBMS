@@ -13,6 +13,7 @@ namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes
         public DropTableNode (NameSpace ns, int maxdepth)
         {
             _tablename = ns.GetTableName();
+            
         }
 
         public override string ToString ()

@@ -8,6 +8,7 @@ namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes
 {
     public abstract class IBaseNode
     {
+        protected static readonly Random _generator = new Random();
         abstract override public string ToString ();
     }
 }

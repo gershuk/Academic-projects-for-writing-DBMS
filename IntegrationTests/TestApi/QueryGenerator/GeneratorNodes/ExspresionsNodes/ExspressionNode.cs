@@ -6,13 +6,15 @@ using System.Threading.Tasks;
 
 namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes.ExspresionsNodes
 {
+    
     public partial class ExspressionNode : IBaseNode
     {
         protected string _exspresion;
         protected static Random _generator = new Random();
         protected const double valuechance = 0.3;
         private readonly double _bracerschance = 0.1;
-        protected readonly bool _inbracers;
+        protected readonly bool _inbracers = false;
+
         ExspressionNode (bool isneedbracers)
         {
             _inbracers = isneedbracers ? true : _generator.NextDouble() < _bracerschance;  
@@ -22,18 +24,18 @@ namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes.ExspresionsNode
             switch (type)
             {
                 case ColumnType.Double:
-                    _exspresion = new ArifmExspresion(ns, maxdepth - 1, false, false, isusingid, table).ToString();
+                    _exspresion = new ArifmExspresion(ns, maxdepth, false, false, isusingid, table).ToString();
                     break;
                 case ColumnType.Int:
-                    _exspresion = new ArifmExspresion(ns, maxdepth - 1, true, false, isusingid, table).ToString();
+                    _exspresion = new ArifmExspresion(ns, maxdepth, true, false, isusingid, table).ToString();
                     break;
                 case ColumnType.Char:
-
-                    break;
-                case ColumnType.Any:
-
+                    _exspresion = new StringExspresion(ns, maxdepth, isusingid, table).ToString();
                     break;
                 case ColumnType.Bool:
+                    _exspresion = new LogicExspresion(ns, maxdepth, false, isusingid, table).ToString();
+                    break;
+                case ColumnType.Any:
 
                     break;
             }
@@ -41,10 +43,9 @@ namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes.ExspresionsNode
 
         public override string ToString ()
         {
-            return Bracers(_exspresion);
+            return _inbracers ? $"({_exspresion})" : _exspresion;
         }
 
 
-        protected string Bracers (string val) => _inbracers ? $"({val})" : val;
     }
 }

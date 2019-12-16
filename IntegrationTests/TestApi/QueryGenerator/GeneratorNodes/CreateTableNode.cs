@@ -8,7 +8,6 @@ namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes
 {
     public class CreateTableNode : IBaseNode
     {
-        private static Random _generator = new Random();
         private class CreateColumn : IBaseNode
         {
             public string _columnname;
@@ -76,7 +75,7 @@ namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes
         {
             _tablename = ns.GetRandomName();
             ns.AddTable(_tablename);
-            _columns = Enumerable.Range(0, _generator.Next(50)).Select(_ => new CreateColumn(ns, _tablename)).ToList();
+            _columns = Enumerable.Range(0, _generator.Next(50)+1).Select(_ => new CreateColumn(ns, _tablename)).ToList();
             var check = new HashSet<string>();
             if (!ns.IsRandom)
             {

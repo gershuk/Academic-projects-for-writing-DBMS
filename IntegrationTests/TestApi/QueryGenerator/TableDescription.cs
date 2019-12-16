@@ -8,8 +8,8 @@ namespace IntegrationTests.TestApi.QueryGenerator
 {
     public class TableDescription
     {
-       
-        
+
+
         public string Name;
         private readonly List<Column> _columns = new List<Column>();
         private readonly List<Column> _intcolumns = new List<Column>();
@@ -22,7 +22,7 @@ namespace IntegrationTests.TestApi.QueryGenerator
             Name = name;
         }
 
-        public void AddColumn(string name,ColumnType type)
+        public void AddColumn (string name, ColumnType type)
         {
             if (!_columns.Exists(i => i._name == name))
             {
@@ -58,6 +58,12 @@ namespace IntegrationTests.TestApi.QueryGenerator
         {
             return _charcolumns.Count > 0 ? _charcolumns[_generator.Next(_charcolumns.Count)] : null;
         }
+
+        public int GetColumnNum ()
+        {
+            return _columns.Count();
+        }
+
     }
 
     public enum ColumnType

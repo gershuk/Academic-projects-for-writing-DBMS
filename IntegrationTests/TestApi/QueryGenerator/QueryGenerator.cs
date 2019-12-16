@@ -39,7 +39,7 @@ namespace IntegrationTests.TestApi.QueryGenerator
         }
         public string Expression ()
         {
-            return new ExspressionNode(_nameSpace, 5, ColumnType.Int,true, _nameSpace.GetTableName()).ToString()+"\n\n\n"+new ExspressionNode(_nameSpace, 5, ColumnType.Double, true, _nameSpace.GetTableName()).ToString();
+            return new ExspressionNode(_nameSpace, 1, ColumnType.Bool,false, _nameSpace.GetTableName()).ToString()+"\n\n\n"+new ExspressionNode(_nameSpace, 5, ColumnType.Double, true, _nameSpace.GetTableName()).ToString();
         }
 
     }

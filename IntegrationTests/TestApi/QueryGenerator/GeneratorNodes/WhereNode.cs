@@ -8,11 +8,11 @@ namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes
 {
     class WhereNode : IBaseNode
     {
-        private NameSpace _ns;
 
-        public WhereNode (NameSpace ns)
+        public WhereNode (NameSpace ns,int maxdepth, string table, bool isusingid)
         {
-            _ns = ns;
+            
+
         }
 
         public override string ToString ()

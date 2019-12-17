@@ -12,56 +12,64 @@ namespace IronySqlParser.AstNodes
 
         public override dynamic Calc (Dictionary<Id, dynamic> variables)
         {
-            if (_variableName != null)
+            if (!_wasСalculated || !ConstOnly)
             {
-                if (!variables.TryGetValue(_variableName, out var value))
+                if (_variableName != null)
                 {
-                    throw new NullReferenceException();
+                    if (!variables.TryGetValue(_variableName, out var value))
+                    {
+                        throw new NullReferenceException();
+                    }
+
+                    Value = value;
                 }
 
-                Value = value;
+                _cachedValue = _childOperator == null ? Value : _childOperator.Calc(variables);
             }
 
-            return _childOperator == null ? Value : _childOperator.Calc(variables);
+            _wasСalculated = true;
+            return _cachedValue;
         }
 
-        public override void CollectInfoFromChild ()
+        public override void CollectDataFromChildren ()
         {
             VariablesNames = new List<Id>();
+            ConstOnly = true;
 
-            var numberNode = FindAllChildNodesByType<NumberNode>();
-            var stringLiteralNode = FindAllChildNodesByType<StringLiteralNode>();
-            var idNod = FindAllChildNodesByType<IdNode>();
-            var operatorNode = FindAllChildNodesByType<OperatorNode>();
+            var numberNode = FindFirstChildNodeByType<NumberNode>();
+            var stringLiteralNode = FindFirstChildNodeByType<StringLiteralNode>();
+            var idNod = FindFirstChildNodeByType<IdNode>();
+            _childOperator = FindFirstChildNodeByType<OperatorNode>();
 
-            if (numberNode.Count > 0)
+            if (numberNode != null)
             {
-                switch (numberNode[0].NumberType)
+                switch (numberNode.NumberType)
                 {
                     case NumberType.Double:
-                        Value = numberNode[0].NumberDouble;
+                        Value = numberNode.NumberDouble;
                         break;
                     case NumberType.Int:
-                        Value = numberNode[0].NumberInt;
+                        Value = numberNode.NumberInt;
                         break;
                 };
             }
 
-            if (stringLiteralNode.Count > 0)
+            if (stringLiteralNode != null)
             {
-                Value = stringLiteralNode[0].StringLiteral;
+                Value = stringLiteralNode.StringLiteral;
             }
 
-            if (idNod.Count > 0)
+            if (idNod != null)
             {
-                _variableName = new Id(idNod[0].Id);
+                _variableName = new Id(idNod.Id);
                 VariablesNames.Add(_variableName);
+                ConstOnly = false;
             }
 
-            if (operatorNode.Count > 0)
+            if (_childOperator != null)
             {
-                _childOperator = operatorNode[0];
-                GetAllValuesNamesFromNode(operatorNode[0]);
+                ConstOnly = _childOperator.ConstOnly;
+                GetAllValuesNamesFromNode(_childOperator);
             }
         }
     }

@@ -6,7 +6,7 @@ namespace IronySqlParser.AstNodes
     {
         public NullSpecOpt NullSpecOpt { get; set; }
 
-        public override void CollectInfoFromChild ()
+        public override void CollectDataFromChildren ()
         {
             var state = "";
             foreach (SqlKeyNode child in ChildNodes)

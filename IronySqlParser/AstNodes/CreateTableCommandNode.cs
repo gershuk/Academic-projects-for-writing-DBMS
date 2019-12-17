@@ -11,7 +11,7 @@ namespace IronySqlParser.AstNodes
         public Id TableName { get; set; }
         public List<FieldDefNode> FieldDefList { get; set; }
 
-        public override void CollectInfoFromChild ()
+        public override void CollectDataFromChildren ()
         {
             TableName = new Id(FindFirstChildNodeByType<IdNode>().Id);
             FieldDefList = FindFirstChildNodeByType<FieldDefListNode>().FieldDefList;

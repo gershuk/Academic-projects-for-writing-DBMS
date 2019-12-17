@@ -7,12 +7,19 @@ namespace IronySqlParser.AstNodes
     public abstract class OperatorNode : SqlNode
     {
         public List<Id> VariablesNames { get; set; }
-
         public dynamic Value { get; set; }
+        public bool ConstOnly { get; set; }
+
+        protected dynamic _cachedValue;
+        protected bool _wasСalculated;
 
         public abstract dynamic Calc (Dictionary<Id, dynamic> variables);
 
-        public OperatorNode () => VariablesNames = new List<Id>();
+        public OperatorNode ()
+        {
+            VariablesNames = new List<Id>();
+            _wasСalculated = false;
+        }
 
         protected void GetAllValuesNamesFromNode (OperatorNode expNode)
         {

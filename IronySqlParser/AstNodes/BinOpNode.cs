@@ -26,7 +26,7 @@ namespace IronySqlParser.AstNodes
     {
         public BinOp BinOp { get; set; }
 
-        public override void CollectInfoFromChild ()
+        public override void CollectDataFromChildren ()
         {
             switch ((ChildNodes.First<ISqlNode>() as SqlKeyNode).Text.ToUpper())
             {

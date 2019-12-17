@@ -14,7 +14,7 @@ namespace IronySqlParser.AstNodes
         public Id RightId { get; set; }
         public JoinStatementNode JoinStatementNode { get; set; }
 
-        public override void CollectInfoFromChild ()
+        public override void CollectDataFromChildren ()
         {
             var childNodes = ChildNodes.ToArray();
             JoinKind = FindFirstChildNodeByType<JoinKindOptNode>().JoinKindOpt;

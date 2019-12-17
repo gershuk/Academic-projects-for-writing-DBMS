@@ -6,7 +6,7 @@ namespace IronySqlParser.AstNodes
     {
         public Id TransactionName { get; set; }
 
-        public override void CollectInfoFromChild ()
+        public override void CollectDataFromChildren ()
         {
             var idNode = FindFirstChildNodeByType<TransactionNameNode>();
             TransactionName = new Id(idNode?.TransactionName);

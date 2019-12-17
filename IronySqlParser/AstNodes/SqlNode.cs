@@ -86,7 +86,7 @@ namespace IronySqlParser.AstNodes
         protected string NodeName { get; private set; }
         protected IEnumerable<ISqlNode> ChildNodes { get; private set; }
 
-        public virtual void CollectInfoFromChild ()
+        public virtual void CollectDataFromChildren ()
         { }
 
         protected virtual List<T> FindAllChildNodesByType<T> ()
@@ -154,7 +154,7 @@ namespace IronySqlParser.AstNodes
             ChildNodes = childNodes.ToArray();
             Tokens = tokens.ToArray();
 
-            CollectInfoFromChild();
+            CollectDataFromChildren();
 
             CollectAllCommands();
 

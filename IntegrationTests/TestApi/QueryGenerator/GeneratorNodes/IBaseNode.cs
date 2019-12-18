@@ -10,5 +10,10 @@ namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes
     {
         protected static readonly Random _generator = new Random();
         abstract override public string ToString ();
+
+        public static implicit operator string (IBaseNode v)
+        {
+            return v.ToString();
+        }
     }
 }

@@ -13,7 +13,7 @@ namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes
         public DeleteNode (NameSpace ns, int maxdepth)
         {
             _id = ns.GetTableName();
-           // _where = new WhereNode(ns);
+            _where = new WhereNode(ns, maxdepth, _id, true);
         }
 
         public override string ToString ()

@@ -11,35 +11,39 @@ namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes
         private const double _columnlistchance = 0.5;
         class InsertDataNode : IBaseNode
         {
-            public InsertDataNode (NameSpace ns, int maxdepth, int minlength, int maxlength)
+            private int _length;
+            private List<string> _values = new List<string>(); 
+            public InsertDataNode (NameSpace ns, int maxdepth, int minlength, int maxlength, List<Column> columns)
             {
-
+                _length = _generator.Next(minlength, maxlength);
+                for (var i = 0; i< _length;i++)
+                {
+                    _values.Add(new ExspresionsNodes.ExspressionNode(ns, maxdepth, columns[i]._type).ToString());
+                }
             }
 
             public override string ToString ()
             {
-                throw new NotImplementedException();
-            }
+                return String.Join(", ", _values);
         }
-
-        private WhereNode _where;
+        }
+        private bool _usecolumns;
         private string _id;
-        private HashSet<Column> _columns;
+        private List<Column> _columns;
         private List<InsertDataNode> _values;
-        InsertNode (NameSpace ns, int maxdepth)
+        public InsertNode (NameSpace ns, int maxdepth)
         {
             _id = ns.GetTableName();
-            if (_generator.NextDouble() < _columnlistchance)
-            {
-                _columns = Enumerable.Range(0, _generator.Next(50) + 1).Select(_ => ns.GetTableColumn(_id)).ToHashSet();
-            }
-
+            //_usecolumns = _generator.NextDouble() < 0.2;
+            _usecolumns = true;
+             _columns = Enumerable.Range(0, _generator.Next(10) + 2).Select(_ => ns.GetTableColumn(_id)).ToHashSet().ToList();
+            _values = Enumerable.Range(0, _generator.Next(5) + 1).Select(_ => new InsertDataNode(ns, maxdepth, _usecolumns? _columns.Count: 2, _columns.Count, _columns)).ToList();
         }
 
         public override string ToString ()
         {
             return $"insert into {_id} " +
-                $"{(_columns.Count>0?$"({String.Join(", ", _columns)})":"")}" +
+                $"{(_usecolumns?$"({String.Join(", ", _columns.Select(i=>i._name))})":"")} " +
                 $"values ({String.Join("), (", _values)})";
         }
     }

@@ -6,11 +6,23 @@ using System.Threading.Tasks;
 
 namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes
 {
-    class UpdateNode : IBaseNode
+    public class UpdateNode : IBaseNode
     {
+        private string _id;
+        private Column _column;
+        private ExspresionsNodes.ExspressionNode _assigment;
+        private WhereNode _where;
+        public UpdateNode (NameSpace ns, int maxdepth)
+        {
+            _id = ns.GetTableName();
+            _column = ns.GetTableColumn(_id);
+            _assigment = new ExspresionsNodes.ExspressionNode(ns, maxdepth, _column._type, true, _id);
+            _where = new WhereNode(ns, maxdepth, _id, true);
+        }
+
         public override string ToString ()
         {
-            throw new NotImplementedException();
+            return $"update {_id} set {_column._name}={_assigment} {_where}";
         }
     }
 }

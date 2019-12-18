@@ -10,7 +10,6 @@ namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes.ExspresionsNode
     public partial class ExspressionNode : IBaseNode
     {
         protected string _exspresion;
-        protected static Random _generator = new Random();
         protected const double valuechance = 0.3;
         private readonly double _bracerschance = 0.1;
         protected readonly bool _inbracers = false;

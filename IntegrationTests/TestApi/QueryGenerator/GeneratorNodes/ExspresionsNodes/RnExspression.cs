@@ -1,4 +1,6 @@
-﻿namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes.ExspresionsNodes
+﻿using System;
+
+namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes.ExspresionsNodes
 {
     public partial class ExspressionNode
     {

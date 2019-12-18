@@ -33,7 +33,7 @@ namespace IntegrationTests.TestApi.QueryGenerator
         private readonly HashSet<string> _tables;
         private readonly Dictionary<string, TableDescription> _descriptions;
         private static Random _generator = new Random();
-
+        public bool IsTablesExists { get => _tables.Count > 0; }
         NameSpace (HashSet<string> tables = default, Dictionary<string, TableDescription> descriptions = default)
         {
             _tables = tables;
@@ -104,7 +104,7 @@ namespace IntegrationTests.TestApi.QueryGenerator
             return _generator.NextDouble() < NotExistedParam ? new Column(GetRandomName()) : !_tables.Contains(table) ? null : _descriptions[table].GetCharTableColumn();
         }
 
-        public int GetColumnNum(string table)
+        public int GetColumnNum (string table)
         {
             return _tables.Contains(table) ? _descriptions[table].GetColumnNum() : 0;
         }
@@ -117,8 +117,11 @@ namespace IntegrationTests.TestApi.QueryGenerator
 
         public void RemoveTable (string name)
         {
-            _tables.Remove(name);
-            _descriptions.Remove(name);
+            if (_tables.Contains(name))
+            {
+                _tables.Remove(name);
+                _descriptions.Remove(name);
+            }
         }
 
         public void AddTableColumn (string table, string name, ColumnType type)

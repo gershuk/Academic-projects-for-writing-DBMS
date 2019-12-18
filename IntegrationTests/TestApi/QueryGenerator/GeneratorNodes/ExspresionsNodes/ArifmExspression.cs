@@ -76,8 +76,9 @@
                 op = unopchooser.GetRandom();
                 if (op != 2)
                 {
-                    _exspresion = $"{_unoperators[unopchooser.GetRandom()]}({_exspresion})";
+                    _exspresion = $"({_unoperators[unopchooser.GetRandom()]}({_exspresion}))";
                 }
+                _exspresion = _exspresion.Replace(',', '.');
             }
         }
     }

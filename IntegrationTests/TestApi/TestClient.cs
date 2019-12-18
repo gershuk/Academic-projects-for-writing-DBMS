@@ -54,14 +54,5 @@ namespace IntegrationTests.TestApi
             return result.ToString();
         }
         private List<string> _queries;
-        public void SendAsyncQuery (string sqlquery)
-        {
-            _queries.Add(sqlquery);
-        }
-        public Task<string> ExecuteAsyncQuery ()
-        {
-            return Task.Run(() => SendQuery(string.Join("\n", _queries)));
-        }
-
     }
 }

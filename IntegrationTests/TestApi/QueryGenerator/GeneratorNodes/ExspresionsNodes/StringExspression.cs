@@ -14,7 +14,7 @@
                 idvaluechooser.Insert(1, 3);//as value
                 if (_generator.NextDouble() * maxdepth <= valuechance * maxdepth)
                 {
-                    var value = $"\"{NameSpace.RandomString()}\"";
+                    var value = $"'{NameSpace.RandomString()}'";
                     switch (idvaluechooser.GetRandom())
                     {
                         case 0:

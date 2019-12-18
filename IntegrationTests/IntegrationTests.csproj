@@ -55,6 +55,7 @@
     <Compile Include="BaseSQLTest.cs" />
     <Compile Include="Create_ShowCreate.cs" />
     <Compile Include="Insert_Delete.cs" />
+    <Compile Include="MultyThreadTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestApi\QueryGenerator\FrequencyRandomizer.cs" />
     <Compile Include="TestApi\QueryGenerator\GeneratorNodes\CreateTableNode.cs" />

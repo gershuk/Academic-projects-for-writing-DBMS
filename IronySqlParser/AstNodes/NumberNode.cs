@@ -12,7 +12,7 @@
         public double NumberDouble { get; set; }
         public int NumberInt { get; set; }
 
-        public override void CollectInfoFromChild ()
+        public override void CollectDataFromChildren ()
         {
             Token numberToken = default;
 

@@ -12,7 +12,7 @@ namespace IronySqlParser.AstNodes
         public List<AssignmentNode> Assignments { get; set; }
         public ExpressionNode WhereExpression { get; set; }
 
-        public override void CollectInfoFromChild ()
+        public override void CollectDataFromChildren ()
         {
             TableName = new Id(FindFirstChildNodeByType<IdNode>()?.Id);
             Assignments = FindFirstChildNodeByType<AssignmentListNode>()?.Assignments;

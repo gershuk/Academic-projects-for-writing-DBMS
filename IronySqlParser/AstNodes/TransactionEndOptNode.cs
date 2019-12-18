@@ -8,6 +8,6 @@ namespace IronySqlParser.AstNodes
     {
         public TransactionEndType TransactionEndType { get; set; }
 
-        public override void CollectInfoFromChild () => TransactionEndType = ParseEnum<TransactionEndType>(ChildNodes.First().Tokens.First().Text);
+        public override void CollectDataFromChildren () => TransactionEndType = ParseEnum<TransactionEndType>(ChildNodes.First().Tokens.First().Text);
     }
 }

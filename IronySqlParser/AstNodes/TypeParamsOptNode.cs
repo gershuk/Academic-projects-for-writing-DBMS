@@ -7,7 +7,7 @@ namespace IronySqlParser.AstNodes
     {
         public double? TypeParamOpt { get; set; }
 
-        public override void CollectInfoFromChild ()
+        public override void CollectDataFromChildren ()
         {
             var param = "";
 

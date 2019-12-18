@@ -4,6 +4,10 @@ namespace IronySqlParser.AstNodes
 {
     public class AsOfTimeSelectorNode : TimeSelectorNode
     {
-        public override void IsTimeValide (DateTime time) => throw new NotImplementedException();
+        private DateTime _dateTime;
+
+        public override void CollectDataFromChildren ()=> _dateTime = FindFirstChildNodeByType<DateTimeNode>().DateTime;
+
+        public override bool IsTimeValide (DateTime startTime, DateTime endTime) => startTime <= _dateTime && _dateTime < endTime;
     }
 }

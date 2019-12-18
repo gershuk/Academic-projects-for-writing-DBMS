@@ -6,6 +6,6 @@ namespace IronySqlParser.AstNodes
     {
         public List<InsertObjectNode> InsertObjects { get; set; }
 
-        public override void CollectInfoFromChild () => InsertObjects = FindAllChildNodesByType<InsertObjectNode>();
+        public override void CollectDataFromChildren () => InsertObjects = FindAllChildNodesByType<InsertObjectNode>();
     }
 }

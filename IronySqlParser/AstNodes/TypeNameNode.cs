@@ -8,7 +8,7 @@ namespace IronySqlParser.AstNodes
     {
         public DataType FieldType { get; set; }
 
-        public override void CollectInfoFromChild ()
+        public override void CollectDataFromChildren ()
         {
             var type = (ChildNodes.First<ISqlNode>() as SqlKeyNode).Text;
             FieldType = ParseEnum<DataType>(type);

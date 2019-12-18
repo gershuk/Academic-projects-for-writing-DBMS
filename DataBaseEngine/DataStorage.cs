@@ -18,10 +18,10 @@ namespace StorageEngine
         OperationResult<string> AddTable (Table table);
         OperationResult<string> RemoveTable (Id tableName);
 
-        OperationResult<string> UpdateAllRow (Id tableName, Row newRow, Predicate<Row> match);
-        OperationResult<string> UpdateAllRow (Id tableName, Func<Row, Row> match);
-        OperationResult<string> InsertRow (Id tableName, Row fields);
-        OperationResult<string> RemoveAllRow (Id tableName, Predicate<Row> match);
+        OperationResult<Tuple<long, long>> UpdateAllRow (Id tableName, Row newRow, Predicate<Row> match);
+        OperationResult<Tuple<long, long>> UpdateAllRow (Id tableName, Func<Row, Row> match);
+        OperationResult<Tuple<long, long>> InsertRow (Id tableName, Row fields);
+        OperationResult<Tuple<long, long>> RemoveAllRow (Id tableName, Predicate<Row> match);
     }
 
     public class DataStorageInFiles : IDataStorage
@@ -85,34 +85,34 @@ namespace StorageEngine
             return new OperationResult<string>(ExecutionState.performed, "");
         }
 
-        public OperationResult<string> UpdateAllRow (Id tableName, Row newRow, Predicate<Row> match)
+        public OperationResult<Tuple<long,long>> UpdateAllRow (Id tableName, Row newRow, Predicate<Row> match)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
+                return new OperationResult<Tuple<long, long>>(ExecutionState.failed, new Tuple<long, long>(0, 0), new TableNotExistError(FullTableName(tableName)));
             }
-
-            using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
-            {
+            using var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)) ;
+            
                 using var tableData = new DataStorageRowsInFilesEnumerator(manager);
                 var isnLast = tableData.MoveNext();
                 while (isnLast)
                 {
-                    isnLast = match(tableData.Current) ? tableData.UpdateCurrentRow(newRow) : tableData.MoveNext();
-                }
-            }
+                    isnLast = match(tableData.Current) ? tableData.UpdateCurrentRow(newRow): tableData.MoveNext();
 
-            return new OperationResult<string>(ExecutionState.performed, "");
+                }
+            
+
+            return new OperationResult<Tuple<long, long>>(ExecutionState.performed, new Tuple<long,long>(manager.readCount, manager.writeCount));
         }
-        public OperationResult<string> UpdateAllRow (Id tableName, Func<Row, Row> match)
+        public OperationResult<Tuple<long, long>> UpdateAllRow (Id tableName, Func<Row, Row> match)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
+                return new OperationResult<Tuple<long, long>>(ExecutionState.failed,new Tuple<long, long>(0,0), new TableNotExistError(FullTableName(tableName)));
             }
 
-            using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
-            {
+            using var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open));
+            
                 using var tableData = new DataStorageRowsInFilesEnumerator(manager);
                 var isnLast = tableData.MoveNext();
                 while (isnLast)
@@ -120,46 +120,46 @@ namespace StorageEngine
                     var data = match(tableData.Current);
                     isnLast = data != null ? tableData.UpdateCurrentRow(data) : tableData.MoveNext();
                 }
-            }
+            
 
-            return new OperationResult<string>(ExecutionState.performed, "");
+            return new OperationResult<Tuple<long, long>>(ExecutionState.performed, new Tuple<long, long>(manager.readCount, manager.writeCount));
         }
 
-        public OperationResult<string> InsertRow (Id tableName, Row fields)
+        public OperationResult<Tuple<long, long>> InsertRow (Id tableName, Row fields)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
+                return new OperationResult<Tuple<long, long>>(ExecutionState.failed, new Tuple<long, long>(0, 0), new TableNotExistError(FullTableName(tableName)));
             }
 
-            using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
-            {
+            using var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open));
+            
                 var rowRecord = new RowRecord(fields);
                 manager.InsertRecord(rowRecord);
-            }
+            
 
-            return new OperationResult<string>(ExecutionState.performed, "");
+            return new OperationResult<Tuple<long, long>>(ExecutionState.performed, new Tuple<long, long>(manager.readCount, manager.writeCount));
         }
 
-        public OperationResult<string> RemoveAllRow (Id tableName, Predicate<Row> match)
+        public OperationResult<Tuple<long, long>> RemoveAllRow (Id tableName, Predicate<Row> match)
         {
 
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<string>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
+                return new OperationResult<Tuple<long, long>>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
             }
 
-            using (var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
-            {
+            using  var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open));
+            
                 using var tableData = new DataStorageRowsInFilesEnumerator(manager);
                 var isnLast = tableData.MoveNext();
                 while (isnLast)
                 {
                     isnLast = match(tableData.Current) ? tableData.DeleteCurrentRow() : tableData.MoveNext();
                 }
-            }
+            
 
-            return new OperationResult<string>(ExecutionState.performed, "");
+            return new OperationResult<Tuple<long, long>>(ExecutionState.performed, new Tuple<long, long>(manager.readCount, manager.writeCount));
         }
 
         private void CreateDataStorageFolder (string path) => Directory.CreateDirectory(path);
@@ -238,7 +238,8 @@ namespace StorageEngine
         private readonly FileStream _fileStream;
         public int RowRecordSize => metaInfDataStorage.RowRecordSize;
         public MetaInfDataStorage metaInfDataStorage;
-
+        public long writeCount = 0;
+        public long readCount = 0;
         public TableFileManager (FileStream fileStream)
         {
             _fileStream = fileStream;
@@ -316,12 +317,15 @@ namespace StorageEngine
             _fileStream.Seek(-GetCalculateMetaInfDataStorageSize(), SeekOrigin.End);
             ZeroFormatterSerializer.Serialize(_fileStream, meta);
             metaInfDataStorage = LoadMetaInfStorage();
+            writeCount++;
         }
 
         private MetaInfDataStorage LoadMetaInfStorage ()
         {
             _fileStream.Seek(-GetCalculateMetaInfDataStorageSize(), SeekOrigin.End);
+            readCount++;
             return ZeroFormatterSerializer.Deserialize<MetaInfDataStorage>(_fileStream);
+            
         }
 
         public void DeleteBlock (DataBlockNode block)
@@ -404,6 +408,7 @@ namespace StorageEngine
             ZeroFormatterSerializer.Serialize(_fileStream, block);
             //memStream.CopyTo(fs);
             _fileStream.Flush(true);
+            writeCount++;
         }
         public void CreateAndAddDataBlock ()
         {
@@ -442,7 +447,7 @@ namespace StorageEngine
             using var memStream = new MemoryStream();
             memStream.Write(buffer, 0, buffer.Length);
             memStream.Seek(0, SeekOrigin.Begin);
-
+            readCount++;
             return ZeroFormatterSerializer.Deserialize<DataBlockNode>(memStream);
         }
 
@@ -655,7 +660,7 @@ namespace StorageEngine
         public Row Current { get; private set; }
         object IEnumerator.Current => throw new NotImplementedException();
 
-        private readonly TableFileManager _tManager;
+        public readonly TableFileManager _tManager;
         private TableFileManagerDataBlockNodeEnumerator _blocks;
         private RecordsInDataBlockNodeEnumarator _curRowRecordsEnumarator;
         private bool _disposed = false;

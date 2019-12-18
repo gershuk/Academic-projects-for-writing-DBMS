@@ -39,6 +39,8 @@ namespace DataBaseType
         ExecutionState State { get; set; }
     }
 
+    public delegate bool TimeSelectorDelegate (DateTime startTime, DateTime endTime);
+
     [ProtoContract]
     public class OperationResult<T> : IOperationResult<T>
     {

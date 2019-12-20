@@ -11,7 +11,7 @@ namespace IntegrationTests.TestApi.QueryGenerator
     public class QueryGenerator
     {
         private NameSpace _nameSpace;
-        private const int _maxdepth = 2;
+        private const int _maxdepth = 5;
         public bool IsRandom
         {
             get => _nameSpace.IsRandom;

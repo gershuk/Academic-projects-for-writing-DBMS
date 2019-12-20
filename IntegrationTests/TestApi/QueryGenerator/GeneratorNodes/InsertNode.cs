@@ -37,7 +37,7 @@ namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes
             //_usecolumns = _generator.NextDouble() < 0.2;
             _usecolumns = true;
              _columns = Enumerable.Range(0, _generator.Next(10) + 2).Select(_ => ns.GetTableColumn(_id)).ToHashSet().ToList();
-            _values = Enumerable.Range(0, _generator.Next(5) + 1).Select(_ => new InsertDataNode(ns, maxdepth, _usecolumns? _columns.Count: 2, _columns.Count, _columns)).ToList();
+            _values = Enumerable.Range(0, _generator.Next(100) + 1).Select(_ => new InsertDataNode(ns, maxdepth, _usecolumns? _columns.Count: 2, _columns.Count, _columns)).ToList();
         }
 
         public override string ToString ()

@@ -75,7 +75,7 @@ namespace IntegrationTests.TestApi.QueryGenerator.GeneratorNodes
         {
             _tablename = ns.GetRandomName();
             ns.AddTable(_tablename);
-            _columns = Enumerable.Range(0, _generator.Next(5)+1).Select(_ => new CreateColumn(ns, _tablename)).ToList();
+            _columns = Enumerable.Range(0, _generator.Next(50)+1).Select(_ => new CreateColumn(ns, _tablename)).ToList();
             var check = new HashSet<string>();
             if (!ns.IsRandom)
             {

@@ -35,19 +35,23 @@ namespace IntegrationTests
             cl1.SendQuery("create table test (i int,c char(40),d double)");
 
             var query = "";
-            for(var i = 0; i<1000; i++)
+            for(var i = 0; i<100; i++)
             {
                 query += $"insert into test values ({i},'{i}',{i * 1.0 + 0.1.ToString().Replace(',', '.')})\n";
             }
-            Console.WriteLine(query+"\n");
-            Console.WriteLine(cl1.SendQuery(query));
-
+            Console.WriteLine("isert start");
+            _core.ExecuteSqlSequence(query);
+            Console.WriteLine("isert end");
+            SendSQLQuery(cl1,"select * from test",expected);
             var t1 = Task.Run(()=>SendSQLQuery(cl1, $"BEGIN TRANSACTION cl1\n" +
-                $"update test set i = 0 where c=\"1\"" +
+                $"update test set i = 0 where c='1';" +
+                "select * from test;"+
                 $"commit",
                 expected));
+
             var t2 = Task.Run(()=>SendSQLQuery(cl2, $"BEGIN TRANSACTION cl2\n" +
-                $"update test set i = 1 where c=\"2\"" +
+                $"update test set i = 1 where c='2';" +
+                "select * from test;" +
                 $"commit",
                 expected));
             t1.Wait();

@@ -253,7 +253,7 @@ namespace DataBaseEngine
                 {
                     return new OperationResult<Table>(ExecutionState.failed, null, new ColumnNotExistInInsert(colPool[i].Name.ToString()));
                 }
-                var exprDict = new Dictionary<Id, dynamic>();
+                var exprDict = new Dictionary<string, dynamic>();
                 foreach (var v in objectParams[index].VariablesNames)
                 {
                     exprDict.Add(v, null);
@@ -461,13 +461,13 @@ namespace DataBaseEngine
         }
 
 
-        private static Dictionary<Id, dynamic> CompileExpressionData (List<Id> variablesNames, Row row, List<Column> colPool)
+        private static Dictionary<string, dynamic> CompileExpressionData (List<string> variablesNames, Row row, List<Column> colPool)
         {
-            var exprDict = new Dictionary<Id, dynamic>();
+            var exprDict = new Dictionary<string, dynamic>();
 
             foreach (var v in variablesNames)
             {
-                var index = colPool.FindIndex((Column n) => v.ToString() == n.Name.ToString());
+                var index = colPool.FindIndex((Column n) => v == n.Name.ToString());
                 if (index >= 0)
                 {
                     switch (row.Fields[index].Type)
@@ -485,7 +485,7 @@ namespace DataBaseEngine
                 }
                 else
                 {
-                    throw new Exception($"Unknown variable {v.ToString()}");
+                    throw new Exception($"Unknown variable {v}");
                 }
 
             }

@@ -10,7 +10,7 @@ namespace IronySqlParser.AstNodes
         private OperatorNode _childOperator;
         private UnOp _unOp;
 
-        public override dynamic Calc (Dictionary<Id, dynamic> variables) 
+        public override dynamic Calc (Dictionary<string, dynamic> variables) 
         {
             if (!_wasСalculated || !ConstOnly)
             {
@@ -30,7 +30,7 @@ namespace IronySqlParser.AstNodes
             
         public override void CollectDataFromChildren ()
         {
-            VariablesNames = new List<Id>();
+            VariablesNames = new List<string>();
 
             _unOp = FindFirstChildNodeByType<UnOpNode>().UnOp;
 

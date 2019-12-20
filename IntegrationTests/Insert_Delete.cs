@@ -7,9 +7,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SunflowerDB;
 using TransactionManagement;
 
-
-
-
 namespace IntegrationTests
 {
     [TestClass]

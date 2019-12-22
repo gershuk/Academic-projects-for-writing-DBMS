@@ -12,7 +12,7 @@ namespace IronySqlParser.AstNodes
         private ExpressionNode _leftOperand;
         private ExpressionNode _rightOperand;
 
-        public override dynamic Calc (Dictionary<Id, dynamic> variables)
+        public override dynamic Calc (Dictionary<string, dynamic> variables)
         {
             if (!_wasСalculated || !ConstOnly)
             {

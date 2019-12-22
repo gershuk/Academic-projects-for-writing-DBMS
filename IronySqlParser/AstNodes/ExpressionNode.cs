@@ -7,10 +7,10 @@ namespace IronySqlParser.AstNodes
 {
     public class ExpressionNode : OperatorNode
     {
-        private Id _variableName;
+        private string _variableName;
         private OperatorNode _childOperator;
 
-        public override dynamic Calc (Dictionary<Id, dynamic> variables)
+        public override dynamic Calc (Dictionary<string, dynamic> variables)
         {
             if (!_wasСalculated || !ConstOnly)
             {
@@ -33,7 +33,7 @@ namespace IronySqlParser.AstNodes
 
         public override void CollectDataFromChildren ()
         {
-            VariablesNames = new List<Id>();
+            VariablesNames = new List<string>();
             ConstOnly = true;
 
             var numberNode = FindFirstChildNodeByType<NumberNode>();
@@ -61,8 +61,8 @@ namespace IronySqlParser.AstNodes
 
             if (idNod != null)
             {
-                _variableName = new Id(idNod.Id);
-                VariablesNames.Add(_variableName);
+                _variableName = idNod.Id.ToString();
+                VariablesNames.Add(_variableName.ToString());
                 ConstOnly = false;
             }
 

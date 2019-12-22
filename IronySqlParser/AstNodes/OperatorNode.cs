@@ -6,18 +6,18 @@ namespace IronySqlParser.AstNodes
 {
     public abstract class OperatorNode : SqlNode
     {
-        public List<Id> VariablesNames { get; set; }
+        public List<string> VariablesNames { get; set; }
         public dynamic Value { get; set; }
         public bool ConstOnly { get; set; }
 
         protected dynamic _cachedValue;
         protected bool _wasСalculated;
 
-        public abstract dynamic Calc (Dictionary<Id, dynamic> variables);
+        public abstract dynamic Calc (Dictionary<string, dynamic> variables);
 
         public OperatorNode ()
         {
-            VariablesNames = new List<Id>();
+            VariablesNames = new List<string>();
             _wasСalculated = false;
         }
 
@@ -25,7 +25,7 @@ namespace IronySqlParser.AstNodes
         {
             foreach (var variable in expNode.VariablesNames)
             {
-                var names = new Dictionary<Id, bool>();
+                var names = new Dictionary<string, bool>();
 
                 if (!names.TryGetValue(variable, out _))
                 {

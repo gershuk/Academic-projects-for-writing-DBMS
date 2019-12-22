@@ -67,13 +67,41 @@ namespace SunflowerDB
 
             foreach (var transactionNode in transactionListNode.TransactionNodes)
             {
-                var tableLocks = new List<TableLock>();
+                var transactionTableLocks = new List<TableLock>();
+                var uniqueTableLocks = new Dictionary<string, TableLock>();
 
                 foreach (var command in transactionNode.CommnadsForNode)
-                {
-                    tableLocks.AddRange(command.GetTableLocks());
+                { 
+                    var tableLocks = command.GetTableLocks();
+                    foreach (var tableLock in tableLocks)
+                    {
+                        if (!uniqueTableLocks.TryGetValue(tableLock.TableName,out var uniqueLock))
+                        {
+                            uniqueTableLocks.Add(tableLock.TableName, tableLock);
+                        }
+                        else
+                        {
+                            if (uniqueLock.LockType == LockType.Non)
+                            {
+                                uniqueLock.LockType = tableLock.LockType;
+                            } 
+                            else
+                            {
+                                if (uniqueLock.LockType != tableLock.LockType)
+                                {
+                                    uniqueLock.LockType = tableLock.LockType;
+                                }
+                            }
+                        }
+                    }
                 }
-                var transactionLocksInfo = new TransactionLocksInfo(tableLocks);
+
+                foreach (var tableLock in uniqueTableLocks.Values)
+                {
+                    transactionTableLocks.Add(tableLock);
+                }
+
+                var transactionLocksInfo = new TransactionLocksInfo(transactionTableLocks);
 
                 var trGuid = _transactionScheduler.RegisterTransaction(transactionLocksInfo);
 

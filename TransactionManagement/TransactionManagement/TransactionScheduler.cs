@@ -13,13 +13,13 @@ namespace TransactionManagement
     public class TransactionScheduler : ITransactionScheduler
     {
         private readonly Dictionary<Guid, TransactionLocksInfo> _transactions;
-        private readonly Dictionary<List<string>, TableLockQueue> _tablesLockInfo;
+        private readonly Dictionary<string, TableLockQueue> _tablesLockInfo;
         private readonly object _addingLocker;
 
         public TransactionScheduler ()
         {
             _transactions = new Dictionary<Guid, TransactionLocksInfo>();
-            _tablesLockInfo = new Dictionary<List<string>, TableLockQueue>();
+            _tablesLockInfo = new Dictionary<string, TableLockQueue>();
             _addingLocker = new object();
         }
 

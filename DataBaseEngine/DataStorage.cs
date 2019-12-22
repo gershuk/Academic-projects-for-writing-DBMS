@@ -91,9 +91,9 @@ namespace StorageEngine
             {
                 return new OperationResult<Tuple<long, long>>(ExecutionState.failed, new Tuple<long, long>(0, 0), new TableNotExistError(FullTableName(tableName)));
             }
-            using var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)) ;
-            
-                using var tableData = new DataStorageRowsInFilesEnumerator(manager);
+            using var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open, FileAccess.ReadWrite, FileShare.Read, 4096));
+
+            using var tableData = new DataStorageRowsInFilesEnumerator(manager);
                 var isnLast = tableData.MoveNext();
                 while (isnLast)
                 {
@@ -111,9 +111,9 @@ namespace StorageEngine
                 return new OperationResult<Tuple<long, long>>(ExecutionState.failed,new Tuple<long, long>(0,0), new TableNotExistError(FullTableName(tableName)));
             }
 
-            using var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open));
-            
-                using var tableData = new DataStorageRowsInFilesEnumerator(manager);
+            using var manager  = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open, FileAccess.ReadWrite, FileShare.Read, 4096));
+
+            using var tableData = new DataStorageRowsInFilesEnumerator(manager);
                 var isnLast = tableData.MoveNext();
                 while (isnLast)
                 {
@@ -132,9 +132,9 @@ namespace StorageEngine
                 return new OperationResult<Tuple<long, long>>(ExecutionState.failed, new Tuple<long, long>(0, 0), new TableNotExistError(FullTableName(tableName)));
             }
 
-            using var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open));
-            
-                var rowRecord = new RowRecord(fields);
+            using var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open, FileAccess.ReadWrite, FileShare.Read, 4096));
+
+            var rowRecord = new RowRecord(fields);
                 manager.InsertRecord(rowRecord);
             
 
@@ -149,9 +149,9 @@ namespace StorageEngine
                 return new OperationResult<Tuple<long, long>>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
             }
 
-            using  var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open));
-            
-                using var tableData = new DataStorageRowsInFilesEnumerator(manager);
+            using var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open, FileAccess.ReadWrite, FileShare.Read, 4096));
+
+            using var tableData = new DataStorageRowsInFilesEnumerator(manager);
                 var isnLast = tableData.MoveNext();
                 while (isnLast)
                 {
@@ -647,9 +647,20 @@ namespace StorageEngine
     {
         // private TableFileManager _tManager;
         private readonly string _tableFileName;
+        private readonly int _blockSize;
+        public DataStorageRowsInFiles (string fileName, int bufferSize = 4096) { _tableFileName = fileName; _blockSize = bufferSize; }
+        public IEnumerator<Row> GetEnumerator () => new DataStorageRowsInFilesEnumerator(new TableFileManager(new FileStream(_tableFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, _blockSize)));
 
-        public DataStorageRowsInFiles (string fileName) => _tableFileName = fileName;
-        public IEnumerator<Row> GetEnumerator () => new DataStorageRowsInFilesEnumerator(new TableFileManager(new FileStream(_tableFileName, FileMode.Open)));
+        IEnumerator IEnumerable.GetEnumerator () => throw new NotImplementedException();
+
+    }
+    internal class DataStorageRowsInFilesWithWrite : IEnumerable<Row>
+    {
+        // private TableFileManager _tManager;
+        private readonly string _tableFileName;
+        private readonly int _blockSize;
+        public DataStorageRowsInFilesWithWrite (string fileName, int bufferSize) { _tableFileName = fileName; _blockSize = bufferSize; }
+        public IEnumerator<Row> GetEnumerator () => new DataStorageRowsInFilesEnumerator(new TableFileManager(new FileStream(_tableFileName, FileMode.Open,FileAccess.ReadWrite,FileShare.Read, _blockSize)));
 
         IEnumerator IEnumerable.GetEnumerator () => throw new NotImplementedException();
 

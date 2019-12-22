@@ -886,7 +886,14 @@ namespace DataBaseEngine
             {
                 throw new ArgumentNullException(nameof(metaInf));
             }
-            TransactionsHistory = new Dictionary<long, TransactionTempInfo>(metaInf.TransactionsHistory);
+            if (metaInf.TransactionsHistory != null)
+            {
+                TransactionsHistory = new Dictionary<long, TransactionTempInfo>(metaInf.TransactionsHistory);
+            }
+            else
+            {
+                TransactionsHistory = new Dictionary<long, TransactionTempInfo>();
+            }
             LastId = metaInf.LastId;
             LastCommitedId = metaInf.LastCommitedId;
             TransactionsInRun = new Dictionary<Guid, TransactionTempInfo>();

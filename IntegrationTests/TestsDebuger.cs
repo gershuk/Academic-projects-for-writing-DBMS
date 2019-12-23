@@ -23,21 +23,11 @@ namespace IntegrationTests
             var test = new MultyThreadTest(true);
             test.InsertTest();
             //test.MainTest();
-            /*
-            var test = new Test_Errors(true);
-            //test.MainTest();
             */
-            var _core = new DataBase(20, new DataBaseEngineMain(), new TransactionScheduler());
-            var gen = new QueryGenerator();
-            for(var i = 0; i < 1000; i++)
-            {
-                var res = gen.GenerateQuery();
-                _core.ExecuteSqlSequence(res);
-              //  Console.WriteLine($"{res}\n\n\n");
-              //  Console.WriteLine($"{}\n\n\n");
-              //   Console.ReadKey();
-            }
-            Console.ReadKey();
+            var test = new DurabilityTest(true);
+            test.DeleteDurability();
+            
+            
             
         }
     }

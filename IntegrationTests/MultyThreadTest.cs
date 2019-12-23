@@ -42,6 +42,7 @@ namespace IntegrationTests
             Console.WriteLine("isert start");
             _core.ExecuteSqlSequence(query);
             Console.WriteLine("isert end");
+
             SendSQLQuery(cl1,"select * from test",expected);
             var t1 = Task.Run(()=>SendSQLQuery(cl1, $"BEGIN TRANSACTION cl1\n" +
                 $"update test set i = 0 where c='1';" +

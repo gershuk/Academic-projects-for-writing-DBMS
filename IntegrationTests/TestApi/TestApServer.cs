@@ -32,7 +32,19 @@ namespace IntegrationTests
             _input = _client.StandardInput;
             _output = _client.StandardOutput;
             _error = _client.StandardError;
-            Trace.WriteLine(_output.ReadLine());
+            Console.WriteLine(_output.ReadLine());
+        }
+
+        internal void Kill ()
+        {
+            try
+            {
+                _client.Kill();
+                _client.Close();
+            }finally
+            {
+
+            }
         }
 
         public string SendQuery (string sqlquery)
@@ -41,7 +53,7 @@ namespace IntegrationTests
             var res = "";
             var line = _output.ReadLine();
             while (line != "*")
-            {
+            c{
                 res += line;
                 line = _output.ReadLine();
             }
@@ -50,8 +62,15 @@ namespace IntegrationTests
 
         ~TestApServer ()
         {
-            _client.Kill();
-            _client.Close();
+            try
+            {
+                _client.Kill();
+                _client.Close();
+            }
+            finally
+            {
+
+            }
         }
     }
 }

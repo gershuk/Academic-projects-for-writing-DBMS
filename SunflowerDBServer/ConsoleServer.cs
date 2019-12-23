@@ -54,7 +54,7 @@ namespace SunflowerDB
                 {
                     Serializer.Serialize(binaryData, _core.ExecuteSqlSequence(query));
                 }
-                catch (Exception)
+                catch (NotImplementedException ex)
                 {
                     var res = new OperationResult<SqlSequenceResult>
                     {

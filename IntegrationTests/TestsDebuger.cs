@@ -4,6 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DataBaseEngine;
+using IntegrationTests.TestApi.QueryGenerator;
+using SunflowerDB;
+using TransactionManagement;
 
 namespace IntegrationTests
 {
@@ -15,10 +19,16 @@ namespace IntegrationTests
             test1.TestTest();
             test1.TestCreateCommandSynax();
             Console.ReadKey();
+            *
+            var test = new MultyThreadTest(true);
+            test.InsertTest();
+            //test.MainTest();
             */
-            var test = new Test_Errors(true);
-            test.MainTest();
-            Console.ReadKey();
+            var test = new DurabilityTest(true);
+            test.DeleteDurability();
+            
+            
+            
         }
     }
 }

@@ -136,7 +136,7 @@ namespace DataBaseType
 
         public Id ()
         {
-
+           
         }
 
         public override string ToString ()
@@ -155,10 +155,10 @@ namespace DataBaseType
 
     public class ExpressionFunction
     {
-        public Func<Dictionary<Id, dynamic>, dynamic> CalcFunc { get; private set; }
-        public List<Id> VariablesNames { get; set; }
+        public Func<Dictionary<string, dynamic>, dynamic> CalcFunc { get; private set; }
+        public List<string> VariablesNames { get; set; }
 
-        public ExpressionFunction (Func<Dictionary<Id, dynamic>, dynamic> calcFunc, List<Id> variablesNames)
+        public ExpressionFunction (Func<Dictionary<string, dynamic>, dynamic> calcFunc, List<string> variablesNames)
         {
             CalcFunc = calcFunc ?? throw new ArgumentNullException(nameof(calcFunc));
             VariablesNames = variablesNames ?? throw new ArgumentNullException(nameof(variablesNames));

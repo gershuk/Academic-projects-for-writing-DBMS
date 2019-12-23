@@ -53,7 +53,7 @@ namespace IntegrationTests
             var res = "";
             var line = _output.ReadLine();
             while (line != "*")
-            c{
+            {
                 res += line;
                 line = _output.ReadLine();
             }

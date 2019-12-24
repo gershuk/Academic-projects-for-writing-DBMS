@@ -21,14 +21,14 @@ namespace IntegrationTests
             test1.TestTest();
             test1.TestCreateCommandSynax();
             Console.ReadKey();
-            *
+            */
             var test = new MultyThreadTest(true);
             test.InsertTest();
             //test.MainTest();
-            *//*
+            
             var test = new DurabilityTest(true);
             test.DeleteDurability();
-            */
+            
             var _core = new DataBase(20, new DataBaseEngineMain(), new TransactionScheduler());
             using (var binaryData = new MemoryStream())
             {

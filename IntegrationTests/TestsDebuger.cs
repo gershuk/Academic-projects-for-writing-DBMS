@@ -25,10 +25,10 @@ namespace IntegrationTests
             var test = new MultyThreadTest(true);
             test.InsertTest();
             //test.MainTest();
-            
-            var test = new DurabilityTest(true);
-            test.DeleteDurability();
-            
+            /*
+            var test2 = new DurabilityTest(true);
+            test2.DeleteDurability();
+            */
             var _core = new DataBase(20, new DataBaseEngineMain(), new TransactionScheduler());
             using (var binaryData = new MemoryStream())
             {

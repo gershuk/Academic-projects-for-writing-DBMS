@@ -124,7 +124,7 @@ namespace SunflowerDB
                     {
                         foreach (var stmt in transactionNode.StmtListNode.StmtList)
                         {
-                            var table = _engineCommander.GetTableByName(transaction.Guid, stmt.SqlCommand.ReturnedTableName);
+                            var table = _engineCommander.GetTableByName(transaction.Guid, stmt.ReturnedTableName);
                             transaction.OperationsResults.Add(table);
                         }
                     }

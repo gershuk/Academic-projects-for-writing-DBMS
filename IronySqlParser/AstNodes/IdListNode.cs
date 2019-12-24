@@ -16,7 +16,7 @@ namespace IronySqlParser.AstNodes
 
             foreach (var id in idListNode)
             {
-                IdList.Add(new Id(id.Id));
+                IdList.Add(id.Id);
             }
         }
     }

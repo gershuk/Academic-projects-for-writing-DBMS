@@ -13,7 +13,7 @@ namespace IronySqlParser.AstNodes
 
         public override void CollectDataFromChildren ()
         {
-            TableName = new Id(FindFirstChildNodeByType<IdNode>().Id);
+            TableName = FindFirstChildNodeByType<IdNode>().Id;
             WhereClauseNode = FindFirstChildNodeByType<WhereClauseNode>();
         }
 

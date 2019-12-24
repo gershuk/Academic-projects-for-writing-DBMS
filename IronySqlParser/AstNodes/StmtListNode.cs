@@ -4,8 +4,8 @@ namespace IronySqlParser.AstNodes
 {
     public class StmtListNode : SqlNode
     {
-        public List<StmtLineNode> StmtList { get; set; }
+        public List<SqlCommandNode> StmtList { get; set; }
 
-        public override void CollectDataFromChildren () => StmtList = FindAllChildNodesByType<StmtLineNode>();
+        public override void CollectDataFromChildren () => StmtList = FindAllChildNodesByType<SqlCommandNode>();
     }
 }

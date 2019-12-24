@@ -1,20 +1,24 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
     public class IdNode : SimpleIdNode
     {
-        public List<string> Id { get; private set; } = new List<string>();
+        public Id Id { get; private set; }
 
         public override void CollectDataFromChildren ()
         {
-            var simpleIdList = FindAllChildNodesByType<SimpleIdNode>();
+            var simpleId = FindAllChildNodesByType<SimpleIdNode>();
+            var simpleIdList = new List<string>();
 
-            foreach (var simpleId in simpleIdList)
+            foreach (var id in simpleId)
             {
-                Id.Add(simpleId.Tokens.First<Token>().Text);
+                simpleIdList.Add(id.Tokens.First<Token>().Text);
             }
+
+            Id = new Id(simpleIdList);
         }
     }
 }

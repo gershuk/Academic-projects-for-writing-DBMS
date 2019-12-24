@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DataBaseEngine;
@@ -11,7 +12,7 @@ using TransactionManagement;
 
 namespace IntegrationTests
 {
-    
+
     [TestClass]
     class MultyThreadTest : BaseSQLTest
     {
@@ -29,38 +30,27 @@ namespace IntegrationTests
             DelFiles();
             var _core = new DataBase(20, new DataBaseEngineMain(_testPath), new TransactionScheduler());
             var expected = GetTestData();
-            var cl1 = new TestClient("cl1", _core);
-            var cl2 = new TestClient("cl2", _core);
-
-            cl1.SendQuery("create table test (i int,c char(40),d double)");
+            var n = 10;
+            var cl = Enumerable.Range(0, n).Select(i=>new TestClient($"cl{i}", _core)).ToArray();
+            cl[1].SendQuery("create table test (i int,c char(40),d double)");
 
             var query = "";
-            for(var i = 0; i<100; i++)
+            for (var i = 0; i < 100; i++)
             {
                 query += $"insert into test values ({i},'{i}',{i * 1.0 + 0.1.ToString().Replace(',', '.')})\n";
             }
-            Console.WriteLine("isert start");
+            Console.WriteLine("insert start");
             _core.ExecuteSqlSequence(query);
-            Console.WriteLine("isert end");
-
-            SendSQLQuery(cl1,"select * from test",expected);
-            var t1 = Task.Run(()=>SendSQLQuery(cl1, $"BEGIN TRANSACTION cl1\n" +
-                $"update test set i = 0 where c='1';" +
-                "select * from test;"+
+            Console.WriteLine("insert end");
+           var tasks = Enumerable.Range(0, n).Select(
+                i => Task.Run(() => SendSQLQuery(cl[i], $"BEGIN TRANSACTION cl2\n" +
+                $"update test set test.i = -1 where c='{i}';" +
+                "select * from test;" +
                 $"commit",
-                expected));
-            t1.Wait();
+                expected))).ToArray();
+            Task.WaitAll(tasks);
 
-            {
-                var t2 = Task.Run(() => SendSQLQuery(cl2, $"BEGIN TRANSACTION cl2\n" +
-                    $"update test set i = 1 where c='2';" +
-                    "select * from test;" +
-                    $"commit",
-                    expected));
-                t2.Wait();
 
-            }
-            
         }
 
     }

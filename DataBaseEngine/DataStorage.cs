@@ -47,7 +47,7 @@ namespace StorageEngine
                 return new OperationResult<Table>(ExecutionState.failed, null, new TableNotExistError(FullTableName(tableName)));
             }
             Table table;
-            using (var tManager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open)))
+            using (var tManager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096)))
             {
                 table = tManager.LoadTable();
                 table.TableData = new DataStorageRowsInFiles(GetTableFileName(tableName));

@@ -98,16 +98,20 @@ namespace IntegrationTests
         {
             _expected[cl.Name][_last_res[cl.Name]] = newres.Replace("\"", "\\\"");
         }
+        Object mutex = 5;
         public void Save ()
         {
-            foreach (var i in _expected)
+            lock (mutex)
             {
-                var dirr = $"{_dirr}\\{i.Key}.txt";
-                var f = File.Create(dirr);
-                f.Close();
-                using (var sw = new StreamWriter(dirr))
+                foreach (var i in _expected)
                 {
-                    sw.Write($"{String.Join("\"\n\"", i.Value)}");
+                    var dirr = $"{_dirr}\\{i.Key}.txt";
+                    var f = File.Create(dirr);
+                    f.Close();
+                    using (var sw = new StreamWriter(dirr))
+                    {
+                        sw.Write($"{String.Join("\"\n\"", i.Value)}");
+                    }
                 }
             }
             

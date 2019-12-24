@@ -59,7 +59,7 @@ namespace IntegrationTests
                 }else
                 Assert.AreEqual(expected.GetResult(cl), res);
             }
-            catch(Exception ex)
+            catch(ExecutionEngineException ex)
             {
                 res = ex.ToString();
                 if (_fixtests)

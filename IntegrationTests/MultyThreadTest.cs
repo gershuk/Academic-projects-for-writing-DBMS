@@ -49,15 +49,18 @@ namespace IntegrationTests
                 "select * from test;"+
                 $"commit",
                 expected));
-
-            var t2 = Task.Run(()=>SendSQLQuery(cl2, $"BEGIN TRANSACTION cl2\n" +
-                $"update test set i = 1 where c='2';" +
-                "select * from test;" +
-                $"commit",
-                expected));
             t1.Wait();
-            t2.Wait();
 
+            {
+                var t2 = Task.Run(() => SendSQLQuery(cl2, $"BEGIN TRANSACTION cl2\n" +
+                    $"update test set i = 1 where c='2';" +
+                    "select * from test;" +
+                    $"commit",
+                    expected));
+                t2.Wait();
+
+            }
+            
         }
 
     }

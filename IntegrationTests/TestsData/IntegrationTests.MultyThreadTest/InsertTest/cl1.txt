@@ -109,4 +109,9 @@ i               c               d               TrStart         TrEnd
 
 "
 "cl1
+---------------------------------------
+Failed
+Unknown variable System.Collections.Generic.List`1[System.String]
+---------------------------------------
+
 

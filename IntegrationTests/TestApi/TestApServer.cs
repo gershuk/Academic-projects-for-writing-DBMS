@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SunflowerDB;
 
 namespace IntegrationTests
 {
@@ -14,7 +15,7 @@ namespace IntegrationTests
         private StreamWriter _input;
         private StreamReader _output;
         private StreamReader _error;
-        public TestApServer ()
+        public TestApServer (string name, DataBase core)
         {
             var dirr = Directory.GetCurrentDirectory();
             dirr = dirr.Remove(dirr.LastIndexOf("\\"), 1);
@@ -49,6 +50,7 @@ namespace IntegrationTests
 
         public string SendQuery (string sqlquery)
         {
+            return "";
             _input.WriteLine(sqlquery);
             var res = "";
             var line = _output.ReadLine();
@@ -67,7 +69,7 @@ namespace IntegrationTests
                 _client.Kill();
                 _client.Close();
             }
-            finally
+            catch(Exception ex)
             {
 
             }

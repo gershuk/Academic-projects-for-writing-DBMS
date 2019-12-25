@@ -36,7 +36,7 @@ namespace IntegrationTests
             var currentClassName = this.GetType().FullName;
             return new TestData(currentClassName, currentMethodName);
         }
-
+        object mutex = new object();
         protected void SendSQLQuery (TestClient cl, string query, TestData expected)
         {
             var res = "";
@@ -45,21 +45,23 @@ namespace IntegrationTests
                 res = cl.SendQuery(query);
                 if (_fixtests)
                 {
-
-                    Console.WriteLine($"Fix test:\n\n{query}\n\nExpected:\n\n{expected.GetResult(cl)}\n\nGet:\n\n{res}\n");            
-                    if (expected.GetResult(cl) != res)
+                    lock (mutex)
                     {
-                        Console.WriteLine("Fix?(Y/N)");
-                        if (Console.ReadLine().Trim().ToLower() == "y")
+                        Console.WriteLine($"Fix test:\n\n{query}\n\nExpected:\n\n{expected.GetResult(cl)}\n\nGet:\n\n{res}\n");
+                        if (expected.GetResult(cl) != res)
                         {
-                            expected.FixResult(res, cl);
+                            Console.WriteLine("Fix?(Y/N)");
+                            if (Console.ReadLine().Trim().ToLower() == "y")
+                            {
+                                expected.FixResult(res, cl);
+                            }
                         }
+                        expected.Save();
                     }
-                    expected.Save();
                 }else
                 Assert.AreEqual(expected.GetResult(cl), res);
             }
-            catch(Exception ex)
+            catch(ExecutionEngineException ex)
             {
                 res = ex.ToString();
                 if (_fixtests)
@@ -82,18 +84,20 @@ namespace IntegrationTests
             var res = cl.SendQuery(query);
             if (_fixtests)
             {
-
-                Console.WriteLine($"Fix test: {query}\nExpected:\n{expected.GetResult(cl)}\nGet:\n{res}\n00");
-                Console.WriteLine("Fix?(Y/N)");
-                expected.FixResult(res, cl);
-                if (expected.GetResult(cl) != res)
+                lock (mutex)
                 {
-                    if (Console.ReadLine().Trim().ToLower() == "y")
+                    Console.WriteLine($"Fix test: {query}\nExpected:\n{expected.GetResult(cl)}\nGet:\n{res}\n00");
+                    Console.WriteLine("Fix?(Y/N)");
+                    expected.FixResult(res, cl);
+                    if (expected.GetResult(cl) != res)
                     {
-                        expected.FixResult(res, cl);
+                        if (Console.ReadLine().Trim().ToLower() == "y")
+                        {
+                            expected.FixResult(res, cl);
+                        }
                     }
+                    expected.Save();
                 }
-                expected.Save();
             }
             Assert.AreEqual(expected.GetResult(cl), res);
             expected.Next(cl);

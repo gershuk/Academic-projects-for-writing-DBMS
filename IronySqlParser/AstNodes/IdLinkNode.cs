@@ -9,7 +9,7 @@ namespace IronySqlParser.AstNodes
         {
             var sqlCommandNode = FindFirstChildNodeByType<SqlCommandNode>();
             TableName = sqlCommandNode?.ReturnedTableName;
-            TableName ??= new Id(FindFirstChildNodeByType<IdNode>().Id);
+            TableName ??= FindFirstChildNodeByType<IdNode>().Id;
         }
     }
 }

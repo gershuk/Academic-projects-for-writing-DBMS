@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
@@ -14,7 +15,7 @@ namespace IronySqlParser.AstNodes
     {
         public TermType TermType { get; set; }
 
-        public List<string> Id { get; set; }
+        public Id Id { get; set; }
         public string StringLiteral { get; set; }
         public double NumberDouble { get; set; }
         public int NumberInt { get; set; }

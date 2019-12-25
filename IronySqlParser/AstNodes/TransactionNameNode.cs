@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using DataBaseType;
 
 namespace IronySqlParser.AstNodes
 {
     public class TransactionNameNode : SqlNode
     {
-        public List<string> TransactionName { get; set; }
+        public Id TransactionName { get; set; }
 
         public override void CollectDataFromChildren ()
         {

@@ -14,7 +14,7 @@ namespace IronySqlParser.AstNodes
 
         public override void CollectDataFromChildren ()
         {
-            Id = new Id(FindFirstChildNodeByType<IdNode>().Id);
+            Id = FindFirstChildNodeByType<IdNode>().Id;
             FieldType = FindFirstChildNodeByType<TypeNameNode>().FieldType;
             TypeParamOpt = FindFirstChildNodeByType<TypeParamsOptNode>().TypeParamOpt;
             ConstaraintList = FindFirstChildNodeByType<ConstraintListOptNodes>().ConstraintList;

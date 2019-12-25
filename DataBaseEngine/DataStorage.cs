@@ -448,7 +448,9 @@ namespace StorageEngine
             memStream.Write(buffer, 0, buffer.Length);
             memStream.Seek(0, SeekOrigin.Begin);
             readCount++;
-            return ZeroFormatterSerializer.Deserialize<DataBlockNode>(memStream);
+            var block = ZeroFormatterSerializer.Deserialize<DataBlockNode>(memStream);
+            block.FilePtr = offset;
+            return block;
         }
 
         public DataBlockNode LoadHeadDataBlock () => LoadDataBlock(metaInfDataStorage.HeadDataBlockList);
@@ -486,6 +488,9 @@ namespace StorageEngine
         [Index(4)]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1819:Properties should not return arrays", Justification = "<Ожидание>")]
         public virtual byte[] Data { get; set; } = null;
+
+        [IgnoreFormat]
+        public long FilePtr { get; set; } = 0;
 
         public DataBlockNode ()
         {
@@ -535,7 +540,10 @@ namespace StorageEngine
                 memStream.Seek(pos * recordSize, SeekOrigin.Begin);
                 var recordBytes = new byte[recordSize];
                 memStream.Read(recordBytes, 0, recordBytes.Length);
-                return ZeroFormatterSerializer.Deserialize<RowRecord>(recordBytes);
+                var record = ZeroFormatterSerializer.Deserialize<RowRecord>(recordBytes);
+                record.FilePtrBlock = FilePtr;
+                record.InBlockPos = pos;
+                return record;
             }
             else
             {
@@ -576,6 +584,10 @@ namespace StorageEngine
         [Index(1)]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1819:Properties should not return arrays", Justification = "<Ожидание>")]
         public virtual Row Fields { get; set; }
+        [IgnoreFormat]
+        public long FilePtrBlock { get; set; } = -1;
+        [IgnoreFormat]
+        public long InBlockPos { get; set; } = -1;
 
         public RowRecord ()
         {
@@ -750,6 +762,8 @@ namespace StorageEngine
             if (_curRowRecordsEnumarator.MoveNext())
             {
                 Current = _curRowRecordsEnumarator.Current.Fields;
+                Current.FilePtrBlock = _curRowRecordsEnumarator.Current.FilePtrBlock;
+                Current.InBlockPos = _curRowRecordsEnumarator.Current.InBlockPos;
                 return true;
             }
             else
@@ -759,6 +773,8 @@ namespace StorageEngine
                     _curRowRecordsEnumarator = _blocks.Current.GetRowRecrodsEnumerator(_tManager.RowRecordSize);
                     _curRowRecordsEnumarator.MoveNext();
                     Current = _curRowRecordsEnumarator.Current.Fields;
+                    Current.FilePtrBlock = _curRowRecordsEnumarator.Current.FilePtrBlock;
+                    Current.InBlockPos = _curRowRecordsEnumarator.Current.InBlockPos;
                     return true;
                 }
                 else

@@ -12,6 +12,6 @@ namespace IronySqlParser.AstNodes
 
         public override void CollectDataFromChildren () => TableName = FindFirstChildNodeByType<IdNode>().Id;
 
-        public override List<TableLock> GetTableLocks () => new List<TableLock>();
+        public override List<TableLock> GetTableLocks () => new List<TableLock>() { new TableLock(LockType.Update, TableName.ToString(), new System.Threading.ManualResetEvent(false)) };
     }
 }

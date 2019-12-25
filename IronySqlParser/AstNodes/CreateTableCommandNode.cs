@@ -17,6 +17,6 @@ namespace IronySqlParser.AstNodes
             FieldDefList = FindFirstChildNodeByType<FieldDefListNode>().FieldDefList;
         }
 
-        public override List<TableLock> GetTableLocks () => new List<TableLock>() { };
+        public override List<TableLock> GetTableLocks () => new List<TableLock>() { new TableLock(LockType.Update, TableName.ToString(), new System.Threading.ManualResetEvent(false)) };
     }
 }

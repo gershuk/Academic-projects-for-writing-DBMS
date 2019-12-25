@@ -22,7 +22,7 @@ namespace IronySqlParser.AstNodes
             TimeSelectorNode = FindFirstChildNodeByType<ForClauseOptNode>()?.TimeSelectorNode;
         }
 
-        public override List<TableLock> GetTableLocks () => new List<TableLock>() { new TableLock(LockType.Read, TableName.SimpleIds.ToString(), new System.Threading.ManualResetEvent(false)) };
+        public override List<TableLock> GetTableLocks () => new List<TableLock>() { new TableLock(LockType.Read, TableName.ToString(), new System.Threading.ManualResetEvent(false)) };
     }
 }
 

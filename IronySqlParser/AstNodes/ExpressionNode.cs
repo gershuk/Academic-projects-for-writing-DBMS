@@ -64,10 +64,23 @@ namespace IronySqlParser.AstNodes
                 _variableName = idNod.Id.ToString();
                 VariablesNames.Add(_variableName.ToString());
                 ConstOnly = false;
+
+                IsCompressed = true;
+                AddVariableBorder(_variableName, new VariableBorder());
             }
 
             if (_childOperator != null)
             {
+                IsCompressed = _childOperator.IsCompressed;
+
+                if (IsCompressed)
+                {
+                    foreach (var variableBorder in _childOperator.VariablesBorder)
+                    {
+                        AddVariableBorder(variableBorder.Key, (VariableBorder)variableBorder.Value.Clone());
+                    }
+                }
+
                 ConstOnly = _childOperator.ConstOnly;
                 GetAllValuesNamesFromNode(_childOperator);
             }

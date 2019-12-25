@@ -25,12 +25,12 @@ namespace IronySqlParser.AstNodes
         {
             foreach (var variable in expNode.VariablesNames)
             {
-                var names = new Dictionary<string, bool>();
+                var names = new HashSet<string>();
 
                 if (!names.TryGetValue(variable, out _))
                 {
                     VariablesNames.Add(variable);
-                    names.Add(variable, true);
+                    names.Add(variable);
                 }
             }
         }

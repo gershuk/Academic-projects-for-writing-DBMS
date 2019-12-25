@@ -105,7 +105,7 @@ namespace IntegrationTests
 
             SendSQLQuery(cl1, $"CREATE TABLE fn(id INT NOT NULL , age double, name char(150));", expected);
             SendSQLQuery(cl1, $"INSERT INTO fn values(1, 2.9, 'sfsf');", expected);
-            SendSQLQuery(cl1, $"SELECT dgdfg, id from fn;", expected);
+            SendSQLQuery(cl1, $"SELECT dgdfg, id from fn ;", expected);
 
             SendSQLQuery(cl1, $"CREATE TABLE table1(id INT NOT NULL, age DOUBLE, name char(150));", expected);
             SendSQLQuery (cl1, $"CREATE TABLE table2(id INT NOT NULL, age DOUBLE);", expected);

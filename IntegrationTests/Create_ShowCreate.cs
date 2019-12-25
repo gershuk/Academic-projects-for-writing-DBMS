@@ -32,12 +32,12 @@ namespace IntegrationTests
 
             {
                 var _tail = "";
-                for (int i = 0; i < 100; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     SendSQLQuery(cl1, $"CREATE TABLE UnitMeasure{i}(Name CHAR({i}), UnitMeasureCode CHAR({i}), ModifiedDate INT{_tail});", expected);
                     _tail += $", Name{i} CHAR({i}), UnitMeasureCode{i} CHAR({i})";
                 }
-                for (int i = 0; i < 100; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     SendSQLQuery(cl1, $"DROP TABLE UnitMeasure{i}",expected);
                 }

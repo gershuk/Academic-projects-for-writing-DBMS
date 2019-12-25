@@ -99,6 +99,5 @@ namespace IntegrationTests
             expected.Next(cl);
         }
 
-
     }
 }

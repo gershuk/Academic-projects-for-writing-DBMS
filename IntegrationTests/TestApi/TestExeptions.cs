@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace IntegrationTests
 {
+    [Serializable]
     public class ConnectIssue : Exception
     {
         public ConnectIssue ()
@@ -18,6 +19,11 @@ namespace IntegrationTests
         public ConnectIssue (string message, Exception inner)
             : base(message, inner)
         {
+        }
+
+        protected ConnectIssue (System.Runtime.Serialization.SerializationInfo serializationInfo, System.Runtime.Serialization.StreamingContext streamingContext)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -23,6 +23,45 @@ namespace DataBaseType
         Full
     }
 
+#nullable enable
+    public class VariableBorder : ICloneable
+    {
+        private dynamic? _leftBorder;
+        private dynamic? _rightBorder;
+
+        public bool StrictLeft { get; set; }
+        public bool StrictRight { get; set; }
+
+        public dynamic? LeftBorder
+        {
+            get => _leftBorder;
+            set => _leftBorder = _leftBorder < value || _leftBorder == null ? value : _leftBorder;
+        }
+
+        public dynamic? RightBorder
+        {
+            get => _rightBorder;
+            set => _rightBorder = _rightBorder > value || _rightBorder == null ? value : _rightBorder;
+        }
+
+        public VariableBorder (dynamic? leftBorder, dynamic? rightBorder, bool strictLeft, bool strictRight)
+        {
+            LeftBorder = leftBorder;
+            RightBorder = rightBorder;
+            StrictLeft = strictLeft;
+            StrictRight = strictRight;
+        }
+
+        public VariableBorder ()
+        {
+            StrictLeft = true;
+            StrictRight = true;
+            LeftBorder = null;
+            RightBorder = null;
+        }
+
+        public object Clone () => new VariableBorder(LeftBorder, RightBorder, StrictLeft, StrictRight);
+    }
 
     public enum ExecutionState
     {
@@ -136,7 +175,7 @@ namespace DataBaseType
 
         public Id ()
         {
-           
+
         }
 
         public override string ToString ()

@@ -19,6 +19,6 @@ namespace IronySqlParser.AstNodes
             InsertDataNode = FindFirstChildNodeByType<InsertDataNode>();
         }
 
-        public override List<TableLock> GetTableLocks () => new List<TableLock>() { new TableLock(LockType.Write, TableName.SimpleIds.ToString(), new System.Threading.ManualResetEvent(false)) };
+        public override List<TableLock> GetTableLocks () => new List<TableLock>() { new TableLock(LockType.Write, TableName.ToString(), new System.Threading.ManualResetEvent(false)) };
     }
 }

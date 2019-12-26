@@ -131,7 +131,7 @@ namespace SunflowerDB
 
         public object ExecuteSqlNode (Guid id, SelectCommandNode node)
         {
-            var expression = node.WhereExpression != null ? new ExpressionFunction(node.WhereExpression.Calc, node.WhereExpression.VariablesNames) : null;
+            var expression = node.WhereExpression != null ? new ExpressionFunction(node.WhereExpression.Calc, node.WhereExpression.VariablesNames,node.WhereExpression.VariablesBorder) : null;
             TimeSelectorDelegate timeSelector = null;
 
             if (node.TimeSelectorNode != null)

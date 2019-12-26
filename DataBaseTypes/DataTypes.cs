@@ -196,12 +196,15 @@ namespace DataBaseType
     {
         public Func<Dictionary<string, dynamic>, dynamic> CalcFunc { get; private set; }
         public List<string> VariablesNames { get; set; }
+        public Dictionary<string, VariableBorder> VariablesBorder { get; protected set; }
 
         public ExpressionFunction (Func<Dictionary<string, dynamic>, dynamic> calcFunc, List<string> variablesNames)
         {
             CalcFunc = calcFunc ?? throw new ArgumentNullException(nameof(calcFunc));
             VariablesNames = variablesNames ?? throw new ArgumentNullException(nameof(variablesNames));
         }
+
+        public ExpressionFunction (Func<Dictionary<string, dynamic>, dynamic> calcFunc, List<string> variablesNames, Dictionary<string, VariableBorder> variablesBorder) : this(calcFunc, variablesNames) => VariablesBorder = variablesBorder ?? throw new ArgumentNullException(nameof(variablesBorder));
     }
 
     public class Assigment

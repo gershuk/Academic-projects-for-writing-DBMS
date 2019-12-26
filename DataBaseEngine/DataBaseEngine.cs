@@ -514,6 +514,10 @@ namespace DataBaseEngine
 
             foreach (var v in variablesNames)
             {
+                if (exprDict.ContainsKey(v))
+                {
+                    continue;
+                }
                 var index = colPool.FindIndex((Column n) => v == n.Name.ToString());
                 if (index >= 0)
                 {

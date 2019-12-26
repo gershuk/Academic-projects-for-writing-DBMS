@@ -89,7 +89,7 @@ namespace SunflowerDB
                             {
                                 if (uniqueLock.LockType != tableLock.LockType)
                                 {
-                                    uniqueLock.LockType = tableLock.LockType;
+                                    uniqueLock.LockType = LockType.Update;
                                 }
                             }
                         }

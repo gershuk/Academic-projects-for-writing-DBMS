@@ -8,8 +8,6 @@ using DataBaseType;
 using StorageEngine;
 
 using ZeroFormatter;
-using FriendlyCSharp.Databases;
-//using System.Linq;
 
 namespace DataBaseEngine
 {
@@ -377,6 +375,10 @@ namespace DataBaseEngine
             }
             _dbEngineMetaInf.ReadCountStat += resUpdate.Result.Item1;
             _dbEngineMetaInf.WriteCountStat += resUpdate.Result.Item2;
+            if (_indexes.ContainsKey(tableName.ToString()))
+            {
+                _indexes.Remove(tableName.ToString());
+            }
             return new OperationResult<Table>(resUpdate.State, table, resUpdate.OperationError);
         }
 
@@ -497,7 +499,10 @@ namespace DataBaseEngine
             }
             _dbEngineMetaInf.ReadCountStat += resUpdate.Result.Item1;
             _dbEngineMetaInf.WriteCountStat += resUpdate.Result.Item2;
-
+            if (_indexes.ContainsKey(tableName.ToString()))
+            {
+                _indexes.Remove(tableName.ToString());
+            }
             return new OperationResult<Table>(resUpdate.State, table, resUpdate.OperationError);
 
         }
@@ -856,7 +861,11 @@ namespace DataBaseEngine
                 }
                 foreach (var ptr in hashSet)
                 {
-                    resultTableData.Add(_dataStorage.LoadRow(tableName, ptr));
+                    var row = _dataStorage.LoadRow(tableName, ptr);
+                    if (ChekRowVersion(transactionGuid, row))
+                    {
+                        resultTableData.Add(row);
+                    }
                 }
 
             }
@@ -994,17 +1003,25 @@ namespace DataBaseEngine
                 var indexLeft = _indexList.BinarySearch(leftVal, comparer);
                 var indexRight = _indexList.BinarySearch(rightVal, comparer);
                 var resList = new List<DbPtr>(); 
+                if(indexRight < 0)
+                {
+                    indexRight = _indexList.Count - 1;
+                }
+                if(indexLeft < 0)
+                {
+                    indexLeft = 0;
+                }
                 if (indexLeft > indexRight)
                 {
                     return null;
                 }
                 for (int i = indexLeft; i <= indexRight; i++)
                 {
-                    if (border.StrictLeft && (i == indexLeft || comparer.Compare(leftVal,_indexList[i]) == 0))
+                    if (border.StrictLeft && (comparer.Compare(leftVal,_indexList[i]) == 0))
                     {
                         continue;
                     }
-                    if (border.StrictRight && (i == indexRight || comparer.Compare(rightVal, _indexList[i]) == 0))
+                    if (border.StrictRight && (comparer.Compare(rightVal, _indexList[i]) == 0))
                     {
                         break;
                     }

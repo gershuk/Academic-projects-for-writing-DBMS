@@ -147,26 +147,37 @@ namespace IronySqlParser.AstNodes
                     IsCompressed = false;
                 }
 
-                if (_binOp == BinOp.And && _leftOperand.IsCompressed && _rightOperand.IsCompressed && !_leftOperand.ConstOnly && !_rightOperand.ConstOnly)
+                if (_binOp == BinOp.And && _leftOperand.IsCompressed && _rightOperand.IsCompressed && !_leftOperand.ConstOnly && !_rightOperand.ConstOnly
+                    && _leftOperand.VariablesBorder.Count > 0 && _rightOperand.VariablesBorder.Count > 0)
                 {
                     foreach (var variableBorder in _leftOperand.VariablesBorder)
                     {
+                        if (variableBorder.Value.LeftBorder==null && variableBorder.Value.RightBorder==null)
+                        {
+                            throw new Exception();
+                        }
+
                         AddVariableBorder(variableBorder.Key, (VariableBorder)variableBorder.Value.Clone());
                     }
 
                     foreach (var variableBorder in _rightOperand.VariablesBorder)
                     {
+                        if (variableBorder.Value.LeftBorder == null && variableBorder.Value.RightBorder == null)
+                        {
+                            throw new Exception();
+                        }
+
                         AddVariableBorder(variableBorder.Key, (VariableBorder)variableBorder.Value.Clone());
                     }
 
                     IsCompressed = true;
                 }
-            } 
+            }
             catch
             {
                 IsCompressed = false;
             }
-            
+
         }
     }
 }

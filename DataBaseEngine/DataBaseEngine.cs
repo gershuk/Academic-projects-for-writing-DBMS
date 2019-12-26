@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -7,6 +8,8 @@ using DataBaseType;
 using StorageEngine;
 
 using ZeroFormatter;
+using FriendlyCSharp.Databases;
+//using System.Linq;
 
 namespace DataBaseEngine
 {
@@ -67,7 +70,7 @@ namespace DataBaseEngine
         private readonly string _path;
         private readonly object _idLocker;
         private DbEngineMetaInf _dbEngineMetaInf;
-        private readonly Dictionary<string, Dictionary<string, SortedDictionary<dynamic, Tuple<long, long>>>> _indexes;
+        private readonly Dictionary<string, Dictionary<string, DbIndex>> _indexes;
 
         public DataBaseEngineMain ()
         {
@@ -75,7 +78,7 @@ namespace DataBaseEngine
             _dataStorage = new DataStorageInFiles(_pathDefault, _blockSizeDefault);
             _idLocker = new object();
             _dbEngineMetaInf = CheckRestoreDb();
-            _indexes = new Dictionary<string, Dictionary<string, SortedDictionary<dynamic, Tuple<long, long>>>>();
+            _indexes = new Dictionary<string, Dictionary<string, DbIndex>>();
         }
 
 
@@ -85,7 +88,7 @@ namespace DataBaseEngine
             _dataStorage = new DataStorageInFiles(pathDataBaseStorage, blockSize);
             _idLocker = new object();
             _dbEngineMetaInf = CheckRestoreDb();
-            _indexes = new Dictionary<string, Dictionary<string, SortedDictionary<dynamic, Tuple<long,long>>>>();
+            _indexes = new Dictionary<string, Dictionary<string, DbIndex>>();
         }
 
         private DbEngineMetaInf CheckRestoreDb ()
@@ -109,10 +112,10 @@ namespace DataBaseEngine
             SaveDbMetaInf(newMetaInf);
             return newMetaInf;
         }
-        private SortedDictionary<dynamic, Tuple<long, long>> GetIndex (Id tableName,Id column)
+        private DbIndex GetIndex (Id tableName,string column)
         {
             var tableNameStr = tableName.ToString();
-            var columnStr = column.ToString();
+            var columnStr = column;
             if (_indexes.ContainsKey(tableNameStr))
             {
                 if (_indexes[tableNameStr].ContainsKey(columnStr))
@@ -121,39 +124,16 @@ namespace DataBaseEngine
                 }
                 else
                 {
-                    _indexes[tableNameStr].Add(columnStr, new SortedDictionary<dynamic, Tuple<long,long>>());
                     var table = _dataStorage.LoadTable(tableName).Result;
-                    foreach (var row in table.TableData)
-                    {
-                        var index = table.TableMetaInf.ColumnPool.FindIndex((Column n) => columnStr == n.Name.ToString());
-                        if (index >= 0)
-                        {
-                            switch (row.Fields[index].Type)
-                            {
-                                case DataType.INT:
-                                    _indexes[tableNameStr][columnStr].Add(((FieldInt)(row.Fields[index])).Value,new Tuple<long, long>(row.FilePtrBlock,row.InBlockPos));
-                                    break;
-                                case DataType.DOUBLE:
-                                    _indexes[tableNameStr][columnStr].Add(((FieldDouble)(row.Fields[index])).Value, new Tuple<long, long>(row.FilePtrBlock, row.InBlockPos));
-                                    break;
-                                case DataType.CHAR:
-                                    _indexes[tableNameStr][columnStr].Add(((FieldChar)(row.Fields[index])).Value, new Tuple<long, long>(row.FilePtrBlock, row.InBlockPos));
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            throw new Exception($"Unknown variable {columnStr}");
-                        }
-                    }
+                    _indexes[tableNameStr].Add(columnStr, new DbIndex(table, column));
+                    return _indexes[tableNameStr][columnStr];
                 }
             }
             else
             {
-                _indexes.Add(tableNameStr, new Dictionary<string, SortedDictionary<dynamic, Tuple<long, long>>>());
+                _indexes.Add(tableNameStr, new Dictionary<string, DbIndex>());
                 return GetIndex(tableName, column);
             }
-            return null;
         }
         private static DbEngineMetaInf CreateDefaultDbMetaInf () => new DbEngineMetaInf(0, 0);
 
@@ -326,6 +306,10 @@ namespace DataBaseEngine
             var resInsert = _dataStorage.InsertRow(table.TableMetaInf.Name, row);
             _dbEngineMetaInf.ReadCountStat += resInsert.Result.Item1;
             _dbEngineMetaInf.WriteCountStat += resInsert.Result.Item2;
+            if (_indexes.ContainsKey(tableName.ToString()))
+            {
+                _indexes.Remove(tableName.ToString());
+            }
             return new OperationResult<Table>(resInsert.State, table, resInsert.OperationError);
         }
 
@@ -811,6 +795,7 @@ namespace DataBaseEngine
         public OperationResult<Table> SelectCommand (Guid transactionGuid, Id tableName, TimeSelectorDelegate timeSelector, List<Id> columnNames, ExpressionFunction expression)
         {
 
+
             var res = GetTableCommand(transactionGuid, tableName);
             if (res.State == ExecutionState.failed)
             {
@@ -846,6 +831,36 @@ namespace DataBaseEngine
             }
             var resultTable = new Table(resulTableMetaInf);
             var resultTableData = new List<Row>();
+
+            if (expression?.VariablesBorder != null && expression.VariablesBorder?.Count > 0)
+            {
+                var hashSet = new HashSet<DbPtr>();
+                foreach(var border in expression.VariablesBorder)
+                {
+                   var dbIndex = GetIndex(tableName, border.Key);
+                    var index = table.TableMetaInf.ColumnPool.FindIndex((Column n) => border.Key == n.Name.ToString());
+                    List<DbPtr> list;
+                    if (index >= 0)
+                    {
+                        list = dbIndex.Between(border.Value, table.TableMetaInf.ColumnPool[index]);
+                    }
+                    else
+                    {
+                        throw new Exception($"Unknown variable {border.Key}");
+                    }
+                    foreach(var ptr in list)
+                    {
+                        hashSet.Add(ptr);
+                       
+                    }
+                }
+                foreach (var ptr in hashSet)
+                {
+                    resultTableData.Add(_dataStorage.LoadRow(tableName, ptr));
+                }
+
+            }
+            else { 
             using var enumerator = table.TableData.GetEnumerator();
             while (enumerator.MoveNext())
             {
@@ -884,11 +899,13 @@ namespace DataBaseEngine
                     resultTableData.Add(new Row(newFields));
                 }
             }
-            if (enumerator is DataStorageRowsInFilesEnumerator)
-            {
-                _dbEngineMetaInf.ReadCountStat += ((DataStorageRowsInFilesEnumerator)(enumerator))._tManager.readCount;
-                _dbEngineMetaInf.WriteCountStat += ((DataStorageRowsInFilesEnumerator)(enumerator))._tManager.writeCount;
+                if (enumerator is DataStorageRowsInFilesEnumerator)
+                {
+                    _dbEngineMetaInf.ReadCountStat += ((DataStorageRowsInFilesEnumerator)(enumerator))._tManager.readCount;
+                    _dbEngineMetaInf.WriteCountStat += ((DataStorageRowsInFilesEnumerator)(enumerator))._tManager.writeCount;
+                }
             }
+            
             resultTable.TableData = resultTableData;
             tr.TempTables.Add(resultTable.TableMetaInf.Name.ToString(), resultTable);
             return new OperationResult<Table>(ExecutionState.performed, resultTable);
@@ -904,7 +921,101 @@ namespace DataBaseEngine
         public OperationResult<Table> UnionCommand (Guid transactionGuid, Id leftId, Id rightId, UnionKind unionKind) => throw new NotImplementedException();
 
         public OperationResult<Table> DeleteColumnCommand (Guid transactionGuid, Id tableName, Id ColumnName) => throw new NotImplementedException();
+        
+        
+        private class DbIndex
+        {
+            public class DbIndexComparer : IComparer<Tuple<Field, DbPtr>>
+            {
+                public DbIndexComparer ()
+                {
+                }
+                public int Compare (Tuple<Field, DbPtr> a, Tuple<Field, DbPtr> b)
+                {
+                    dynamic valA = 0;
+                    dynamic valB = 0;
+                    switch (a.Item1.Type)
+                    {
+                        case DataType.INT:
+                            valA  = ((FieldInt)(a.Item1)).Value;
+                            break;
+                        case DataType.DOUBLE:
+                            valA = ((FieldDouble)(a.Item1)).Value;
+                            break;
+                        case DataType.CHAR:
+                            valA = ((FieldChar)(a.Item1)).Value;
+                            break;
+                    }
+                    switch (b.Item1.Type)
+                    {
+                        case DataType.INT:
+                            valB = ((FieldInt)(b.Item1)).Value;
+                            break;
+                        case DataType.DOUBLE:
+                            valB = ((FieldDouble)(b.Item1)).Value;
+                            break;
+                        case DataType.CHAR:
+                            valB = ((FieldChar)(b.Item1)).Value;
+                            break;
+                    }
+                    if (valA > valB) return 1;
+                    else if (valA == valB) return 0;
+                    else return -1;
+                }
+
+            }
+            private List<Tuple<Field, DbPtr>> _indexList;
+            public DbIndex(Table table, string column)
+            {
+                _indexList = new List<Tuple<Field, DbPtr>>();
+                CreateIndex(table, column);
+            }
+            void CreateIndex (Table table, string column) {
+                var list = _indexList;
+                foreach (var row in table.TableData)
+                {
+                    var index = table.TableMetaInf.ColumnPool.FindIndex((Column n) => column == n.Name.ToString());
+                    if (index >= 0)
+                    {
+                        list.Add(new Tuple<Field, DbPtr>(row.Fields[index], new DbPtr(row.FilePtrBlock, row.InBlockPos)));
+                    }
+                    else
+                    {
+                        throw new Exception($"Unknown variable {column}");
+                    }
+                }
+                list.Sort(new DbIndexComparer());
+            }
+            public List<DbPtr> Between (VariableBorder border, Column col)
+            {
+                var leftVal = new Tuple<Field, DbPtr>(col.CreateField(border.LeftBorder).Result, new DbPtr(-1, -1));
+                var rightVal = new Tuple<Field, DbPtr>(col.CreateField(border.RightBorder).Result, new DbPtr(-1, -1));
+                var comparer = new DbIndexComparer();
+                var indexLeft = _indexList.BinarySearch(leftVal, comparer);
+                var indexRight = _indexList.BinarySearch(rightVal, comparer);
+                var resList = new List<DbPtr>(); 
+                if (indexLeft > indexRight)
+                {
+                    return null;
+                }
+                for (int i = indexLeft; i <= indexRight; i++)
+                {
+                    if (border.StrictLeft && (i == indexLeft || comparer.Compare(leftVal,_indexList[i]) == 0))
+                    {
+                        continue;
+                    }
+                    if (border.StrictRight && (i == indexRight || comparer.Compare(rightVal, _indexList[i]) == 0))
+                    {
+                        break;
+                    }
+                    resList.Add(_indexList[i].Item2);
+                }
+                return resList;
+            } 
+
+        }
     }
+ 
 
     [ZeroFormattable]
     public class DbEngineMetaInf

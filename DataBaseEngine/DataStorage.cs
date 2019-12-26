@@ -17,6 +17,7 @@ namespace StorageEngine
         OperationResult<bool> ContainsTable (Id tableName);
         OperationResult<string> AddTable (Table table);
         OperationResult<string> RemoveTable (Id tableName);
+        Row LoadRow (Id tableName, DbPtr ptr);
 
         OperationResult<Tuple<long, long>> UpdateAllRow (Id tableName, Row newRow, Predicate<Row> match);
         OperationResult<Tuple<long, long>> UpdateAllRow (Id tableName, Func<Row, Row> match);
@@ -24,6 +25,38 @@ namespace StorageEngine
         OperationResult<Tuple<long, long>> RemoveAllRow (Id tableName, Predicate<Row> match);
     }
 
+    public class DbPtr
+    {
+        [IgnoreFormat]
+        public int FilePtrBlock { get; set; } = -1;
+        [IgnoreFormat]
+        public int InBlockPos { get; set; } = -1;
+        public DbPtr ()
+        {
+
+        }
+        public DbPtr (int filePtrBlock, int inBlockPos)
+        {
+            FilePtrBlock = filePtrBlock;
+            InBlockPos = inBlockPos;
+        }
+        public override bool Equals (object obj)
+        {
+            var dbPtr = obj as DbPtr;
+            return FilePtrBlock == dbPtr.FilePtrBlock && InBlockPos == dbPtr.InBlockPos;
+        }
+        public override int GetHashCode ()
+        {
+            unchecked // Overflow is fine, just wrap
+            {
+                int hash = 17;
+                // Suitable nullity checks etc, of course :)
+                hash = hash * 23 + FilePtrBlock.GetHashCode();
+                hash = hash * 23 + InBlockPos.GetHashCode();
+                return hash;
+            }
+        }
+    }
     public class DataStorageInFiles : IDataStorage
     {
         public string PathToDataBase { get; set; }
@@ -39,7 +72,13 @@ namespace StorageEngine
                 CreateDataStorageFolder(path);
             }
         }
-
+        public Row LoadRow (Id tableName, DbPtr ptr)
+        {
+            using var tManager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096));
+            var block = tManager.LoadDataBlock(ptr.FilePtrBlock);
+            var row = block.LoadRowRecord(ptr.InBlockPos, tManager.RowRecordSize);
+            return row.Fields;
+        }
         public OperationResult<Table> LoadTable (Id tableName)
         {
             if (!File.Exists(GetTableFileName(tableName)))
@@ -85,7 +124,7 @@ namespace StorageEngine
             return new OperationResult<string>(ExecutionState.performed, "");
         }
 
-        public OperationResult<Tuple<long,long>> UpdateAllRow (Id tableName, Row newRow, Predicate<Row> match)
+        public OperationResult<Tuple<long, long>> UpdateAllRow (Id tableName, Row newRow, Predicate<Row> match)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
@@ -94,33 +133,33 @@ namespace StorageEngine
             using var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open, FileAccess.ReadWrite, FileShare.Read, 4096));
 
             using var tableData = new DataStorageRowsInFilesEnumerator(manager);
-                var isnLast = tableData.MoveNext();
-                while (isnLast)
-                {
-                    isnLast = match(tableData.Current) ? tableData.UpdateCurrentRow(newRow): tableData.MoveNext();
+            var isnLast = tableData.MoveNext();
+            while (isnLast)
+            {
+                isnLast = match(tableData.Current) ? tableData.UpdateCurrentRow(newRow) : tableData.MoveNext();
 
-                }
-            
+            }
 
-            return new OperationResult<Tuple<long, long>>(ExecutionState.performed, new Tuple<long,long>(manager.readCount, manager.writeCount));
+
+            return new OperationResult<Tuple<long, long>>(ExecutionState.performed, new Tuple<long, long>(manager.readCount, manager.writeCount));
         }
         public OperationResult<Tuple<long, long>> UpdateAllRow (Id tableName, Func<Row, Row> match)
         {
             if (!File.Exists(GetTableFileName(tableName)))
             {
-                return new OperationResult<Tuple<long, long>>(ExecutionState.failed,new Tuple<long, long>(0,0), new TableNotExistError(FullTableName(tableName)));
+                return new OperationResult<Tuple<long, long>>(ExecutionState.failed, new Tuple<long, long>(0, 0), new TableNotExistError(FullTableName(tableName)));
             }
 
-            using var manager  = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open, FileAccess.ReadWrite, FileShare.Read, 4096));
+            using var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open, FileAccess.ReadWrite, FileShare.Read, 4096));
 
             using var tableData = new DataStorageRowsInFilesEnumerator(manager);
-                var isnLast = tableData.MoveNext();
-                while (isnLast)
-                {
-                    var data = match(tableData.Current);
-                    isnLast = data != null ? tableData.UpdateCurrentRow(data) : tableData.MoveNext();
-                }
-            
+            var isnLast = tableData.MoveNext();
+            while (isnLast)
+            {
+                var data = match(tableData.Current);
+                isnLast = data != null ? tableData.UpdateCurrentRow(data) : tableData.MoveNext();
+            }
+
 
             return new OperationResult<Tuple<long, long>>(ExecutionState.performed, new Tuple<long, long>(manager.readCount, manager.writeCount));
         }
@@ -135,8 +174,8 @@ namespace StorageEngine
             using var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open, FileAccess.ReadWrite, FileShare.Read, 4096));
 
             var rowRecord = new RowRecord(fields);
-                manager.InsertRecord(rowRecord);
-            
+            manager.InsertRecord(rowRecord);
+
 
             return new OperationResult<Tuple<long, long>>(ExecutionState.performed, new Tuple<long, long>(manager.readCount, manager.writeCount));
         }
@@ -152,12 +191,12 @@ namespace StorageEngine
             using var manager = new TableFileManager(new FileStream(GetTableFileName(tableName), FileMode.Open, FileAccess.ReadWrite, FileShare.Read, 4096));
 
             using var tableData = new DataStorageRowsInFilesEnumerator(manager);
-                var isnLast = tableData.MoveNext();
-                while (isnLast)
-                {
-                    isnLast = match(tableData.Current) ? tableData.DeleteCurrentRow() : tableData.MoveNext();
-                }
-            
+            var isnLast = tableData.MoveNext();
+            while (isnLast)
+            {
+                isnLast = match(tableData.Current) ? tableData.DeleteCurrentRow() : tableData.MoveNext();
+            }
+
 
             return new OperationResult<Tuple<long, long>>(ExecutionState.performed, new Tuple<long, long>(manager.readCount, manager.writeCount));
         }
@@ -325,7 +364,7 @@ namespace StorageEngine
             _fileStream.Seek(-GetCalculateMetaInfDataStorageSize(), SeekOrigin.End);
             readCount++;
             return ZeroFormatterSerializer.Deserialize<MetaInfDataStorage>(_fileStream);
-            
+
         }
 
         public void DeleteBlock (DataBlockNode block)
@@ -490,7 +529,7 @@ namespace StorageEngine
         public virtual byte[] Data { get; set; } = null;
 
         [IgnoreFormat]
-        public long FilePtr { get; set; } = 0;
+        public int FilePtr { get; set; } = 0;
 
         public DataBlockNode ()
         {
@@ -585,9 +624,9 @@ namespace StorageEngine
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1819:Properties should not return arrays", Justification = "<Ожидание>")]
         public virtual Row Fields { get; set; }
         [IgnoreFormat]
-        public long FilePtrBlock { get; set; } = -1;
+        public int FilePtrBlock { get; set; } = -1;
         [IgnoreFormat]
-        public long InBlockPos { get; set; } = -1;
+        public int InBlockPos { get; set; } = -1;
 
         public RowRecord ()
         {
@@ -672,7 +711,7 @@ namespace StorageEngine
         private readonly string _tableFileName;
         private readonly int _blockSize;
         public DataStorageRowsInFilesWithWrite (string fileName, int bufferSize) { _tableFileName = fileName; _blockSize = bufferSize; }
-        public IEnumerator<Row> GetEnumerator () => new DataStorageRowsInFilesEnumerator(new TableFileManager(new FileStream(_tableFileName, FileMode.Open,FileAccess.ReadWrite,FileShare.Read, _blockSize)));
+        public IEnumerator<Row> GetEnumerator () => new DataStorageRowsInFilesEnumerator(new TableFileManager(new FileStream(_tableFileName, FileMode.Open, FileAccess.ReadWrite, FileShare.Read, _blockSize)));
 
         IEnumerator IEnumerable.GetEnumerator () => throw new NotImplementedException();
 

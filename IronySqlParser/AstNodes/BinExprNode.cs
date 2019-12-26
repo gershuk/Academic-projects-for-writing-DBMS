@@ -70,95 +70,103 @@ namespace IronySqlParser.AstNodes
             GetAllValuesNamesFromNode(_leftOperand);
             GetAllValuesNamesFromNode(_rightOperand);
 
-            if ((_leftOperand.VariablesNames.Count + _rightOperand.VariablesNames.Count == 1) && (_leftOperand.IsCompressed || _rightOperand.IsCompressed))
+            try
             {
-                string variableName = default;
-                dynamic constData = default;
-                var left = false;
-
-                if (_leftOperand.VariablesNames.Count == 1)
+                if ((_leftOperand.VariablesNames.Count + _rightOperand.VariablesNames.Count == 1) && (_leftOperand.IsCompressed || _rightOperand.IsCompressed))
                 {
-                    variableName = _leftOperand.VariablesNames[0];
-                    constData = _rightOperand.Calc(new Dictionary<string, dynamic>());
-                    left = true;
+                    string variableName = default;
+                    dynamic constData = default;
+                    var left = false;
+
+                    if (_leftOperand.VariablesNames.Count == 1)
+                    {
+                        variableName = _leftOperand.VariablesNames[0];
+                        constData = _rightOperand.Calc(new Dictionary<string, dynamic>());
+                        left = true;
+                    }
+                    else
+                    {
+                        variableName = _rightOperand.VariablesNames[0];
+                        constData = _leftOperand.Calc(new Dictionary<string, dynamic>());
+                        left = false;
+                    }
+
+                    IsCompressed = true;
+                    switch (_binOp)
+                    {
+                        case BinOp.Equal:
+                            AddVariableBorder(variableName, new VariableBorder(constData, constData, false, false));
+                            break;
+                        case BinOp.Greater:
+                            if (left)
+                            {
+                                AddVariableBorder(variableName, new VariableBorder(constData, null, true, true));
+                            }
+                            else
+                            {
+                                AddVariableBorder(variableName, new VariableBorder(null, constData, true, true));
+                            }
+                            break;
+                        case BinOp.Less:
+                            if (left)
+                            {
+                                AddVariableBorder(variableName, new VariableBorder(null, constData, true, true));
+                            }
+                            else
+                            {
+                                AddVariableBorder(variableName, new VariableBorder(constData, null, true, true));
+                            }
+                            break;
+                        case BinOp.EqualGreater:
+                            if (left)
+                            {
+                                AddVariableBorder(variableName, new VariableBorder(constData, null, false, false));
+                            }
+                            else
+                            {
+                                AddVariableBorder(variableName, new VariableBorder(null, constData, false, false));
+                            }
+                            break;
+                        case BinOp.EqualLess:
+                            if (left)
+                            {
+                                AddVariableBorder(variableName, new VariableBorder(null, constData, false, false));
+                            }
+                            else
+                            {
+                                AddVariableBorder(variableName, new VariableBorder(constData, null, false, false));
+                            }
+                            break;
+                        default:
+                            IsCompressed = false;
+                            break;
+                    }
                 }
                 else
                 {
-                    variableName = _rightOperand.VariablesNames[0];
-                    constData = _leftOperand.Calc(new Dictionary<string, dynamic>());
-                    left = false;
+                    IsCompressed = false;
                 }
 
-                IsCompressed = true;
-                switch (_binOp)
+                if (_binOp == BinOp.And && _leftOperand.IsCompressed && _rightOperand.IsCompressed)
                 {
-                    case BinOp.Equal:
-                        AddVariableBorder(variableName, new VariableBorder(constData, constData, false, false));
-                        break;
-                    case BinOp.Greater:
-                        if (left)
-                        {
-                            AddVariableBorder(variableName, new VariableBorder(constData, null, true, true));
-                        }
-                        else
-                        {
-                            AddVariableBorder(variableName, new VariableBorder(null, constData, true, true));
-                        }
-                        break;
-                    case BinOp.Less:
-                        if (left)
-                        {
-                            AddVariableBorder(variableName, new VariableBorder(null, constData, true, true));
-                        }
-                        else
-                        {
-                            AddVariableBorder(variableName, new VariableBorder(constData, null, true, true));
-                        }
-                        break;
-                    case BinOp.EqualGreater:
-                        if (left)
-                        {
-                            AddVariableBorder(variableName, new VariableBorder(constData, null, false, false));
-                        }
-                        else
-                        {
-                            AddVariableBorder(variableName, new VariableBorder(null, constData, false, false));
-                        }
-                        break;
-                    case BinOp.EqualLess:
-                        if (left)
-                        {
-                            AddVariableBorder(variableName, new VariableBorder(null, constData, false, false));
-                        }
-                        else
-                        {
-                            AddVariableBorder(variableName, new VariableBorder(constData, null, false, false));
-                        }
-                        break;
-                    default:
-                        IsCompressed = false;
-                        break;
+                    foreach (var variableBorder in _leftOperand.VariablesBorder)
+                    {
+                        AddVariableBorder(variableBorder.Key, (VariableBorder)variableBorder.Value.Clone());
+                    }
+
+                    foreach (var variableBorder in _rightOperand.VariablesBorder)
+                    {
+                        AddVariableBorder(variableBorder.Key, (VariableBorder)variableBorder.Value.Clone());
+                    }
+
+                    IsCompressed = true;
                 }
-            }
-            else
+            } 
+            catch
             {
                 IsCompressed = false;
             }
-
-            if (_binOp == BinOp.And && _leftOperand.IsCompressed && _rightOperand.IsCompressed)
-            {
-                foreach (var variableBorder in _leftOperand.VariablesBorder)
-                {
-                    AddVariableBorder(variableBorder.Key, (VariableBorder)variableBorder.Value.Clone());
-                }
-
-                foreach (var variableBorder in _rightOperand.VariablesBorder)
-                {
-                    AddVariableBorder(variableBorder.Key, (VariableBorder)variableBorder.Value.Clone());
-                }
-
-                IsCompressed = true;
-            }
+            
         }
     }
 }

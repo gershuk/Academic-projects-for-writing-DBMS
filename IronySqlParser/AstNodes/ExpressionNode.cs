@@ -52,11 +52,13 @@ namespace IronySqlParser.AstNodes
                         Value = numberNode.NumberInt;
                         break;
                 };
+                IsCompressed = true;
             }
 
             if (stringLiteralNode != null)
             {
                 Value = stringLiteralNode.StringLiteral;
+                IsCompressed = true;
             }
 
             if (idNod != null)

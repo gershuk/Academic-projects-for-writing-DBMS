@@ -134,9 +134,9 @@ namespace DataBaseType
         [Index(2)]
         public virtual long TrEnd { get; set; }
         [IgnoreFormat]
-        public long FilePtrBlock { get; set; } = -1;
+        public int FilePtrBlock { get; set; } = -1;
         [IgnoreFormat]
-        public long InBlockPos { get; set; } = -1;
+        public int InBlockPos { get; set; } = -1;
         public Row ()
         {
 

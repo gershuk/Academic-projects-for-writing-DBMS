@@ -39,6 +39,7 @@ namespace IronySqlParser.AstNodes
             if (_childOperator != null)
             {
                 ConstOnly = _childOperator.ConstOnly;
+                IsCompressed = ConstOnly;
                 GetAllValuesNamesFromNode(_childOperator);
             }
         }

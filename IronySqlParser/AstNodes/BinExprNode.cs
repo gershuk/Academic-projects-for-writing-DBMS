@@ -147,7 +147,7 @@ namespace IronySqlParser.AstNodes
                     IsCompressed = false;
                 }
 
-                if (_binOp == BinOp.And && _leftOperand.IsCompressed && _rightOperand.IsCompressed)
+                if (_binOp == BinOp.And && _leftOperand.IsCompressed && _rightOperand.IsCompressed && !_leftOperand.ConstOnly && !_rightOperand.ConstOnly)
                 {
                     foreach (var variableBorder in _leftOperand.VariablesBorder)
                     {

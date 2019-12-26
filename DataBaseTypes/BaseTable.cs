@@ -133,6 +133,10 @@ namespace DataBaseType
         [ProtoMember(3)]
         [Index(2)]
         public virtual long TrEnd { get; set; }
+        [IgnoreFormat]
+        public long FilePtrBlock { get; set; } = -1;
+        [IgnoreFormat]
+        public long InBlockPos { get; set; } = -1;
         public Row ()
         {
 

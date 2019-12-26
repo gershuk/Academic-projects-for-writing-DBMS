@@ -67,6 +67,7 @@ namespace DataBaseEngine
         private readonly string _path;
         private readonly object _idLocker;
         private DbEngineMetaInf _dbEngineMetaInf;
+        private readonly Dictionary<string, Dictionary<string, SortedDictionary<dynamic, Tuple<long, long>>>> _indexes;
 
         public DataBaseEngineMain ()
         {
@@ -74,6 +75,7 @@ namespace DataBaseEngine
             _dataStorage = new DataStorageInFiles(_pathDefault, _blockSizeDefault);
             _idLocker = new object();
             _dbEngineMetaInf = CheckRestoreDb();
+            _indexes = new Dictionary<string, Dictionary<string, SortedDictionary<dynamic, Tuple<long, long>>>>();
         }
 
 
@@ -83,6 +85,7 @@ namespace DataBaseEngine
             _dataStorage = new DataStorageInFiles(pathDataBaseStorage, blockSize);
             _idLocker = new object();
             _dbEngineMetaInf = CheckRestoreDb();
+            _indexes = new Dictionary<string, Dictionary<string, SortedDictionary<dynamic, Tuple<long,long>>>>();
         }
 
         private DbEngineMetaInf CheckRestoreDb ()
@@ -106,7 +109,52 @@ namespace DataBaseEngine
             SaveDbMetaInf(newMetaInf);
             return newMetaInf;
         }
-
+        private SortedDictionary<dynamic, Tuple<long, long>> GetIndex (Id tableName,Id column)
+        {
+            var tableNameStr = tableName.ToString();
+            var columnStr = column.ToString();
+            if (_indexes.ContainsKey(tableNameStr))
+            {
+                if (_indexes[tableNameStr].ContainsKey(columnStr))
+                {
+                    return _indexes[tableNameStr][columnStr];
+                }
+                else
+                {
+                    _indexes[tableNameStr].Add(columnStr, new SortedDictionary<dynamic, Tuple<long,long>>());
+                    var table = _dataStorage.LoadTable(tableName).Result;
+                    foreach (var row in table.TableData)
+                    {
+                        var index = table.TableMetaInf.ColumnPool.FindIndex((Column n) => columnStr == n.Name.ToString());
+                        if (index >= 0)
+                        {
+                            switch (row.Fields[index].Type)
+                            {
+                                case DataType.INT:
+                                    _indexes[tableNameStr][columnStr].Add(((FieldInt)(row.Fields[index])).Value,new Tuple<long, long>(row.FilePtrBlock,row.InBlockPos));
+                                    break;
+                                case DataType.DOUBLE:
+                                    _indexes[tableNameStr][columnStr].Add(((FieldDouble)(row.Fields[index])).Value, new Tuple<long, long>(row.FilePtrBlock, row.InBlockPos));
+                                    break;
+                                case DataType.CHAR:
+                                    _indexes[tableNameStr][columnStr].Add(((FieldChar)(row.Fields[index])).Value, new Tuple<long, long>(row.FilePtrBlock, row.InBlockPos));
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception($"Unknown variable {columnStr}");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                _indexes.Add(tableNameStr, new Dictionary<string, SortedDictionary<dynamic, Tuple<long, long>>>());
+                return GetIndex(tableName, column);
+            }
+            return null;
+        }
         private static DbEngineMetaInf CreateDefaultDbMetaInf () => new DbEngineMetaInf(0, 0);
 
         private DbEngineMetaInf LoadDbMetaInf ()
@@ -505,7 +553,7 @@ namespace DataBaseEngine
         private bool ChekRowVersion (Guid transactionGuid, Row r)
         {
             var tr = _dbEngineMetaInf.TransactionsInRun[transactionGuid];
-            return r.TrStart <= tr.PrevVerId && r.TrEnd > tr.PrevVerId;
+            return (r.TrStart <= tr.PrevVerId && r.TrEnd > tr.PrevVerId && r.TrEnd != tr.Id) || r.TrStart == tr.Id;
         }
 
         public OperationResult<Table> JoinCommand (Guid transactionGuid,

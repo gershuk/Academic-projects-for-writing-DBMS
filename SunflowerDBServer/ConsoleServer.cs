@@ -15,7 +15,7 @@ namespace SunflowerDB
 {
     public sealed class SunflowerDBServer : Server, IDisposable
     {
-        private readonly DataBase _core = new DataBase(20, new DataBaseEngineMain(), new TransactionScheduler());
+        private readonly DataBase _core = new DataBase(20, new DataBaseEngineMain(), new TransactionScheduler<TableLockQueueMonopolOnly>());
         private bool _disposed = false;
 
         public void Dispose ()

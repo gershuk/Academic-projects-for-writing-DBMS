@@ -71,7 +71,7 @@ namespace DataBaseType
         performed
     }
 
-    public struct Varchar : IComparable<Varchar>, IEquatable<Varchar>
+    public struct Varchar : IComparable<Varchar>, IEquatable<Varchar>, ICloneable
     {
         private string _charArray;
         private int? _hash;
@@ -88,7 +88,7 @@ namespace DataBaseType
 
         public Varchar (string charArray)
         {
-            _hash = 0;
+            _hash = null;
             _charArray = charArray;
         }
 
@@ -127,21 +127,14 @@ namespace DataBaseType
         public static bool operator != (Varchar left, Varchar right) => !(left == right);
 
         public bool Equals (Varchar other) => other._charArray == _charArray;
+
         public override string ToString () => (string)_charArray.Clone();
 
-        public static explicit operator string (Varchar param) => (string)param._charArray.Clone();
+        public object Clone () => new Varchar((string)_charArray.Clone());
 
-        public static explicit operator Varchar (string param)
-        {
-            if (param == null)
-            {
-                throw new NullReferenceException();
-            }
-            else
-            {
-                return new Varchar((string)param.Clone());
-            }
-        }
+        public static implicit operator string (Varchar param) => (string)param._charArray.Clone();
+
+        public static implicit operator Varchar (string param) => param == null ? new Varchar() : new Varchar((string)param.Clone());
     }
 
     public interface IOperationResult<T>

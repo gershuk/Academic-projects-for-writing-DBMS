@@ -88,7 +88,7 @@ namespace DataBaseType
 
         public Varchar (string charArray)
         {
-            _hash = 0;
+            _hash = null;
             _charArray = charArray;
         }
 

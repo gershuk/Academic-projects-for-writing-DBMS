@@ -530,7 +530,7 @@ namespace DataBaseEngine
                             exprDict.Add(v, ((FieldDouble)(row.Fields[index])).Value);
                             break;
                         case DataType.CHAR:
-                            exprDict.Add(v, ((FieldChar)(row.Fields[index])).Value);
+                            exprDict.Add(v, new Varchar(((FieldChar)(row.Fields[index])).Value));
                             break;
                     }
                 }
@@ -956,7 +956,7 @@ namespace DataBaseEngine
                             valA = ((FieldDouble)(a.Item1)).Value;
                             break;
                         case DataType.CHAR:
-                            valA = ((FieldChar)(a.Item1)).Value;
+                            valA = new Varchar(((FieldChar)(a.Item1)).Value);
                             break;
                     }
                     switch (b.Item1.Type)
@@ -968,7 +968,7 @@ namespace DataBaseEngine
                             valB = ((FieldDouble)(b.Item1)).Value;
                             break;
                         case DataType.CHAR:
-                            valB = ((FieldChar)(b.Item1)).Value;
+                            valB = new Varchar(((FieldChar)(b.Item1)).Value);
                             break;
                     }
                     if (valA > valB) return 1;
@@ -1009,11 +1009,11 @@ namespace DataBaseEngine
                 var resList = new List<DbPtr>(); 
                 if(indexRight < 0)
                 {
-                    indexRight = _indexList.Count - 1;
+                    indexRight = (~indexRight)-1;
                 }
                 if(indexLeft < 0)
                 {
-                    indexLeft = 0;
+                    indexLeft = ~indexLeft;
                 }
                 if (indexLeft > indexRight)
                 {

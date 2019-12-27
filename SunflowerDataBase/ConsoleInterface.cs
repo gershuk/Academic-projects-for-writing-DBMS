@@ -11,7 +11,7 @@ namespace SunflowerDB
 
         public static void Main ()
         {
-            using var core = new DataBase(20, new DataBaseEngineMain(), new TransactionScheduler());
+            using var core = new DataBase(20, new DataBaseEngineMain(), new TransactionScheduler<TableLockQueueMonopolOnly>());
             var exitState = true;
 
             Console.WriteLine("Hello!");

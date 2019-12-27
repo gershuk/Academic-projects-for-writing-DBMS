@@ -10,16 +10,16 @@ namespace TransactionManagement
         public void WaitTransactionResourceLock (Guid transactionGuid);
     }
 
-    public class TransactionScheduler : ITransactionScheduler
+    public class TransactionScheduler<LockQueueType>: ITransactionScheduler where LockQueueType : ITableLockQueue, new()
     {
         private readonly Dictionary<Guid, TransactionLocksInfo> _transactions;
-        private readonly Dictionary<string, TableLockQueue> _tablesLockInfo;
+        private readonly Dictionary<string, ITableLockQueue> _tablesLockInfo;
         private readonly object _addingLocker;
 
         public TransactionScheduler ()
         {
             _transactions = new Dictionary<Guid, TransactionLocksInfo>();
-            _tablesLockInfo = new Dictionary<string, TableLockQueue>();
+            _tablesLockInfo = new Dictionary<string, ITableLockQueue>();
             _addingLocker = new object();
         }
 
@@ -31,7 +31,7 @@ namespace TransactionManagement
                 {
                     if (!_tablesLockInfo.TryGetValue(tableLock.TableName, out var queue))
                     {
-                        _tablesLockInfo.Add(tableLock.TableName, queue = new TableLockQueue());
+                        _tablesLockInfo.Add(tableLock.TableName, queue = new LockQueueType());
                     }
 
                     queue.AddLock(tableLock);

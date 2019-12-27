@@ -28,10 +28,10 @@ namespace IronySqlParser.AstNodes
 
         protected void GetAllValuesNamesFromNode (OperatorNode expNode)
         {
+            var names = new HashSet<string>();
+
             foreach (var variable in expNode.VariablesNames)
             {
-                var names = new HashSet<string>();
-
                 if (!names.TryGetValue(variable, out _))
                 {
                     VariablesNames.Add(variable);

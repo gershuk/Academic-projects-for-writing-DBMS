@@ -35,13 +35,13 @@ namespace DataBaseType
         public dynamic? LeftBorder
         {
             get => _leftBorder;
-            set => _leftBorder = _leftBorder < value || _leftBorder == null ? value : _leftBorder;
+            set => _leftBorder = (value != null && (_leftBorder == null || _leftBorder < value)) ? value : _leftBorder;
         }
 
         public dynamic? RightBorder
         {
             get => _rightBorder;
-            set => _rightBorder = _rightBorder > value || _rightBorder == null ? value : _rightBorder;
+            set => _rightBorder = (value != null && (_rightBorder == null || _rightBorder > value)) ? value : _rightBorder;
         }
 
         public VariableBorder (dynamic? leftBorder, dynamic? rightBorder, bool strictLeft, bool strictRight)

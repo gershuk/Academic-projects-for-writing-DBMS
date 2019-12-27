@@ -66,6 +66,7 @@ namespace IronySqlParser
             var AND = ToTerm("AND");
             var OF = ToTerm("OF");
             var TO = ToTerm("TO");
+            var OR = ToTerm("OR");
 
             var stmtList = new NonTerminal("stmtList", typeof(StmtListNode));
             var stmtLine = new NonTerminal("stmtLine", typeof(StmtLineNode));
@@ -274,11 +275,11 @@ namespace IronySqlParser
             //Expression
             expressionList.Rule = MakePlusRule(expressionList, comma, expression);
             //expression.Rule = /*"(" + expressionWithoutBrackets + ")" |*/ expressionWithoutBrackets;
-            expression.Rule = term | unExpr | binExpr | "(" + expression + ")";// Add betweenExpr
+            expression.Rule = "(" + expression + ")" | binExpr | unExpr | term;// Add betweenExpr
             term.Rule = id | stringLiteral | number; //| funCall | tuple | parSelectStmt;// | inStmt;
             tuple.Rule = "(" + expressionList + ")";
             parSelectStmt.Rule = "(" + selectStmt + ")";
-            unExpr.Rule = unOp + expression;
+            unExpr.Rule = unOp + "(" + expression + ")" | unOp + term;
             unOp.Rule = NOT | "+" | "-" | "~";
             binExpr.Rule = expression + binOp + expression;
             binOp.Rule = ToTerm("+") | "-" | "*" | "/" | "%" | "&" | "|" | "^"
@@ -297,8 +298,8 @@ namespace IronySqlParser
             RegisterOperators(8, "=", ">", "<", ">=", "<=", "<>", "!=", "!<", "!>", "LIKE", "IN");
             RegisterOperators(7, "^", "&", "|");
             RegisterOperators(6, NOT);
-            RegisterOperators(5, "AND");
-            RegisterOperators(4, "OR");
+            RegisterOperators(5, AND);
+            RegisterOperators(4, OR);
 
             MarkPunctuation(",", "(", ")");
             MarkPunctuation(asOpt, semiOpt);

@@ -173,7 +173,7 @@ namespace IronySqlParser.AstNodes
                     IsCompressed = true;
                 }
             }
-            catch
+            catch (Exception exc)
             {
                 IsCompressed = false;
             }

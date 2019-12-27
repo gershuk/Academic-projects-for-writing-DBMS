@@ -114,7 +114,20 @@ namespace DataBaseType
                 ValueBytes[i] = System.Text.Encoding.ASCII.GetBytes(" ")[0];
             }
         }
+        public FieldChar (Varchar val, int size)
+        {
+            ValueBytes = new byte[size];
+            var buf = System.Text.Encoding.UTF8.GetBytes(val.CharArray);
+            for (var i = 0; i < buf.Length && i < size; i++)
+            {
+                ValueBytes[i] = buf[i];
+            }
 
+            for (var i = buf.Length; i < size; i++)
+            {
+                ValueBytes[i] = System.Text.Encoding.ASCII.GetBytes(" ")[0];
+            }
+        }
         public override string ToString () => Value.ToString();
     }
 

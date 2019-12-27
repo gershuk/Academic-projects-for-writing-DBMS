@@ -71,6 +71,79 @@ namespace DataBaseType
         performed
     }
 
+    public struct Varchar : IComparable<Varchar>, IEquatable<Varchar>
+    {
+        private string _charArray;
+        private int? _hash;
+
+        public string CharArray
+        {
+            get => _charArray;
+            set
+            {
+                _hash = null;
+                _charArray = value;
+            }
+        }
+
+        public Varchar (string charArray)
+        {
+            _hash = 0;
+            _charArray = charArray;
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1307:Укажите StringComparison", Justification = "<Ожидание>")]
+        public int CompareTo (Varchar other) => CharArray.CompareTo(other.CharArray);
+
+        public static bool operator > (Varchar operand1, Varchar operand2) => operand1.CompareTo(operand2) == 1;
+
+        public static bool operator < (Varchar operand1, Varchar operand2) => operand1.CompareTo(operand2) == -1;
+
+        public static bool operator >= (Varchar operand1, Varchar operand2) => operand1.CompareTo(operand2) >= 0;
+
+        public static bool operator <= (Varchar operand1, Varchar operand2) => operand1.CompareTo(operand2) <= 0;
+
+        public override bool Equals (object obj) => obj is Varchar other ? other.CharArray == CharArray : false;
+
+        public override int GetHashCode ()
+        {
+            const int p = 317;
+            var pPow = 1;
+
+            if (_hash == null)
+            {
+                for (var i = 0; i < _charArray.Length; i++)
+                {
+                    _hash = pPow * Convert.ToInt32(_charArray[i]);
+                    pPow *= p;
+                }
+            }
+
+            return _hash.GetValueOrDefault();
+        }
+
+        public static bool operator == (Varchar left, Varchar right) => left.Equals(right);
+
+        public static bool operator != (Varchar left, Varchar right) => !(left == right);
+
+        public bool Equals (Varchar other) => other._charArray == _charArray;
+        public override string ToString () => (string)_charArray.Clone();
+
+        public static explicit operator string (Varchar param) => (string)param._charArray.Clone();
+
+        public static explicit operator Varchar (string param)
+        {
+            if (param == null)
+            {
+                throw new NullReferenceException();
+            }
+            else
+            {
+                return new Varchar((string)param.Clone());
+            }
+        }
+    }
+
     public interface IOperationResult<T>
     {
         DBError OperationError { get; set; }

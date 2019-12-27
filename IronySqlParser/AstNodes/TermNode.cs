@@ -35,7 +35,7 @@ namespace IronySqlParser.AstNodes
             if (StringLiteralNode.Count > 0)
             {
                 TermType = TermType.StringLiteral;
-                StringLiteral = StringLiteralNode[0].StringLiteral;
+                StringLiteral = StringLiteralNode[0].StringLiteral.ToString();
             }
 
             if (NumberNode.Count > 0)

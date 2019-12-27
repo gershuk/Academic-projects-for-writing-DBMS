@@ -1,14 +1,16 @@
-﻿namespace IronySqlParser.AstNodes
+﻿using DataBaseType;
+
+namespace IronySqlParser.AstNodes
 {
     public class StringLiteralNode : SqlNode
     {
-        public string StringLiteral { get; set; }
+        public Varchar StringLiteral { get; set; }
 
         public override void CollectDataFromChildren ()
         {
             foreach (var token in Tokens)
             {
-                StringLiteral = (string)token.Value;
+                StringLiteral = (Varchar)(string) token.Value;
             }
         }
     }
